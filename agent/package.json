@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "digest": "tsx src/index.ts",
+    "weekly": "tsx src/index.ts --weekly",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

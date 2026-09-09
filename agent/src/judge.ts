@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import type { Digest } from "./collect.js";
+import type { WeeklyDigest } from "./weekly.js";
 
 const VerdictSchema = z.object({
   severity: z.enum(["CRITICAL", "WARN", "INFO"]),
@@ -20,7 +21,7 @@ const JudgementSchema = z.object({
 
 export type Judgement = z.infer<typeof JudgementSchema>;
 
-const SYSTEM = `Bạn là lớp phán của hệ thống giám sát vận hành công ty 3M — đại lý viễn thông
+const CHUNG = `Bạn là lớp phán của hệ thống giám sát vận hành công ty 3M — đại lý viễn thông
 bán lại wifi cầm tay, sim data, WiMAX, sim Softbank và internet cố định.
 
 Bạn KHÔNG tính số. Mọi con số đã do SQL tính sẵn và nằm trong dữ liệu đầu vào.
@@ -44,19 +45,37 @@ Luật:
 Viết tiếng Việt, gọn, không mở bài không kết bài.
 mo_dau là một câu nêu mốc dữ liệu và tình hình chung.`;
 
-export async function judge(digest: Digest): Promise<Judgement> {
+const HANG_TUAN = `${CHUNG}
+
+Đây là báo cáo tuần, không phải bản tin sáng. Nói xu hướng chứ đừng nói việc
+vặt hằng ngày: cái gì đang tốt lên, cái gì đang xấu đi, so với tuần trước và
+trung bình bốn tuần.
+
+Thêm luật cho báo cáo tuần:
+8. Chỉ số nào không có mốc so sánh (tuần trước hoặc trung bình bằng null) thì
+   nói rõ là chưa đủ dữ liệu để kết luận, đừng phán trên một điểm duy nhất.
+9. Hai chỉ số đáng chú ý nhất: collection_rate — bán được mà không thu được
+   thì doanh thu chỉ là con số trên giấy; và device_earning_rate — trần doanh
+   thu nhánh thiết bị nằm ở đó, không nằm ở số khách.
+10. Chênh lệch dưới năm phần trăm giữa hai tuần thường là nhiễu, đừng gọi
+   thành xu hướng.`;
+
+export async function judge(
+  digest: Digest | WeeklyDigest,
+  kind: "hang_ngay" | "hang_tuan" = "hang_ngay",
+): Promise<Judgement> {
   const client = new Anthropic();
 
   const response = await client.messages.parse({
     model: "claude-opus-5",
     max_tokens: 16000,
     thinking: { type: "adaptive" },
-    system: SYSTEM,
+    system: kind === "hang_tuan" ? HANG_TUAN : CHUNG,
     messages: [
       {
         role: "user",
         content:
-          `Dữ liệu ngày ${digest.ngay}:\n\n` +
+          `Dữ liệu ${kind === "hang_tuan" ? `tuần bắt đầu ${digest.ngay}` : `ngày ${digest.ngay}`}:\n\n` +
           "```json\n" +
           JSON.stringify(digest, null, 2) +
           "\n```",

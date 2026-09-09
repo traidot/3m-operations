@@ -184,4 +184,38 @@ begin
   assert v_n = 1, 'thuê bao phải theo party được giữ';
 end $$;
 
+-- ── Báo cáo tuần ──────────────────────────────────────────────────────
+do $$
+declare
+  w date := (date_trunc('week', current_date) - interval '7 days')::date;
+  v numeric;
+begin
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, monthly_cost, activated_on, terminated_on)
+  values ('FIXED','W1','CW','FIXED_INTERNET','TERMINATED', 5000, 2000, w + 1, w + 3),
+         ('FIXED','W2','CW','FIXED_INTERNET','ACTIVE',     5000, 2000, w + 1, null);
+
+  select value into v from weekly_metric_raw(w)
+   where metric_key = 'new_subscription' and dimension = 'FIXED_INTERNET';
+  assert v = 2, 'hai thuê bao kích hoạt trong tuần — đang là ' || coalesce(v::text, 'null');
+
+  select value into v from weekly_metric_raw(w)
+   where metric_key = 'churned_subscription' and dimension = 'FIXED_INTERNET';
+  assert v = 1, 'một thuê bao chấm dứt trong tuần — đang là ' || coalesce(v::text, 'null');
+
+  select value into v from weekly_metric_raw(w)
+   where metric_key = 'active_at_end' and dimension = 'FIXED_INTERNET';
+  assert v = 1, 'cuối tuần còn một thuê bao chạy — đang là ' || coalesce(v::text, 'null');
+
+  -- Biên lãi chỉ tính thuê bao còn chạy: 5000 trừ 2000.
+  select value into v from weekly_metric_raw(w)
+   where metric_key = 'gross_margin' and dimension = 'FIXED_INTERNET';
+  assert v = 3000, 'biên lãi phải là 3000 — đang là ' || coalesce(v::text, 'null');
+
+  -- Tuần trước đó chưa có gì, nên phải có cột so sánh rỗng chứ không mất dòng.
+  select tuan_nay into v from weekly_report(w)
+   where metric_key = 'new_subscription' and dimension = 'FIXED_INTERNET';
+  assert v = 2, 'weekly_report phải giữ lại số của tuần này — đang là ' || coalesce(v::text, 'null');
+end $$;
+
 \echo 'TẤT CẢ TEST ĐỀU QUA'

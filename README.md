@@ -29,6 +29,7 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `005_sources.sql` | Nối fdw tới hai database nguồn + hợp đồng ánh xạ |
 | `006_sync.sql` | Máy đồng bộ, chuẩn hoá số điện thoại |
 | `007_party_matching.sql` | Gộp hồ sơ khách, hàng đợi duyệt trùng |
+| `008_weekly.sql` | Đơn lắp đặt, chỉ số tuần, `weekly_report()` |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -67,6 +68,16 @@ npm run digest -- --manual
 
 ```bash
 npm run digest -- --numbers-only
+```
+
+Báo cáo tuần — mặc định là tuần vừa kết thúc, hoặc chỉ định thứ hai đầu tuần:
+
+```bash
+npm run weekly
+```
+
+```bash
+npm run weekly -- 2026-08-31
 ```
 
 Có khoá chống chạy chồng: bấm chạy tay lúc job đêm đang chạy thì bị từ chối
@@ -113,6 +124,10 @@ phải sửa năm view đó.
 **Màn hình duyệt trùng khách.** Quy tắc khớp và hàm `merge_parties` /
 `reject_merge` đã có, chạy được bằng SQL. Chưa có giao diện — chỉ cần khi
 hàng đợi `v_merge_candidate` đủ dài để bấm tay không xuể.
+
+**Ticket hỗ trợ.** Chỉ số thứ chín của báo cáo tuần (ticket tồn đọng) cần một
+bảng `ticket_snapshot` và view ánh xạ thứ bảy. Chưa thêm vì chưa rõ hai hệ
+thống có quản ticket không.
 
 **Marketing.** Hai Google Sheets chưa nối vào. Cần thống nhất tên tab giữa hai
 file và ép định dạng số trước, không thì đọc tự động sẽ vỡ.
