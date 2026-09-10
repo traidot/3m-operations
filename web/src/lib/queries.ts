@@ -9,6 +9,7 @@ export type Finding = {
   action: string | null;
   metabase_url: string | null;
   times_reported: number;
+  reopened_count: number;
   so_ngay_ton: number;
   nhom: "moi" | "dang_ton" | "nhac_lai_nhieu_lan";
 };
@@ -46,8 +47,15 @@ export type Loan = {
 export const getFindings = () =>
   query<Finding>(
     `select id, rule_key, severity, title, evidence, action, metabase_url,
-            times_reported, so_ngay_ton, nhom
+            times_reported, reopened_count, so_ngay_ton, nhom
        from finding_digest`,
+  );
+
+/** Việc đã đánh bỏ qua vĩnh viễn — để gỡ lại khi bấm nhầm. */
+export const getIgnored = () =>
+  query<{ id: string; title: string; rule_key: string; note: string | null }>(
+    `select id, title, rule_key, note from finding
+      where status = 'IGNORED' order by updated_at desc limit 50`,
   );
 
 export const getFreshness = () =>

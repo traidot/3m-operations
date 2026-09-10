@@ -296,4 +296,51 @@ begin
     'phải đếm được số kỳ nợ — đang là ' || coalesce(v_ev->>'so_ky_no','null');
 end $$;
 
+-- ── Đóng rồi mở lại phải giữ tuổi của vấn đề ──────────────────────────
+do $$
+declare v_id uuid; v_ngay date; v_lan int; v_mo_lai int;
+begin
+  select id, first_seen_on into v_id, v_ngay
+    from finding where rule_key = 'R_FIXED_ARREARS' limit 1;
+
+  -- Giả vờ vấn đề đã tồn từ 10 ngày trước.
+  update finding set first_seen_on = current_date - 10, times_reported = 5 where id = v_id;
+
+  -- Bấm "đã xử lý" nhưng nợ vẫn còn.
+  update finding set status = 'RESOLVED', resolved_on = current_date where id = v_id;
+  perform run_rules();
+
+  select first_seen_on, times_reported, reopened_count
+    into v_ngay, v_lan, v_mo_lai from finding where id = v_id;
+
+  assert (select count(*) from finding where rule_key = 'R_FIXED_ARREARS') = 1,
+    'mở lại phải dùng chính dòng cũ, không sinh dòng mới';
+  assert v_ngay = current_date - 10,
+    'ngày phát hiện đầu tiên phải giữ nguyên — đang là ' || v_ngay;
+  assert v_lan = 6, 'số lần nhắc phải cộng tiếp — đang là ' || v_lan;
+  assert v_mo_lai = 1, 'phải đếm được một lần tái diễn — đang là ' || v_mo_lai;
+  assert (select status from finding where id = v_id) = 'OPEN',
+    'vấn đề còn thì phải mở lại';
+end $$;
+
+-- ── Gỡ đánh dấu bỏ qua ────────────────────────────────────────────────
+do $$
+declare v_id uuid;
+begin
+  select id into v_id from finding where rule_key = 'R_FIXED_ARREARS' limit 1;
+  update finding set status = 'IGNORED' where id = v_id;
+
+  perform run_rules();
+  assert (select status from finding where id = v_id) = 'IGNORED',
+    'đã bỏ qua thì lượt chạy sau không được đụng vào';
+
+  perform unignore_finding(v_id);
+  assert (select status from finding where id = v_id) = 'RESOLVED',
+    'gỡ bỏ qua thì về trạng thái đã đóng, để lượt sau tự quyết';
+
+  perform run_rules();
+  assert (select status from finding where id = v_id) = 'OPEN',
+    'vấn đề vẫn còn nên phải mở lại sau khi gỡ';
+end $$;
+
 \echo 'TẤT CẢ TEST ĐỀU QUA'

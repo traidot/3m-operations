@@ -1,5 +1,5 @@
-import { setFindingStatus } from "@/lib/actions";
-import { getFindings, getFreshness, type Finding } from "@/lib/queries";
+import { setFindingStatus, unignoreFinding } from "@/lib/actions";
+import { getFindings, getFreshness, getIgnored, type Finding } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,11 @@ const NHOM_LABEL: Record<Finding["nhom"], string> = {
 };
 
 export default async function Page() {
-  const [findings, freshness] = await Promise.all([getFindings(), getFreshness()]);
+  const [findings, freshness, ignored] = await Promise.all([
+    getFindings(),
+    getFreshness(),
+    getIgnored(),
+  ]);
 
   // Đồng bộ chết âm thầm thì trang vẫn hiện số, chỉ là số của hôm kia.
   const stale = freshness.filter(
@@ -37,6 +41,28 @@ export default async function Page() {
         <p className="empty">Chưa có gì. Bản tin trống là kết quả tốt.</p>
       ) : (
         findings.map((f) => <FindingCard key={f.id} finding={f} />)
+      )}
+
+      {ignored.length > 0 && (
+        <details>
+          <summary>Đã bỏ qua vĩnh viễn ({ignored.length})</summary>
+          <p className="muted">
+            Những việc này không hiện lại dù vấn đề còn nguyên. Gỡ đánh dấu thì lượt
+            chạy sau tự quyết có mở lại hay không.
+          </p>
+          {ignored.map((f) => (
+            <div key={f.id} className="card info">
+              <div className="card-head">
+                <span className="card-title">{f.title}</span>
+                <form action={unignoreFinding} className="inline">
+                  <input type="hidden" name="id" value={f.id} />
+                  <button type="submit">Gỡ bỏ qua</button>
+                </form>
+              </div>
+              <p className="mono muted">{f.rule_key}</p>
+            </div>
+          ))}
+        </details>
       )}
 
       <h2>Mốc đồng bộ</h2>
@@ -83,6 +109,9 @@ function FindingCard({ finding }: { finding: Finding }) {
       <p className="muted">
         {NHOM_LABEL[finding.nhom]} · tồn {finding.so_ngay_ton} ngày · đã nhắc{" "}
         {finding.times_reported} lần
+        {finding.reopened_count > 0 && (
+          <> · đã đóng rồi tái diễn {finding.reopened_count} lần</>
+        )}
         {finding.metabase_url && (
           <>
             {" · "}

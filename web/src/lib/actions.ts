@@ -26,6 +26,13 @@ export async function setFindingStatus(formData: FormData) {
   revalidatePath("/");
 }
 
+/** Gỡ đánh dấu bỏ qua. Lượt chạy quy tắc sau tự quyết mở lại hay không. */
+export async function unignoreFinding(formData: FormData) {
+  const id = Uuid.parse(formData.get("id"));
+  await query("select unignore_finding($1::uuid)", [id]);
+  revalidatePath("/");
+}
+
 export async function mergeParties(formData: FormData) {
   const keep = Uuid.parse(formData.get("keep"));
   const drop = Uuid.parse(formData.get("drop"));
