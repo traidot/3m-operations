@@ -195,9 +195,17 @@ truy cập thì job dừng.
 **Tài khoản dịch vụ** — bền hơn, không gắn với ai, nhưng phải nhờ chủ sheet
 chia sẻ cho email của nó. Đặt `GOOGLE_SA_EMAIL` và `GOOGLE_SA_PRIVATE_KEY`.
 
-Tab nào có chữ "tháng" kèm số thì đọc, còn lại bỏ qua — nên tên tab hai file
-khác nhau vẫn chạy được. Năm suy từ số tháng: tháng đã qua là năm nay, tháng
-còn ở phía trước là năm ngoái.
+Ba sheet, mỗi người chạy ads một file. Chỉ đọc **tab tổng hợp** — tên có chữ
+"tổng" ngay trước "tháng" và số, rồi hết: `Báo cao tổng tháng 8`,
+`Báo cáo tổng tháng 9`, `BC_Tổng Tháng 11`. Tab riêng từng người
+(`BC_Tháng 9_Việt Hoàng`), tab theo tuần (`Bc_Tuần_Tháng 8`) và biến thể
+(`BC_Tháng 7 Quads`) đều bỏ qua — gộp vào là đếm trùng với tab tổng.
+
+Năm suy từ tháng ghi trong ô ngày, **không** từ tên tab: có tab đặt tên
+"tháng 8" nhưng bên trong là số liệu tháng 7.
+
+Google cho 60 lượt đọc mỗi phút nên có nghỉ 600ms giữa các tab và thử lại khi
+gặp 429.
 
 Nhập tay từ CSV vẫn dùng được khi cần vá dữ liệu cũ:
 
