@@ -31,6 +31,7 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `007_party_matching.sql` | Gộp hồ sơ khách, hàng đợi duyệt trùng |
 | `008_weekly.sql` | Đơn lắp đặt, chỉ số tuần, `weekly_report()` |
 | `009_marketing.sql` | Số liệu quảng cáo, số dẫn xuất, đối chiếu mức 1 |
+| `010_ads_monitoring.sql` | Số quảng cáo vào ảnh chụp ngày, cảnh báo sheet chậm |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -134,17 +135,25 @@ hàng đợi `v_merge_candidate` đủ dài để bấm tay không xuể.
 bảng `ticket_snapshot` và view ánh xạ thứ bảy. Chưa thêm vì chưa rõ hai hệ
 thống có quản ticket không.
 
-**Marketing đọc tự động.** Bộ bóc tách đã xong và có test, nhưng hai sheet là
-file riêng tư nên hiện phải xuất CSV rồi nhập tay:
+**Marketing.** Kéo tự động toàn bộ tab của cả hai sheet mỗi ngày:
 
 ```bash
-cd agent && npm run ads -- --owner dinh_viet --year 2026 --tab "Tháng 1" thang1.csv
+cd agent && npm run ads:sync
 ```
 
-Muốn chạy tự động thì cần tài khoản dịch vụ Google Sheets API — chỉ phải thay
-chỗ đọc file, phần bóc tách giữ nguyên. Trước đó nên đề nghị marketing thống
-nhất tên tab giữa hai file, hiện một bên là "Báo cao tổng tháng 1" bên kia là
-"BC_Tháng 4".
+Cần tài khoản dịch vụ Google: tạo service account, bật Google Sheets API, rồi
+chia sẻ cả hai sheet cho email của nó với quyền xem. Đặt `GOOGLE_SA_EMAIL`,
+`GOOGLE_SA_PRIVATE_KEY` và `ADS_SHEETS` trong `agent/.env`.
+
+Tab nào có chữ "tháng" kèm số thì đọc, còn lại bỏ qua — nên tên tab hai file
+khác nhau vẫn chạy được. Năm suy từ số tháng: tháng đã qua là năm nay, tháng
+còn ở phía trước là năm ngoái.
+
+Nhập tay từ CSV vẫn dùng được khi cần vá dữ liệu cũ:
+
+```bash
+npm run ads -- --owner dinh_viet --year 2026 --tab "Tháng 1" thang1.csv
+```
 
 Chỉ nhập năm số gốc: chi phí, tiếp cận, click, mess, đơn hàng. Giá click, CTR,
 giá mess, chi phí trên đơn đều tính lại bằng SQL — trong sheet mấy hàng đó dùng

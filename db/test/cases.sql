@@ -243,6 +243,28 @@ begin
   insert into party (display_name, created_at) values ('Khách hôm qua', now() - interval '1 day');
   select chenh_lech into v from v_ads_vs_party where ngay = current_date - 1;
   assert v = -1, 'khai 2 mà chỉ có 1 hồ sơ thì lệch -1 — đang là ' || coalesce(v::text, 'null');
+
+  -- Số quảng cáo hôm qua phải vào ảnh chụp để tuần sau còn so được.
+  perform snapshot_daily();
+  select value into v from daily_metric
+   where metric_date = current_date and metric_key = 'ads_orders';
+  assert v = 2, 'ảnh chụp phải có số đơn khai của hôm qua — đang là ' || coalesce(v::text, 'null');
+end $$;
+
+-- ── Sheet marketing chậm cập nhật ─────────────────────────────────────
+do $$
+declare v_n int;
+begin
+  -- Số mới nhất là hôm qua, ngưỡng 2 ngày nên chưa báo.
+  perform run_rules();
+  select count(*) into v_n from finding where rule_key = 'R_ADS_STALE' and status = 'OPEN';
+  assert v_n = 0, 'mới chậm 1 ngày thì chưa báo — đang có ' || v_n;
+
+  -- Đẩy lùi số liệu về 5 ngày trước.
+  update ads_daily set metric_date = current_date - 5 where sheet_owner = 'test';
+  perform run_rules();
+  select count(*) into v_n from finding where rule_key = 'R_ADS_STALE' and status = 'OPEN';
+  assert v_n = 1, 'chậm 5 ngày thì phải báo — đang có ' || v_n;
 end $$;
 
 \echo 'TẤT CẢ TEST ĐỀU QUA'

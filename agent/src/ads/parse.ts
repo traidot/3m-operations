@@ -96,17 +96,28 @@ function splitCsvLine(line: string): string[] {
   return out;
 }
 
+/** Bọc quanh parseAdsRows cho trường hợp xuất CSV tay. */
 export function parseAdsTab(csv: string, year: number): AdsRow[] {
-  const lines = csv.split(/\r?\n/).filter((l) => l.trim() !== "");
+  const rows = csv
+    .split(/\r?\n/)
+    .filter((l) => l.trim() !== "")
+    .map(splitCsvLine);
+  return parseAdsRows(rows, year);
+}
+
+/**
+ * Nhận thẳng lưới ô — Google Sheets API trả về dạng này, và hàng ngắn hơn
+ * hàng tiêu đề là bình thường vì ô cuối trống bị cắt.
+ */
+export function parseAdsRows(grid: string[][], year: number): AdsRow[] {
 
   // Hàng tiêu đề là hàng đầu tiên có từ hai ô ngày trở lên.
   let dates: (string | null)[] = [];
   let dateOffset = -1;
   let headerIndex = -1;
 
-  for (let i = 0; i < lines.length; i++) {
-    const cells = splitCsvLine(lines[i]!);
-    const parsed = cells.map((c) => parseDate(c, year));
+  for (let i = 0; i < grid.length; i++) {
+    const parsed = (grid[i] ?? []).map((c) => parseDate(c, year));
     if (parsed.filter(Boolean).length >= 2) {
       dates = parsed;
       dateOffset = parsed.findIndex(Boolean);
@@ -120,8 +131,8 @@ export function parseAdsTab(csv: string, year: number): AdsRow[] {
   const acc = new Map<string, AdsRow>();
   let product = "TONG";
 
-  for (let i = headerIndex + 1; i < lines.length; i++) {
-    const cells = splitCsvLine(lines[i]!);
+  for (let i = headerIndex + 1; i < grid.length; i++) {
+    const cells = grid[i] ?? [];
     const first = key(cells[0] ?? "");
 
     let metricCell: string;

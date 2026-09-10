@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseAdsTab, parseNumber } from "./parse.js";
+import { guessYear, monthFromTab } from "./sheets.js";
 
 // Rút gọn từ cấu trúc thật của hai sheet: hàng tiêu đề có cột TỔNG rồi tới
 // từng ngày; khối sản phẩm có thêm cột tên ở đầu nên lệch sang phải một ô;
@@ -70,4 +71,23 @@ test("cột TỔNG không bị nhầm thành một ngày", () => {
   const rows = parseAdsTab(CSV, 2026);
   const ngay = [...new Set(rows.map((r) => r.metric_date))];
   assert.deepEqual(ngay, ["2026-01-27", "2026-01-28", "2026-01-29"]);
+});
+
+test("đoán năm cho tab báo cáo tháng", () => {
+  const thang9 = new Date("2026-09-10");
+  // Tháng đã qua hoặc đang chạy là năm nay.
+  assert.equal(guessYear(1, thang9), 2026);
+  assert.equal(guessYear(9, thang9), 2026);
+  // Tháng còn ở phía trước là của năm ngoái.
+  assert.equal(guessYear(12, thang9), 2025);
+  // Đọc báo cáo tháng 12 vào đầu tháng 1 vẫn ra đúng năm cũ.
+  assert.equal(guessYear(12, new Date("2027-01-05")), 2026);
+});
+
+test("nhận ra tab báo cáo tháng, bỏ qua tab khác", () => {
+  assert.equal(monthFromTab("Báo cao tổng tháng 1"), 1);
+  assert.equal(monthFromTab("BC_Tháng 4"), 4);
+  assert.equal(monthFromTab("FANPAGE 3M"), null);
+  assert.equal(monthFromTab("báo cáo cuối tuần"), null);
+  assert.equal(monthFromTab("Tháng 13"), null);
 });

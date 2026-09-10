@@ -6,6 +6,7 @@
     "digest": "tsx src/index.ts",
     "weekly": "tsx src/index.ts --weekly",
     "ads": "tsx src/ads/import.ts",
+    "ads:sync": "tsx src/ads/sync.ts",
     "test": "tsx --test src/**/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

@@ -187,6 +187,29 @@ begin
   rule_key := 'R_DUPLICATE_PARTY'; so_phat_hien := coalesce(array_length(v_fp, 1), 0);
   so_da_dong := auto_resolve_findings('R_DUPLICATE_PARTY', v_fp, p_today); return next;
 
+  -- ── Sheet marketing chưa cập nhật ──────────────────────────────────
+  -- Kéo về mỗi ngày nhưng marketing quên nhập thì số vẫn cũ. Phát hiện sớm
+  -- hơn nhiều so với đợi tới báo cáo tuần.
+  v_fp := '{}';
+  for v_rec in
+    select * from v_ads_freshness where so_ngay_cham > nguong_ngay
+  loop
+    perform upsert_finding(
+      'R_ADS_STALE', 'global', v_rec.sheet_owner,
+      'WARN',
+      format('Sheet quảng cáo của %s mới có số tới %s, chậm %s ngày',
+             v_rec.sheet_owner, v_rec.ngay_moi_nhat, v_rec.so_ngay_cham),
+      jsonb_build_object(
+        'ngay_moi_nhat', v_rec.ngay_moi_nhat,
+        'so_ngay_cham', v_rec.so_ngay_cham,
+        'lan_keo_cuoi', v_rec.lan_keo_cuoi),
+      'Nhắc người chạy quảng cáo nhập số. Không có số thì không tính được chi phí ra một khách.',
+      null, p_today);
+    v_fp := v_fp || ('R_ADS_STALE:' || v_rec.sheet_owner);
+  end loop;
+  rule_key := 'R_ADS_STALE'; so_phat_hien := coalesce(array_length(v_fp, 1), 0);
+  so_da_dong := auto_resolve_findings('R_ADS_STALE', v_fp, p_today); return next;
+
 end $$;
 
 -- Chụp số cuối ngày. Công nợ và tồn kho là số tại thời điểm, không truy hồi được.
