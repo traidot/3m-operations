@@ -32,6 +32,7 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `008_weekly.sql` | Đơn lắp đặt, chỉ số tuần, `weekly_report()` |
 | `009_marketing.sql` | Số liệu quảng cáo, số dẫn xuất, đối chiếu mức 1 |
 | `010_ads_monitoring.sql` | Số quảng cáo vào ảnh chụp ngày, cảnh báo sheet chậm |
+| `011_fixed_wifi.sql` | Công nợ suy ra theo hợp đồng, chuẩn hoá địa chỉ |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -114,22 +115,30 @@ không dùng Prisma — Prisma introspect được bảng nhưng không quản v
 
 ## Còn thiếu
 
-**Tầng đồng bộ.** Chưa viết vì chưa có lược đồ hai database nguồn. Cần biết
-tên bảng và cột của phần khách hàng, thuê bao, hoá đơn, thanh toán, và ba
-câu hỏi này:
+**Tầng đồng bộ — wifi cố định đã xong.**
 
-- Bảng lớn có cột thời gian tạo và cập nhật không? Không có thì mất hẳn nhóm
-  chỉ số nhập kịp, và mọi cột `created_at_src` trong kho sẽ để null.
-- Bản ghi có bị xoá cứng không? Có thì đồng bộ tăng dần sẽ giữ lại rác.
-- Có bản sao chỉ đọc chưa, hay phải query thẳng database đang phục vụ khách?
+```bash
+cd agent && npm run sync
+```
 
-Bên nhận đã sẵn: máy đồng bộ chỉ đọc năm view ánh xạ mô tả ở cuối
-`db/005_sources.sql`, không biết gì về bảng gốc. Đổi lược đồ bên nguồn chỉ
-phải sửa năm view đó.
+Nguồn là **MySQL 8** chứ không phải Postgres, nên không dùng `postgres_fdw` mà
+đọc bằng `mysql2`. Kết nối ép chỉ đọc ba lớp: phiên đặt `transaction_read_only`,
+tắt `multipleStatements`, và hàm query chỉ nhận câu bắt đầu bằng `select` hoặc
+`show`. Vẫn phải dùng tài khoản chỉ đọc ở phía MySQL — ba lớp trên là phòng thân.
 
-**Màn hình duyệt trùng khách.** Quy tắc khớp và hàm `merge_parties` /
-`reject_merge` đã có, chạy được bằng SQL. Chưa có giao diện — chỉ cần khi
-hàng đợi `v_merge_candidate` đủ dài để bấm tay không xuể.
+Ánh xạ nằm trong `agent/src/sync/fixed-wifi.ts`, là chỗ duy nhất biết lược đồ
+bên nguồn.
+
+Hai điều khác thiết kế ban đầu:
+
+- **Không có khách hàng cuối.** Bảy dòng trong `customers` bên nguồn là nhân
+  viên 3M đứng tên đăng ký với nhà mạng. 3M chỉ quản hợp đồng và địa chỉ lắp,
+  nên `party_id` để trống cho nguồn FIXED và mọi thứ quy về hợp đồng.
+- **Không có hoá đơn.** `contract_fee_payments` chỉ ghi khoản đã thu, nên kỳ
+  cước phải thu được suy ra trong `v_fixed_expected_fee`, tạm neo vào ngày kích
+  hoạt vì `feeStartDate` trống ở phần lớn hợp đồng.
+
+**Tầng đồng bộ — telecom.** Chưa có thông tin kết nối.
 
 **Ticket hỗ trợ.** Chỉ số thứ chín của báo cáo tuần (ticket tồn đọng) cần một
 bảng `ticket_snapshot` và view ánh xạ thứ bảy. Chưa thêm vì chưa rõ hai hệ
