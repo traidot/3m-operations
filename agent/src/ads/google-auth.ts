@@ -8,8 +8,9 @@ import { SCOPE, TOKEN_ENDPOINT } from "./sheets.js";
  *   npm run google:auth
  *
  * Cần GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET của một OAuth client loại
- * Desktop app. Google đã bỏ luồng dán mã bằng tay từ 2022 nên script mở một
- * cổng tạm trên máy để nhận mã trả về.
+ * Desktop app. Loại đó tự cho phép mọi cổng localhost nên không phải khai
+ * redirect URI ở Console. Google đã bỏ luồng dán mã bằng tay từ 2022 nên
+ * script mở một cổng tạm trên máy để nhận mã trả về.
  *
  * Script chỉ in refresh token ra màn hình, không ghi vào file nào — anh tự
  * chép vào agent/.env.
@@ -25,8 +26,8 @@ async function main() {
     console.error(
       "Thiếu GOOGLE_CLIENT_ID hoặc GOOGLE_CLIENT_SECRET.\n" +
         "Tạo ở Google Cloud Console: APIs & Services > Credentials >\n" +
-        "Create credentials > OAuth client ID > Desktop app.\n" +
-        `Thêm ${REDIRECT} vào Authorized redirect URIs.`,
+        "Create credentials > OAuth client ID > Application type: Desktop app.\n" +
+        "Loại này không có ô redirect URI để điền, cứ tạo rồi lấy id và secret.",
     );
     process.exit(1);
   }

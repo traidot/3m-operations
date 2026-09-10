@@ -168,8 +168,15 @@ cd agent && npm run ads:sync
 Hai cách xác thực, đặt cái nào thì dùng cái đó.
 
 **Tài khoản của chính mình** — dùng khi sheet đã được share cho mình, không
-phải nhờ ai share thêm. Tạo OAuth client loại Desktop app ở Google Cloud
-Console, thêm `http://localhost:8757` vào Authorized redirect URIs, rồi:
+phải nhờ ai share thêm.
+
+Ở Google Cloud Console: bật **Google Sheets API**, rồi Credentials → Create
+credentials → OAuth client ID → Application type **Desktop app**. Loại này tự
+cho phép mọi cổng `localhost` nên **không có ô Authorized redirect URIs để
+điền** — ô đó chỉ xuất hiện với loại Web application. Nếu Console bắt tạo OAuth
+consent screen trước thì chọn External và thêm email của mình vào Test users.
+
+Đặt `GOOGLE_CLIENT_ID` và `GOOGLE_CLIENT_SECRET` vào `agent/.env`, rồi:
 
 ```bash
 cd agent && npm run google:auth
