@@ -1,6 +1,6 @@
 import { pool, q } from "../db.js";
 import { parseAdsRows } from "./parse.js";
-import { guessYear, listTabs, monthFromTab, readTab } from "./sheets.js";
+import { guessYear, listTabs, monthFromTab, nghi, readTab } from "./sheets.js";
 
 /**
  * Kéo toàn bộ tab báo cáo tháng của cả hai sheet, mỗi ngày một lượt.
@@ -26,14 +26,14 @@ function config(): SheetConfig[] {
   });
 }
 
-async function syncTab(sheet: SheetConfig, tab: string, year: number): Promise<number> {
+async function syncTab(sheet: SheetConfig, tab: string): Promise<number> {
   const [run] = await q<{ id: string }>(
     "insert into ads_import_run (sheet_owner, tab_name) values ($1, $2) returning id",
     [sheet.owner, tab],
   );
 
   try {
-    const rows = parseAdsRows(await readTab(sheet.id, tab), year);
+    const rows = parseAdsRows(await readTab(sheet.id, tab), guessYear);
 
     for (const r of rows) {
       await q(
@@ -67,11 +67,12 @@ async function main() {
     const tabs = await listTabs(sheet.id);
 
     for (const tab of tabs) {
-      const month = monthFromTab(tab);
-      if (month === null) continue; // tab danh sách fanpage, tab bỏ hoang, v.v.
+      // Chỉ tab tổng hợp. Tab riêng từng người gộp vào là đếm trùng.
+      if (monthFromTab(tab) === null) continue;
 
       try {
-        const n = await syncTab(sheet, tab, guessYear(month));
+        await nghi(600); // giữ dưới 60 lượt đọc mỗi phút
+        const n = await syncTab(sheet, tab);
         tong += n;
         console.log(`${sheet.owner} · ${tab}: ${n} dòng`);
       } catch (err) {

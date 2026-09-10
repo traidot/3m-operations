@@ -1,4 +1,6 @@
 import { createServer } from "node:http";
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { SCOPE, TOKEN_ENDPOINT } from "./sheets.js";
 
@@ -12,8 +14,8 @@ import { SCOPE, TOKEN_ENDPOINT } from "./sheets.js";
  * redirect URI ở Console. Google đã bỏ luồng dán mã bằng tay từ 2022 nên
  * script mở một cổng tạm trên máy để nhận mã trả về.
  *
- * Script chỉ in refresh token ra màn hình, không ghi vào file nào — anh tự
- * chép vào agent/.env.
+ * Script ghi thẳng refresh token vào .env.local ở thư mục gốc, không in ra
+ * màn hình — token không lọt vào log hay lịch sử terminal.
  */
 
 const PORT = 8757;
@@ -75,8 +77,23 @@ async function main() {
     );
   }
 
-  console.log("\nChép dòng dưới vào agent/.env:\n");
-  console.log(`GOOGLE_REFRESH_TOKEN=${json.refresh_token}`);
+  const file = path.resolve(process.cwd(), "..", ".env.local");
+  ghiEnv(file, "GOOGLE_REFRESH_TOKEN", json.refresh_token);
+  console.log(`\nĐã ghi GOOGLE_REFRESH_TOKEN vào ${file}. Giờ chạy được npm run ads:sync.`);
+}
+
+/** Thay giá trị nếu khoá đã có, thêm dòng mới nếu chưa. */
+function ghiEnv(file: string, key: string, value: string) {
+  if (!existsSync(file)) {
+    appendFileSync(file, `${key}=${value}\n`, "utf8");
+    return;
+  }
+  const cu = readFileSync(file, "utf8");
+  const dong = new RegExp(`^${key}=.*$`, "m");
+  const moi = dong.test(cu)
+    ? cu.replace(dong, `${key}=${value}`)
+    : `${cu.replace(/\n*$/, "\n")}${key}=${value}\n`;
+  writeFileSync(file, moi, "utf8");
 }
 
 function waitForCode(expectedState: string): Promise<string> {

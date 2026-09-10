@@ -87,10 +87,17 @@ function jwtGrant(): URLSearchParams {
   });
 }
 
-async function api<T>(path: string): Promise<T> {
+async function api<T>(path: string, lanThu = 0): Promise<T> {
   const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${path}`, {
     headers: { authorization: `Bearer ${await accessToken()}` },
   });
+
+  // 429 là vượt hạn mức 60 lượt/phút, chờ rồi thử lại chứ đừng bỏ luôn tab đó.
+  if (res.status === 429 && lanThu < 4) {
+    await nghi(2000 * 2 ** lanThu);
+    return api<T>(path, lanThu + 1);
+  }
+
   if (!res.ok) {
     throw new Error(`Google Sheets trả lỗi ${res.status}: ${await res.text()}`);
   }
@@ -124,10 +131,31 @@ export function guessYear(month: number, today = new Date()): number {
   return month > today.getMonth() + 1 ? y - 1 : y;
 }
 
-/** Lấy số tháng từ tên tab. Trả null nếu tab không phải báo cáo tháng. */
+/**
+ * Lấy số tháng từ tên tab tổng hợp. Trả null nếu không phải tab tổng hợp.
+ *
+ * Hai sheet có ba kiểu đặt tên cho tab tổng: "Báo cao tổng tháng 8",
+ * "Báo cáo tổng tháng 9", "BC_Tổng Tháng 11". Điểm chung duy nhất là chữ
+ * "tổng" đứng ngay trước "tháng" và số, rồi hết tên.
+ *
+ * Phải loại được tab riêng từng người ("BC_Tháng 9_Việt Hoàng"), tab theo tuần
+ * ("Bc_Tuần_Tháng 8") và biến thể ("BC_Tháng 7 Quads") — gộp chúng vào là
+ * đếm trùng với tab tổng.
+ */
 export function monthFromTab(tab: string): number | null {
-  const m = tab.toLowerCase().match(/th[aá]ng\s*(\d{1,2})/);
+  const chuan = tab
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const m = chuan.match(/tong\s*thang\s*(\d{1,2})$/);
   if (!m) return null;
   const month = Number(m[1]);
   return month >= 1 && month <= 12 ? month : null;
 }
+
+/** Nghỉ giữa các lượt gọi. Google cho 60 lượt đọc mỗi phút cho mỗi tài khoản. */
+export const nghi = (ms: number) => new Promise((r) => setTimeout(r, ms));

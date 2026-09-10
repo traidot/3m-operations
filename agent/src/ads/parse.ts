@@ -1,12 +1,17 @@
 /**
  * Đọc một tab báo cáo quảng cáo của bên marketing.
  *
- * Cấu trúc sheet: mỗi khối là một sản phẩm, trong khối là các hàng chỉ số,
- * cột đầu là TỔNG rồi tới từng ngày trong tháng.
+ * Cấu trúc lưới ô:
  *
- *   Tổng FA,TỔNG,1/1,2/1,...,31/1
- *   Chi phí,5.159.377,0,0,...
- *   U20,Chi phí,971.008,0,...
+ *   cột 0  tên sản phẩm, chỉ có ở dòng đầu mỗi khối (ô gộp)
+ *   cột 1  tên chỉ số, luôn có
+ *   cột 2  cột TỔNG của cả tháng
+ *   cột 3+ từng ngày
+ *
+ *   ["", "Tổng FA", "TỔNG",  "1/7", "2/7", ...]
+ *   ["", "Chi phí", "62.627.722", "3.435.283", ...]
+ *   ["U20", "Chi phí", "19.895.602", "791.466", ...]
+ *   ["", "Tiếp cận", "54.788", "546", ...]
  *
  * Chỉ lấy năm số gốc. Các hàng tỉ lệ trong sheet dùng dấu phẩy thập phân nên
  * khi xuất ra bị tách thành nhiều cột — bỏ qua hẳn, tính lại bằng SQL.
@@ -66,13 +71,18 @@ export function parseNumber(raw: string | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** "1/1" -> 2026-01-01. Năm không có trong sheet nên phải truyền vào. */
-function parseDate(raw: string, year: number): string | null {
+/**
+ * "1/7" -> 2026-07-01. Năm không có trong ô nên phải suy ra từ tháng.
+ * Suy từ chính tháng trong ô chứ không từ tên tab: có tab đặt tên "tháng 8"
+ * nhưng bên trong là số liệu tháng 7.
+ */
+function parseDate(raw: string, namTheoThang: (month: number) => number): string | null {
   const m = raw.trim().match(/^(\d{1,2})\/(\d{1,2})$/);
   if (!m) return null;
   const day = Number(m[1]);
   const month = Number(m[2]);
   if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+  const year = namTheoThang(month);
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
@@ -102,14 +112,17 @@ export function parseAdsTab(csv: string, year: number): AdsRow[] {
     .split(/\r?\n/)
     .filter((l) => l.trim() !== "")
     .map(splitCsvLine);
-  return parseAdsRows(rows, year);
+  return parseAdsRows(rows, () => year);
 }
 
 /**
  * Nhận thẳng lưới ô — Google Sheets API trả về dạng này, và hàng ngắn hơn
  * hàng tiêu đề là bình thường vì ô cuối trống bị cắt.
  */
-export function parseAdsRows(grid: string[][], year: number): AdsRow[] {
+export function parseAdsRows(
+  grid: string[][],
+  namTheoThang: (month: number) => number,
+): AdsRow[] {
 
   // Hàng tiêu đề là hàng đầu tiên có từ hai ô ngày trở lên.
   let dates: (string | null)[] = [];
@@ -117,7 +130,7 @@ export function parseAdsRows(grid: string[][], year: number): AdsRow[] {
   let headerIndex = -1;
 
   for (let i = 0; i < grid.length; i++) {
-    const parsed = (grid[i] ?? []).map((c) => parseDate(c, year));
+    const parsed = (grid[i] ?? []).map((c) => parseDate(c, namTheoThang));
     if (parsed.filter(Boolean).length >= 2) {
       dates = parsed;
       dateOffset = parsed.findIndex(Boolean);
@@ -133,32 +146,19 @@ export function parseAdsRows(grid: string[][], year: number): AdsRow[] {
 
   for (let i = headerIndex + 1; i < grid.length; i++) {
     const cells = grid[i] ?? [];
-    const first = key(cells[0] ?? "");
 
-    let metricCell: string;
-    let valueStart: number;
+    // Ô gộp: tên sản phẩm chỉ xuất hiện ở dòng đầu khối, các dòng sau để trống
+    // và vẫn thuộc khối đó.
+    const ten = PRODUCT[key(cells[0] ?? "")];
+    if (ten) product = ten;
 
-    if (PRODUCT[first] !== undefined) {
-      // Hàng mở đầu một khối sản phẩm: cột 0 là tên sản phẩm, cột 1 là chỉ số.
-      product = PRODUCT[first]!;
-      metricCell = key(cells[1] ?? "");
-      valueStart = 2;
-    } else {
-      metricCell = first;
-      valueStart = 1;
-    }
-
-    const field = METRIC[metricCell];
+    const field = METRIC[key(cells[1] ?? "")];
     if (!field) continue;
-
-    // Hàng mở đầu khối có thêm một cột tên sản phẩm ở đầu, nên mọi giá trị
-    // lệch sang phải một ô so với hàng tiêu đề.
-    const lech = valueStart - 1;
 
     for (let c = dateOffset; c < dates.length; c++) {
       const date = dates[c];
       if (!date) continue;
-      const value = parseNumber(cells[c + lech]);
+      const value = parseNumber(cells[c]);
       if (value === null) continue;
 
       const k = `${date}|${product}`;
