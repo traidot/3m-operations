@@ -90,9 +90,21 @@ export const DEVICE = `
   where d.deletedAt is null
 `;
 
+/** Chỉ lấy tên và vai trò. Không mang mật khẩu hay email sang kho. */
+export const STAFF = `
+  select
+    u.id          as source_id,
+    u.displayName as display_name,
+    u.type        as role,
+    u.status      as status,
+    u.teamId      as team_ref
+  from user u
+`;
+
 export const QUERIES = {
   subscription: SUBSCRIPTION,
   install_order: INSTALL_ORDER,
   payment: PAYMENT,
   device: DEVICE,
+  staff: STAFF,
 } as const;

@@ -35,6 +35,10 @@ const INSERTS: Record<keyof typeof QUERIES, { table: string; cols: string[] }> =
     cols: ["source_id", "imei", "model", "status", "subscription_source_id",
            "location", "updated_at_src"],
   },
+  staff: {
+    table: "staff_snapshot",
+    cols: ["source_id", "display_name", "role", "status", "team_ref"],
+  },
 };
 
 async function syncEntity(
@@ -89,8 +93,8 @@ async function main() {
   const src = await connectReadOnly(url);
 
   try {
-    // Hợp đồng trước, vì thanh toán trỏ về nó.
-    for (const entity of ["subscription", "install_order", "payment", "device"] as const) {
+    // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
+    for (const entity of ["staff", "subscription", "install_order", "payment", "device"] as const) {
       const n = await syncEntity(src, entity, triggeredBy);
       console.log(`${entity}: ${n} dòng`);
     }

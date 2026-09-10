@@ -209,6 +209,25 @@ begin
   end loop;
   rule_key := 'R_ADS_STALE'; so_phat_hien := coalesce(array_length(v_fp, 1), 0);
   so_da_dong := auto_resolve_findings('R_ADS_STALE', v_fp, p_today); return next;
+  -- ── Hợp đồng wifi cố định nợ nhiều kỳ ──────────────────────────────
+  -- Nhánh này không có hoá đơn nên nợ suy từ kỳ cước, đếm theo số kỳ.
+  v_fp := '{}';
+  for v_rec in select * from v_fixed_arrears order by so_ky_no desc loop
+    perform upsert_finding(
+      'R_FIXED_ARREARS', 'subscription', 'FIXED/' || v_rec.subscription_id,
+      case when v_rec.so_ky_no >= 6 then 'CRITICAL' else 'WARN' end,
+      format('Hợp đồng %s nợ %s kỳ, còn %s', v_rec.contract_code, v_rec.so_ky_no,
+             to_char(v_rec.con_no, 'FM999G999G999')),
+      jsonb_build_object(
+        'contract_code', v_rec.contract_code, 'so_ky', v_rec.so_ky,
+        'so_ky_no', v_rec.so_ky_no, 'tong_phai_thu', v_rec.tong_phai_thu,
+        'tong_da_thu', v_rec.tong_da_thu, 'con_no', v_rec.con_no),
+      'Quyết định đòi tiếp hay ngừng dịch vụ.',
+      null, p_today);
+    v_fp := v_fp || ('R_FIXED_ARREARS:FIXED/' || v_rec.subscription_id);
+  end loop;
+  rule_key := 'R_FIXED_ARREARS'; so_phat_hien := coalesce(array_length(v_fp, 1), 0);
+  so_da_dong := auto_resolve_findings('R_FIXED_ARREARS', v_fp, p_today); return next;
 
 end $$;
 
