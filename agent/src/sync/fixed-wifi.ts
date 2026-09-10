@@ -27,6 +27,8 @@ export const SUBSCRIPTION = `
     date(coalesce(c.activatedAt, c.installationCompletedDate)) as activated_on,
     date(coalesce(c.cancelDate, c.lineCancellationDate))       as terminated_on,
     day(c.feeStartDate)                         as anchor_day,
+    date(c.feeStartDate)                        as fee_start_on,
+    date(coalesce(c.feeCollectionEndDate, c.cancelDate, c.lineCancellationDate)) as fee_end_on,
     null                                        as device_ref,
     null                                        as sim_ref,
     c.createdAt                                 as created_at_src,
@@ -58,9 +60,29 @@ export const INSTALL_ORDER = `
 `;
 
 /**
- * Mỗi dòng là một khoản đã thu cho một tháng cước của một hợp đồng.
- * NOTE_ONLY và PENDING_APPROVAL chưa phải tiền thật nên loại ra.
+ * Sổ các tháng cước ĐÃ XỬ LÝ — thu tiền hoặc miễn phí. Tháng nào không có
+ * dòng ở đây mới là tháng còn nợ.
+ *
+ * Đây không phải sổ thu tiền: isFree = 1 nghĩa là tháng đó được khuyến mãi,
+ * amount bằng 0 nhưng vẫn coi như đã xong.
  */
+export const FEE_PERIOD = `
+  select
+    p.id                as source_id,
+    p.contractId        as subscription_source_id,
+    p.paymentMonth      as period,
+    p.amount            as amount,
+    p.isFree            as is_free,
+    p.status            as status,
+    p.paidAt            as paid_at,
+    p.collectionAccount as channel,
+    p.createdAt         as created_at_src,
+    p.createBy          as created_by_src
+  from contract_fee_payments p
+  where p.deletedAt is null
+`;
+
+/** Chỉ tiền thật, để đo dòng tiền. Miễn phí và chưa duyệt không tính. */
 export const PAYMENT = `
   select
     p.id                    as source_id,
@@ -103,6 +125,7 @@ export const STAFF = `
 
 export const QUERIES = {
   subscription: SUBSCRIPTION,
+  fee_period: FEE_PERIOD,
   install_order: INSTALL_ORDER,
   payment: PAYMENT,
   device: DEVICE,

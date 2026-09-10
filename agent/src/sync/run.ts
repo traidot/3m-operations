@@ -17,7 +17,13 @@ const INSERTS: Record<keyof typeof QUERIES, { table: string; cols: string[] }> =
     table: "subscription_snapshot",
     cols: ["source_id", "source_customer_id", "service_type", "plan_name", "status",
            "monthly_price", "monthly_cost", "activated_on", "terminated_on", "anchor_day",
+           "fee_start_on", "fee_end_on",
            "device_ref", "sim_ref", "created_at_src", "updated_at_src", "created_by_src"],
+  },
+  fee_period: {
+    table: "fee_period_snapshot",
+    cols: ["source_id", "subscription_source_id", "period", "amount", "is_free",
+           "status", "paid_at", "channel", "created_at_src", "created_by_src"],
   },
   install_order: {
     table: "install_order_snapshot",
@@ -94,7 +100,7 @@ async function main() {
 
   try {
     // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
-    for (const entity of ["staff", "subscription", "install_order", "payment", "device"] as const) {
+    for (const entity of ["staff", "subscription", "fee_period", "install_order", "payment", "device"] as const) {
       const n = await syncEntity(src, entity, triggeredBy);
       console.log(`${entity}: ${n} dòng`);
     }

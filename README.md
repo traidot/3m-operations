@@ -36,6 +36,7 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `012_staff.sql` | Nhân sự, độ trễ nhập tiền theo tên |
 | `013_fix_missing_invoice.sql` | Chỉ kiểm hoá đơn ở nguồn có hoá đơn; nợ theo số kỳ |
 | `014_monthly_billing.sql` | Bảng cước theo tháng, cắt theo trạng thái hợp đồng |
+| `015_fee_periods.sql` | Sổ kỳ cước; tháng miễn phí không tính là nợ |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -106,6 +107,7 @@ cd web && npm install && npm run dev
 |---|---|
 | `/` | Bản tin: phán quyết đang mở, đánh dấu đã tiếp nhận / đã xử lý / bỏ qua |
 | `/duyet-trung` | Hàng đợi trùng khách, gộp hoặc bác từng cặp |
+| `/cuoc` | Cước wifi cố định theo tháng, độ phủ tính cước, hợp đồng nợ |
 | `/may-muon` | Nhập phiếu mượn máy pocket, đánh dấu đã nhận lại |
 
 Bảo vệ bằng basic auth một tài khoản dùng chung (`MONITOR_USER`,
@@ -137,9 +139,12 @@ Hai điều khác thiết kế ban đầu:
 - **Không có khách hàng cuối.** Bảy dòng trong `customers` bên nguồn là nhân
   viên 3M đứng tên đăng ký với nhà mạng. 3M chỉ quản hợp đồng và địa chỉ lắp,
   nên `party_id` để trống cho nguồn FIXED và mọi thứ quy về hợp đồng.
-- **Không có hoá đơn.** `contract_fee_payments` chỉ ghi khoản đã thu, nên kỳ
-  cước phải thu được suy ra trong `v_fixed_expected_fee`, tạm neo vào ngày kích
-  hoạt vì `feeStartDate` trống ở phần lớn hợp đồng.
+- **Không có hoá đơn.** `contract_fee_payments` là sổ các tháng **đã xử lý** —
+  thu tiền hoặc miễn phí. Tháng nào không có dòng mới là tháng còn nợ. Kỳ phải
+  sinh suy từ `feeStartDate`, không phải `activatedAt` (cột đó trống ở toàn bộ
+  hợp đồng đang chạy).
+- **Tháng khuyến mãi không phải nợ.** Dòng `isFree = 1` nghĩa là tháng đó được
+  miễn, `amount` bằng 0 nhưng vẫn coi như xong.
 
 **Tầng đồng bộ — telecom.** Chưa có thông tin kết nối.
 

@@ -69,3 +69,65 @@ export const getLoans = () =>
        from loan_record l
       order by (l.returned_on is not null), l.due_on`,
   );
+
+export type MonthlyBilling = {
+  ky: string;
+  so_hop_dong: string;
+  phai_thu: string;
+  tien_mien_phi: string | null;
+  da_thu: string;
+  con_thieu: string | null;
+  ty_le_thu: string | null;
+};
+
+export type MonthlyByStatus = MonthlyBilling & { trang_thai: string };
+
+export type Coverage = {
+  hop_dong_dang_chay: string;
+  thieu_gia_cuoc: string;
+  thieu_ngay_bat_dau: string;
+  tinh_duoc: string;
+  ty_le_tinh_duoc: string | null;
+};
+
+export type Arrears = {
+  contract_code: string;
+  so_ky: number;
+  so_ky_mien_phi: number;
+  so_ky_no: number;
+  tong_da_thu: string;
+  con_no: string;
+};
+
+const MONTHLY_COLS = `ky, so_hop_dong::text, phai_thu::text, tien_mien_phi::text,
+                      da_thu::text, con_thieu::text, ty_le_thu::text`;
+
+export const getMonthlyTotal = () =>
+  query<MonthlyBilling>(
+    `select ${MONTHLY_COLS} from v_fixed_monthly_total order by ky desc limit 18`,
+  );
+
+export const getMonthlyByStatus = () =>
+  query<MonthlyByStatus>(
+    `select ${MONTHLY_COLS}, trang_thai from v_fixed_monthly_billing
+      order by ky desc, trang_thai`,
+  );
+
+export const getCoverage = () =>
+  query<Coverage>(
+    `select hop_dong_dang_chay::text, thieu_gia_cuoc::text, thieu_ngay_bat_dau::text,
+            tinh_duoc::text, ty_le_tinh_duoc::text from v_fixed_billing_coverage`,
+  );
+
+export const getArrears = () =>
+  query<Arrears>(
+    `select contract_code, so_ky, so_ky_mien_phi, so_ky_no,
+            tong_da_thu::text, con_no::text
+       from v_fixed_arrears order by so_ky_no desc, con_no desc limit 20`,
+  );
+
+/** Kỳ mới chỉ ghi chú hoặc chưa duyệt — chưa quyết là thu hay miễn. */
+export const getPendingPeriods = () =>
+  query<{ status: string; so_ky: string; tien: string }>(
+    `select status, so_ky::text, tien::text from v_fixed_fee_pending order by so_ky desc`,
+  );
