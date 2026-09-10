@@ -1,17 +1,22 @@
 import { createSign } from "node:crypto";
 
 /**
- * Đọc Google Sheets bằng tài khoản dịch vụ. Không dùng thư viện googleapis —
- * chỉ cần ký một JWT rồi gọi REST, vài chục dòng và không thêm phụ thuộc.
+ * Đọc Google Sheets. Không dùng thư viện googleapis — chỉ cần gọi REST.
  *
- * Cần đặt:
- *   GOOGLE_SA_EMAIL       email của tài khoản dịch vụ
- *   GOOGLE_SA_PRIVATE_KEY khoá riêng, xuống dòng viết là \n
+ * Hai cách xác thực, chọn cái nào có biến môi trường thì dùng cái đó:
  *
- * Và phải chia sẻ cả hai sheet cho email đó với quyền xem.
+ * 1. Tài khoản người dùng (đơn giản hơn nếu sheet đã share cho anh):
+ *      GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
+ *    Lấy refresh token một lần bằng `npm run google:auth`.
+ *    Lưu ý: quyền này đọc được mọi sheet tài khoản đó thấy, không riêng hai file.
+ *
+ * 2. Tài khoản dịch vụ (bền hơn, không gắn với ai):
+ *      GOOGLE_SA_EMAIL, GOOGLE_SA_PRIVATE_KEY
+ *    Phải nhờ chủ sheet chia sẻ cho email của tài khoản dịch vụ.
  */
 
-const SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+export const SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+export const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 const b64url = (s: string | Buffer) =>
@@ -22,11 +27,49 @@ let cached: { token: string; expiresAt: number } | null = null;
 async function accessToken(): Promise<string> {
   if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
 
+  const body = process.env.GOOGLE_REFRESH_TOKEN ? refreshTokenGrant() : jwtGrant();
+
+  const res = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body,
+  });
+
+  if (!res.ok) {
+    throw new Error(`Không lấy được token Google (${res.status}): ${await res.text()}`);
+  }
+
+  const json = (await res.json()) as { access_token: string; expires_in: number };
+  cached = { token: json.access_token, expiresAt: Date.now() + json.expires_in * 1000 };
+  return cached.token;
+}
+
+/** Cách 1: tài khoản người dùng, đổi refresh token lấy access token. */
+function refreshTokenGrant(): URLSearchParams {
+  const id = process.env.GOOGLE_CLIENT_ID;
+  const secret = process.env.GOOGLE_CLIENT_SECRET;
+  const refresh = process.env.GOOGLE_REFRESH_TOKEN;
+  if (!id || !secret || !refresh) {
+    throw new Error(
+      "Có GOOGLE_REFRESH_TOKEN nhưng thiếu GOOGLE_CLIENT_ID hoặc GOOGLE_CLIENT_SECRET.",
+    );
+  }
+  return new URLSearchParams({
+    grant_type: "refresh_token",
+    client_id: id,
+    client_secret: secret,
+    refresh_token: refresh,
+  });
+}
+
+/** Cách 2: tài khoản dịch vụ, tự ký JWT rồi đổi lấy access token. */
+function jwtGrant(): URLSearchParams {
   const email = process.env.GOOGLE_SA_EMAIL;
   const rawKey = process.env.GOOGLE_SA_PRIVATE_KEY;
   if (!email || !rawKey) {
     throw new Error(
-      "Thiếu GOOGLE_SA_EMAIL hoặc GOOGLE_SA_PRIVATE_KEY. Xem hướng dẫn ở README.",
+      "Chưa cấu hình Google. Cần GOOGLE_REFRESH_TOKEN (tài khoản người dùng) " +
+        "hoặc GOOGLE_SA_EMAIL và GOOGLE_SA_PRIVATE_KEY (tài khoản dịch vụ).",
     );
   }
   const key = rawKey.replace(/\\n/g, "\n");
@@ -38,22 +81,10 @@ async function accessToken(): Promise<string> {
   );
   const signature = b64url(createSign("RSA-SHA256").update(`${header}.${claim}`).sign(key));
 
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: `${header}.${claim}.${signature}`,
-    }),
+  return new URLSearchParams({
+    grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    assertion: `${header}.${claim}.${signature}`,
   });
-
-  if (!res.ok) {
-    throw new Error(`Không lấy được token Google (${res.status}): ${await res.text()}`);
-  }
-
-  const body = (await res.json()) as { access_token: string; expires_in: number };
-  cached = { token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000 };
-  return cached.token;
 }
 
 async function api<T>(path: string): Promise<T> {

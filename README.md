@@ -141,9 +141,25 @@ thống có quản ticket không.
 cd agent && npm run ads:sync
 ```
 
-Cần tài khoản dịch vụ Google: tạo service account, bật Google Sheets API, rồi
-chia sẻ cả hai sheet cho email của nó với quyền xem. Đặt `GOOGLE_SA_EMAIL`,
-`GOOGLE_SA_PRIVATE_KEY` và `ADS_SHEETS` trong `agent/.env`.
+Hai cách xác thực, đặt cái nào thì dùng cái đó.
+
+**Tài khoản của chính mình** — dùng khi sheet đã được share cho mình, không
+phải nhờ ai share thêm. Tạo OAuth client loại Desktop app ở Google Cloud
+Console, thêm `http://localhost:8757` vào Authorized redirect URIs, rồi:
+
+```bash
+cd agent && npm run google:auth
+```
+
+Script mở một cổng tạm nhận mã Google trả về và in ra refresh token để chép
+vào `agent/.env`. Nó không tự ghi vào file nào.
+
+Đánh đổi: quyền `spreadsheets.readonly` đọc được mọi sheet tài khoản đó thấy,
+không riêng hai file này. Và token gắn với một người — người đó mất quyền
+truy cập thì job dừng.
+
+**Tài khoản dịch vụ** — bền hơn, không gắn với ai, nhưng phải nhờ chủ sheet
+chia sẻ cho email của nó. Đặt `GOOGLE_SA_EMAIL` và `GOOGLE_SA_PRIVATE_KEY`.
 
 Tab nào có chữ "tháng" kèm số thì đọc, còn lại bỏ qua — nên tên tab hai file
 khác nhau vẫn chạy được. Năm suy từ số tháng: tháng đã qua là năm nay, tháng
