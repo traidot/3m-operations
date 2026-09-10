@@ -92,3 +92,6 @@ tr.sub td:first-child { padding-left: 16px; }
 .bar { display: flex; align-items: center; gap: 8px; min-width: 130px; }
 .bar-fill { height: 6px; background: var(--ok); flex: 0 0 auto; min-width: 2px; }
 .bar-label { color: var(--muted); font-size: 0.78rem; }
+
+.ket-qua { margin-top: 12px; padding: 12px 14px; background: var(--surface-2); color: var(--body); font-family: var(--mono); font-size: 0.8rem; line-height: 1.6; white-space: pre-wrap; border-left: 3px solid var(--ok); }
+.ket-qua.loi { border-left-color: var(--bad); color: var(--bad); }

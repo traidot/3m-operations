@@ -108,6 +108,7 @@ cd web && npm install && npm run dev
 | `/` | Bản tin: phán quyết đang mở, đánh dấu đã tiếp nhận / đã xử lý / bỏ qua |
 | `/duyet-trung` | Hàng đợi trùng khách, gộp hoặc bác từng cặp |
 | `/cuoc` | Cước wifi cố định theo tháng, độ phủ tính cước, hợp đồng nợ |
+| `/dong-bo` | Nút kéo dữ liệu ngay, kèm lịch sử các lượt đồng bộ |
 | `/may-muon` | Nhập phiếu mượn máy pocket, đánh dấu đã nhận lại |
 
 Bảo vệ bằng basic auth một tài khoản dùng chung (`MONITOR_USER`,
@@ -125,6 +126,12 @@ không dùng Prisma — Prisma introspect được bảng nhưng không quản v
 ```bash
 cd agent && npm run sync
 ```
+
+Hoặc bấm nút ở trang `/dong-bo`. Nút gọi thẳng script bên `agent` để chỉ có một
+chỗ giữ logic đồng bộ. Script tự giữ khoá trong Postgres nên bấm lúc job đêm
+đang chạy sẽ bị từ chối chứ không chạy song song.
+
+Web cần thêm `SRC_FIXED_URL` trong `web/.env.local` để nút hoạt động.
 
 Nguồn là **MySQL 8** chứ không phải Postgres, nên không dùng `postgres_fdw` mà
 đọc bằng `mysql2`. Kết nối ép chỉ đọc ba lớp: phiên đặt `transaction_read_only`,

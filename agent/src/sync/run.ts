@@ -1,4 +1,4 @@
-import { pool, q } from "../db.js";
+import { pool, q, withLock } from "../db.js";
 import { connectReadOnly } from "./mysql.js";
 import { QUERIES } from "./fixed-wifi.js";
 
@@ -61,18 +61,30 @@ async function syncEntity(
     const rows = await src.rows<Record<string, unknown>>(QUERIES[entity]);
     const { table, cols } = INSERTS[entity];
 
-    const placeholders = cols.map((_, i) => `$${i + 2}`).join(", ");
     const updates = cols
       .filter((c) => c !== "source_id")
       .map((c) => `${c} = excluded.${c}`)
       .join(", ");
 
-    for (const row of rows) {
+    // Ghi theo lô. Mỗi dòng một câu lệnh thì 6.603 hợp đồng là 6.603 lượt đi về,
+    // đủ lâu để người bấm nút tưởng hỏng.
+    const LO = 500;
+    for (let i = 0; i < rows.length; i += LO) {
+      const lo = rows.slice(i, i + LO);
+      const params: unknown[] = [SOURCE];
+      const tuples = lo.map((row) => {
+        const cho = cols.map((c) => {
+          params.push(row[c] ?? null);
+          return `$${params.length}`;
+        });
+        return `($1, ${cho.join(", ")}, now())`;
+      });
+
       await q(
         `insert into ${table} (source, ${cols.join(", ")}, synced_at)
-         values ($1, ${placeholders}, now())
+         values ${tuples.join(", ")}
          on conflict (source, source_id) do update set ${updates}, synced_at = now()`,
-        [SOURCE, ...cols.map((c) => row[c] ?? null)],
+        params,
       );
     }
 
@@ -96,16 +108,26 @@ async function main() {
   if (!url) throw new Error("Thiếu SRC_FIXED_URL — xem .env.example");
 
   const triggeredBy = process.argv.includes("--manual") ? "manual" : "schedule";
-  const src = await connectReadOnly(url);
 
-  try {
-    // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
-    for (const entity of ["staff", "subscription", "fee_period", "install_order", "payment", "device"] as const) {
-      const n = await syncEntity(src, entity, triggeredBy);
-      console.log(`${entity}: ${n} dòng`);
+  // Khoá dùng chung với bản tin, nên bấm nút lúc job đêm đang chạy sẽ bị từ
+  // chối chứ không chạy song song.
+  const ok = await withLock(async () => {
+    const src = await connectReadOnly(url);
+    try {
+      // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
+      for (const entity of ["staff", "subscription", "fee_period", "install_order", "payment", "device"] as const) {
+        const n = await syncEntity(src, entity, triggeredBy);
+        console.log(`${entity}: ${n} dòng`);
+      }
+    } finally {
+      await src.close();
     }
-  } finally {
-    await src.close();
+    return true;
+  });
+
+  if (ok === null) {
+    console.error("Một lượt đồng bộ khác đang chạy. Thử lại sau.");
+    process.exit(2);
   }
 
   const [cover] = await q<Record<string, string>>("select * from v_fixed_billing_coverage");
