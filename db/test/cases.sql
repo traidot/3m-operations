@@ -267,4 +267,33 @@ begin
   assert v_n = 1, 'chậm 5 ngày thì phải báo — đang có ' || v_n;
 end $$;
 
+-- ── Quy tắc nợ cước wifi cố định ──────────────────────────────────────
+-- Thân vòng lặp phải được chạy thật, không thì đổi cột ở view mà quy tắc
+-- vẫn tham chiếu tên cũ sẽ lọt lưới cho tới lúc chạy production.
+do $$
+declare v_n int; v_ev jsonb;
+begin
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, fee_start_on, created_at_src)
+  values ('FIXED', 'C1', 'HD_TEST', 'FIXED_INTERNET', 'ACTIVE', 2000,
+          current_date - interval '6 months', now());
+
+  -- Một kỳ đã thu, một kỳ được miễn; bốn kỳ còn lại là nợ.
+  insert into fee_period_snapshot (source, source_id, subscription_source_id,
+    period, amount, is_free, status)
+  values ('FIXED','F1','C1', to_char(current_date - interval '6 months','YYYY-MM'), 2000, false, 'APPROVED'),
+         ('FIXED','F2','C1', to_char(current_date - interval '5 months','YYYY-MM'),    0, true,  'APPROVED');
+
+  perform run_rules();
+
+  select count(*) into v_n from finding where rule_key = 'R_FIXED_ARREARS' and status = 'OPEN';
+  assert v_n = 1, 'phải sinh đúng một phán quyết nợ cước — đang có ' || v_n;
+
+  select evidence into v_ev from finding where rule_key = 'R_FIXED_ARREARS';
+  assert (v_ev->>'so_ky_mien_phi')::int = 1,
+    'kỳ được miễn phải nằm trong chứng cứ — đang là ' || coalesce(v_ev->>'so_ky_mien_phi','null');
+  assert (v_ev->>'so_ky_no')::int >= 3,
+    'phải đếm được số kỳ nợ — đang là ' || coalesce(v_ev->>'so_ky_no','null');
+end $$;
+
 \echo 'TẤT CẢ TEST ĐỀU QUA'

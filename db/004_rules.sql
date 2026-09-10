@@ -220,7 +220,7 @@ begin
              to_char(v_rec.con_no, 'FM999G999G999')),
       jsonb_build_object(
         'contract_code', v_rec.contract_code, 'so_ky', v_rec.so_ky,
-        'so_ky_no', v_rec.so_ky_no, 'tong_phai_thu', v_rec.tong_phai_thu,
+        'so_ky_mien_phi', v_rec.so_ky_mien_phi, 'so_ky_no', v_rec.so_ky_no,
         'tong_da_thu', v_rec.tong_da_thu, 'con_no', v_rec.con_no),
       'Quyết định đòi tiếp hay ngừng dịch vụ.',
       null, p_today);
