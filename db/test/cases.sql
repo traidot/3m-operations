@@ -218,4 +218,31 @@ begin
   assert v = 2, 'weekly_report phải giữ lại số của tuần này — đang là ' || coalesce(v::text, 'null');
 end $$;
 
+-- ── Số liệu quảng cáo ─────────────────────────────────────────────────
+do $$
+declare v numeric;
+begin
+  insert into ads_daily (sheet_owner, metric_date, product, spend, reach, clicks, messages, orders)
+  values ('test', current_date - 1, 'TONG',        1000000, 5000, 200, 10, 2),
+         ('test', current_date - 1, 'POCKET_WIFI',  400000, 2000,   0,  0, 0);
+
+  select gia_click into v from v_ads_derived
+   where product = 'TONG' and metric_date = current_date - 1;
+  assert v = 5000, 'giá click phải là 1000000/200 — đang là ' || coalesce(v::text, 'null');
+
+  select ty_le_chot into v from v_ads_derived
+   where product = 'TONG' and metric_date = current_date - 1;
+  assert v = 20.00, 'tỉ lệ chốt phải là 2/10 — đang là ' || coalesce(v::text, 'null');
+
+  -- Không có click thì giá click là null, không phải 0. Hai chuyện khác nhau.
+  select gia_click into v from v_ads_derived
+   where product = 'POCKET_WIFI' and metric_date = current_date - 1;
+  assert v is null, 'chia cho 0 phải ra null — đang là ' || coalesce(v::text, 'null');
+
+  -- Đối chiếu mức 1: marketing khai 2 đơn, trong phần mềm có 1 hồ sơ tạo hôm qua.
+  insert into party (display_name, created_at) values ('Khách hôm qua', now() - interval '1 day');
+  select chenh_lech into v from v_ads_vs_party where ngay = current_date - 1;
+  assert v = -1, 'khai 2 mà chỉ có 1 hồ sơ thì lệch -1 — đang là ' || coalesce(v::text, 'null');
+end $$;
+
 \echo 'TẤT CẢ TEST ĐỀU QUA'

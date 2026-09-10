@@ -30,6 +30,7 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `006_sync.sql` | Máy đồng bộ, chuẩn hoá số điện thoại |
 | `007_party_matching.sql` | Gộp hồ sơ khách, hàng đợi duyệt trùng |
 | `008_weekly.sql` | Đơn lắp đặt, chỉ số tuần, `weekly_report()` |
+| `009_marketing.sql` | Số liệu quảng cáo, số dẫn xuất, đối chiếu mức 1 |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -45,6 +46,10 @@ tự im lặng cho tới khi có giá trị thật.
 
 ```bash
 ./db/test/run.sh
+```
+
+```bash
+cd agent && npm test
 ```
 
 Dựng một database tạm, chạy toàn bộ migration, kiểm 12 hành vi rồi xoá.
@@ -129,5 +134,18 @@ hàng đợi `v_merge_candidate` đủ dài để bấm tay không xuể.
 bảng `ticket_snapshot` và view ánh xạ thứ bảy. Chưa thêm vì chưa rõ hai hệ
 thống có quản ticket không.
 
-**Marketing.** Hai Google Sheets chưa nối vào. Cần thống nhất tên tab giữa hai
-file và ép định dạng số trước, không thì đọc tự động sẽ vỡ.
+**Marketing đọc tự động.** Bộ bóc tách đã xong và có test, nhưng hai sheet là
+file riêng tư nên hiện phải xuất CSV rồi nhập tay:
+
+```bash
+cd agent && npm run ads -- --owner dinh_viet --year 2026 --tab "Tháng 1" thang1.csv
+```
+
+Muốn chạy tự động thì cần tài khoản dịch vụ Google Sheets API — chỉ phải thay
+chỗ đọc file, phần bóc tách giữ nguyên. Trước đó nên đề nghị marketing thống
+nhất tên tab giữa hai file, hiện một bên là "Báo cao tổng tháng 1" bên kia là
+"BC_Tháng 4".
+
+Chỉ nhập năm số gốc: chi phí, tiếp cận, click, mess, đơn hàng. Giá click, CTR,
+giá mess, chi phí trên đơn đều tính lại bằng SQL — trong sheet mấy hàng đó dùng
+dấu phẩy thập phân nên xuất ra là vỡ cột.
