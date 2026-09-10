@@ -33,6 +33,9 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `009_marketing.sql` | Số liệu quảng cáo, số dẫn xuất, đối chiếu mức 1 |
 | `010_ads_monitoring.sql` | Số quảng cáo vào ảnh chụp ngày, cảnh báo sheet chậm |
 | `011_fixed_wifi.sql` | Công nợ suy ra theo hợp đồng, chuẩn hoá địa chỉ |
+| `012_staff.sql` | Nhân sự, độ trễ nhập tiền theo tên |
+| `013_fix_missing_invoice.sql` | Chỉ kiểm hoá đơn ở nguồn có hoá đơn; nợ theo số kỳ |
+| `014_monthly_billing.sql` | Bảng cước theo tháng, cắt theo trạng thái hợp đồng |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
