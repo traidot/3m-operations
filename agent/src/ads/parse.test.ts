@@ -91,3 +91,11 @@ test("nhận ra tab báo cáo tháng, bỏ qua tab khác", () => {
   assert.equal(monthFromTab("báo cáo cuối tuần"), null);
   assert.equal(monthFromTab("Tháng 13"), null);
 });
+
+test("nhận đúng tab báo cáo tổng tháng của cả hai file", () => {
+  assert.equal(monthFromTab("Báo cáo Tổng tháng 1"), 1);
+  assert.equal(monthFromTab("Báo cao tổng tháng 1"), 1);
+  assert.equal(monthFromTab("BC_Tháng 4"), 4);
+  assert.equal(monthFromTab("Báo cáo Tổng tháng 12"), 12);
+  assert.equal(monthFromTab("TỔNG THÁNG 9"), 9);
+});
