@@ -99,3 +99,12 @@ tr.sub td:first-child { padding-left: 16px; }
 details { margin: 24px 0; }
 summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; padding: 8px 0; }
 summary:hover { color: var(--ok); }
+
+.chart { margin: 0 0 8px; }
+.chart svg { display: block; overflow: visible; }
+.chart .truc { stroke: var(--line-strong); stroke-width: 1; }
+.chart .nhan-truc { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+.chart figcaption { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+.chu-thich { display: inline-flex; align-items: center; gap: 6px; }
+.o-mau { width: 10px; height: 10px; display: inline-block; }
+.dinh-truc { margin-left: auto; font-family: var(--mono); font-size: 0.75rem; }

@@ -139,3 +139,35 @@ export const getPendingPeriods = () =>
   query<{ status: string; so_ky: string; tien: string }>(
     `select status, so_ky::text, tien::text from v_fixed_fee_pending order by so_ky desc`,
   );
+
+export type FunnelMonth = {
+  thang: string;
+  chi_phi_ads: string | null;
+  mess: string | null;
+  don_khai: string | null;
+  chi_phi_co_dinh: string | null;
+  mess_co_dinh: string | null;
+  don_khai_co_dinh: string | null;
+  hop_dong_moi: string | null;
+  cuoc_phai_thu: string | null;
+  cuoc_mien_phi: string | null;
+  cuoc_da_thu: string | null;
+  ty_le_mess_ra_don_co_dinh: string | null;
+  ty_le_don_thanh_hop_dong: string | null;
+  gia_mess: string | null;
+  chi_phi_moi_hop_dong: string | null;
+};
+
+export const getFunnel = () =>
+  query<FunnelMonth>(
+    `select thang,
+            chi_phi_ads::text, mess::text, don_khai::text,
+            chi_phi_co_dinh::text, mess_co_dinh::text, don_khai_co_dinh::text,
+            hop_dong_moi::text, cuoc_phai_thu::text, cuoc_mien_phi::text,
+            cuoc_da_thu::text, ty_le_mess_ra_don_co_dinh::text,
+            ty_le_don_thanh_hop_dong::text, gia_mess::text,
+            chi_phi_moi_hop_dong::text
+       from v_funnel_monthly
+      where thang >= to_char(current_date - interval '12 months', 'YYYY-MM')
+      order by thang`,
+  );

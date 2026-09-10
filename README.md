@@ -37,6 +37,9 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `013_fix_missing_invoice.sql` | Chỉ kiểm hoá đơn ở nguồn có hoá đơn; nợ theo số kỳ |
 | `014_monthly_billing.sql` | Bảng cước theo tháng, cắt theo trạng thái hợp đồng |
 | `015_fee_periods.sql` | Sổ kỳ cước; tháng miễn phí không tính là nợ |
+| `016_finding_lifecycle.sql` | Một vấn đề một dòng suốt đời, gỡ được bỏ qua |
+| `017_fix_unallocated.sql` | Bỏ cảnh báo tiền chưa cấn ở nguồn không có hoá đơn |
+| `018_funnel.sql` | Phễu quảng cáo → hợp đồng → thu cước theo tháng |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -107,6 +110,7 @@ cd web && npm install && npm run dev
 |---|---|
 | `/` | Bản tin: phán quyết đang mở, đánh dấu đã tiếp nhận / đã xử lý / bỏ qua |
 | `/duyet-trung` | Hàng đợi trùng khách, gộp hoặc bác từng cặp |
+| `/pheu` | Đồ thị phễu marketing → sale → thu cước |
 | `/cuoc` | Cước wifi cố định theo tháng, độ phủ tính cước, hợp đồng nợ |
 | `/dong-bo` | Nút kéo dữ liệu ngay, kèm lịch sử các lượt đồng bộ |
 | `/may-muon` | Nhập phiếu mượn máy pocket, đánh dấu đã nhận lại |
