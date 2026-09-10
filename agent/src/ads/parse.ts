@@ -24,7 +24,15 @@ export type AdsRow = {
   reach: number | null;
   clicks: number | null;
   messages: number | null;
+  /** Đơn marketing báo là đã chốt thành công. */
   orders: number | null;
+  /** Đơn huỷ. Không có nó thì "đơn hàng" là số gộp, không phải số thật. */
+  orders_cancelled: number | null;
+  install_booked: number | null;
+  install_done: number | null;
+  cancel_customer: number | null;
+  cancel_carrier: number | null;
+  cancel_duplicate: number | null;
 };
 
 const PRODUCT: Record<string, string> = {
@@ -35,6 +43,8 @@ const PRODUCT: Record<string, string> = {
   "wimax": "WIMAX",
   "wifi wimax": "WIMAX",
   "esim": "ESIM",
+  // Khối thống kê lắp đặt để riêng, không trộn vào khối chi phí quảng cáo.
+  "thong ke wifi co dinh": "FIXED_INSTALL",
   "co dinh": "FIXED_INTERNET",
   "wifi co dinh": "FIXED_INTERNET",
   "sim datacall": "DATA_SIM",
@@ -46,6 +56,12 @@ const METRIC: Record<string, keyof Omit<AdsRow, "metric_date" | "product">> = {
   "click": "clicks",
   "mess": "messages",
   "don hang": "orders",
+  "so don huy": "orders_cancelled",
+  "so lich lap dat": "install_booked",
+  "so lich lap thanh cong": "install_done",
+  "huy do khach hang": "cancel_customer",
+  "huy do nha mang": "cancel_carrier",
+  "huy do trung lich": "cancel_duplicate",
 };
 
 /** Bỏ dấu, hạ chữ thường, gộp khoảng trắng — chỉ để tra bảng ở trên. */
@@ -164,7 +180,12 @@ export function parseAdsRows(
       const k = `${date}|${product}`;
       const row =
         acc.get(k) ??
-        { metric_date: date, product, spend: null, reach: null, clicks: null, messages: null, orders: null };
+        {
+          metric_date: date, product,
+          spend: null, reach: null, clicks: null, messages: null, orders: null,
+          orders_cancelled: null, install_booked: null, install_done: null,
+          cancel_customer: null, cancel_carrier: null, cancel_duplicate: null,
+        };
       row[field] = value;
       acc.set(k, row);
     }

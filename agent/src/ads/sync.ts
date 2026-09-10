@@ -26,6 +26,14 @@ function config(): SheetConfig[] {
   });
 }
 
+/**
+ * Nhớ tab nào đã ghi vào (người, ngày, sản phẩm) nào.
+ * Hai tab cùng phủ một khoảng ngày thì tab sau đè tab trước và không để lại
+ * dấu vết — có tab đặt tên "tháng 8" nhưng bên trong là số liệu tháng 7.
+ */
+const daGhi = new Map<string, string>();
+const dungDo: { key: string; truoc: string; sau: string }[] = [];
+
 async function syncTab(sheet: SheetConfig, tab: string): Promise<number> {
   const [run] = await q<{ id: string }>(
     "insert into ads_import_run (sheet_owner, tab_name) values ($1, $2) returning id",
@@ -36,14 +44,29 @@ async function syncTab(sheet: SheetConfig, tab: string): Promise<number> {
     const rows = parseAdsRows(await readTab(sheet.id, tab), guessYear);
 
     for (const r of rows) {
+      const key = `${sheet.owner}|${r.metric_date}|${r.product}`;
+      const truoc = daGhi.get(key);
+      if (truoc && truoc !== tab) dungDo.push({ key, truoc, sau: tab });
+      daGhi.set(key, tab);
+
       await q(
         `insert into ads_daily (sheet_owner, metric_date, product,
-                                spend, reach, clicks, messages, orders, imported_at)
-         values ($1, $2::date, $3, $4, $5, $6, $7, $8, now())
+                                spend, reach, clicks, messages, orders, orders_cancelled,
+                                install_booked, install_done, cancel_customer,
+                                cancel_carrier, cancel_duplicate, source_tab, imported_at)
+         values ($1, $2::date, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, now())
          on conflict (sheet_owner, metric_date, product) do update set
            spend = excluded.spend, reach = excluded.reach, clicks = excluded.clicks,
-           messages = excluded.messages, orders = excluded.orders, imported_at = now()`,
-        [sheet.owner, r.metric_date, r.product, r.spend, r.reach, r.clicks, r.messages, r.orders],
+           messages = excluded.messages, orders = excluded.orders,
+           orders_cancelled = excluded.orders_cancelled,
+           install_booked = excluded.install_booked, install_done = excluded.install_done,
+           cancel_customer = excluded.cancel_customer,
+           cancel_carrier = excluded.cancel_carrier,
+           cancel_duplicate = excluded.cancel_duplicate,
+           source_tab = excluded.source_tab, imported_at = now()`,
+        [sheet.owner, r.metric_date, r.product, r.spend, r.reach, r.clicks, r.messages,
+         r.orders, r.orders_cancelled, r.install_booked, r.install_done,
+         r.cancel_customer, r.cancel_carrier, r.cancel_duplicate, tab],
       );
     }
 
@@ -84,6 +107,20 @@ async function main() {
   }
 
   console.log(`\nTổng ${tong} dòng${hong > 0 ? `, ${hong} tab lỗi` : ""}.`);
+
+  if (dungDo.length > 0) {
+    // Không tự đoán tab nào đúng — chỉ báo ra để người quyết.
+    const theoCap = new Map<string, number>();
+    for (const d of dungDo) {
+      const cap = `${d.truoc}  ⟵ bị đè bởi ⟶  ${d.sau}`;
+      theoCap.set(cap, (theoCap.get(cap) ?? 0) + 1);
+    }
+    console.error(`\nCẢNH BÁO: ${dungDo.length} ô bị hai tab cùng ghi, tab sau đè tab trước:`);
+    for (const [cap, n] of theoCap) console.error(`  ${n} ô — ${cap}`);
+    console.error("Hai tab đang cùng phủ một khoảng ngày. Cần xem lại tên tab bên sheet.");
+    process.exitCode = 1;
+  }
+
   if (hong > 0) process.exitCode = 1;
 }
 
