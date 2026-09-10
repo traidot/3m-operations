@@ -131,7 +131,9 @@ Hoặc bấm nút ở trang `/dong-bo`. Nút gọi thẳng script bên `agent` �
 chỗ giữ logic đồng bộ. Script tự giữ khoá trong Postgres nên bấm lúc job đêm
 đang chạy sẽ bị từ chối chứ không chạy song song.
 
-Web cần thêm `SRC_FIXED_URL` trong `web/.env.local` để nút hoạt động.
+Cấu hình nằm ở `.env.local` thư mục gốc, agent tự nạp. Riêng web thì Next.js
+chỉ đọc `web/.env.local` nên `WAREHOUSE_URL`, `MONITOR_USER`,
+`MONITOR_PASSWORD` và `SRC_FIXED_URL` phải có ở đó nữa.
 
 Nguồn là **MySQL 8** chứ không phải Postgres, nên không dùng `postgres_fdw` mà
 đọc bằng `mysql2`. Kết nối ép chỉ đọc ba lớp: phiên đặt `transaction_read_only`,
@@ -176,14 +178,15 @@ cho phép mọi cổng `localhost` nên **không có ô Authorized redirect URIs
 điền** — ô đó chỉ xuất hiện với loại Web application. Nếu Console bắt tạo OAuth
 consent screen trước thì chọn External và thêm email của mình vào Test users.
 
-Đặt `GOOGLE_CLIENT_ID` và `GOOGLE_CLIENT_SECRET` vào `agent/.env`, rồi:
+Đặt `GOOGLE_CLIENT_ID` và `GOOGLE_CLIENT_SECRET` vào `.env.local` ở thư mục
+gốc, rồi:
 
 ```bash
 cd agent && npm run google:auth
 ```
 
 Script mở một cổng tạm nhận mã Google trả về và in ra refresh token để chép
-vào `agent/.env`. Nó không tự ghi vào file nào.
+vào `.env.local` ở thư mục gốc. Nó không tự ghi vào file nào.
 
 Đánh đổi: quyền `spreadsheets.readonly` đọc được mọi sheet tài khoản đó thấy,
 không riêng hai file này. Và token gắn với một người — người đó mất quyền
