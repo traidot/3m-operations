@@ -31,9 +31,15 @@ export function Bars({
 
   return (
     <figure className="chart">
-      <svg viewBox={`0 0 ${rong} ${cao}`} role="img" width="100%">
-        <title>{chuoi.map((s) => s.ten).join(", ")} theo tháng</title>
-
+      {/* Không dùng thẻ title trong SVG: React nhấc nó lên head của trang, làm
+          lệch giữa server và client. Mô tả để ở aria-label, số chi tiết nằm ở
+          bảng bên dưới. */}
+      <svg
+        viewBox={`0 0 ${rong} ${cao}`}
+        role="img"
+        width="100%"
+        aria-label={`${chuoi.map((s) => s.ten).join(", ")} theo tháng`}
+      >
         <line
           className="truc"
           x1={leTrai}
@@ -57,9 +63,7 @@ export function Bars({
                     width={cotRong - 2}
                     height={h}
                     fill={s.mau}
-                  >
-                    <title>{`${thang} · ${s.ten}: ${dinhDang(v)}`}</title>
-                  </rect>
+                  />
                 );
               })}
               <text
