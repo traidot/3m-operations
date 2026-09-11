@@ -406,3 +406,29 @@ begin
   assert 'HUY_CON_NO' = any(v_cb),
     'hợp đồng huỷ mà còn nợ phải có HUY_CON_NO — đang là ' || v_cb::text;
 end $$;
+
+-- ── Mốc bắt đầu, kết thúc và kỳ thu thiếu tiền ────────────────────────
+do $$
+declare v_bd int; v_kt int; v_cb text[];
+begin
+  -- C4 bắt đầu tháng 3 năm nay, kết thúc tháng 9, thu kỳ đầu thiếu 500.
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, fee_start_on, fee_end_on, created_at_src)
+  values ('FIXED', 'C4', 'HD_MOC', 'FIXED_INTERNET', 'ACTIVE', 2000,
+          make_date(extract(year from current_date)::int, 3, 1),
+          make_date(extract(year from current_date)::int, 9, 30), now());
+
+  insert into fee_period_snapshot (source, source_id, subscription_source_id,
+    period, amount, is_free, status)
+  values ('FIXED','F4','C4', to_char(make_date(extract(year from current_date)::int,3,1),'YYYY-MM'),
+          1500, false, 'APPROVED');
+
+  select thang_bat_dau, thang_ket_thuc into v_bd, v_kt
+    from v_fixed_year_status where subscription_id = 'C4';
+  assert v_bd = 3, 'mốc bắt đầu phải là tháng 3 — đang là ' || coalesce(v_bd::text,'null');
+  assert v_kt = 9, 'mốc kết thúc phải là tháng 9 — đang là ' || coalesce(v_kt::text,'null');
+
+  select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C4';
+  assert 'THU_THIEU' = any(v_cb),
+    'kỳ duyệt rồi mà thu thiếu tiền phải có THU_THIEU — đang là ' || v_cb::text;
+end $$;

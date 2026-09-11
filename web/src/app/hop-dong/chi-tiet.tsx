@@ -115,7 +115,15 @@ export async function ChiTiet({ id, dongLai }: { id: string; dongLai: string }) 
                           {KY_CUOC[k.trang_thai] ?? k.trang_thai}
                         </td>
                         <td className="num mono">{n(k.phai_thu)}</td>
-                        <td className="num mono">{n(k.tien)}</td>
+                        <td
+                          className={`num mono${
+                            k.phai_thu !== null && k.tien !== null && Number(k.tien) < Number(k.phai_thu)
+                              ? " bad"
+                              : ""
+                          }`}
+                        >
+                          {n(k.tien)}
+                        </td>
                         <td>{k.kenh || "—"}</td>
                         <td className="mono">{k.thu_luc?.slice(0, 10) ?? "—"}</td>
                         <td>{k.nguoi_nhap || "—"}</td>

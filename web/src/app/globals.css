@@ -155,3 +155,13 @@ tr.dang-mo { background: var(--surface-2); }
 .o-ky.na { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 .chu-giai { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 12px; }
 td .tag + .tag { margin-left: 4px; }
+
+/* Cả dòng bấm được nên phải cho thấy nó bấm được. */
+.bang-chon tbody tr { cursor: pointer; }
+.bang-chon tbody tr:hover { background: var(--surface); }
+.bang-chon tbody tr.dang-mo { background: var(--surface-2); }
+.o-ky.bat-dau { box-shadow: inset 2px 0 0 var(--ink); }
+.o-ky.ket-thuc { box-shadow: inset -2px 0 0 var(--ink); }
+.o-ky.bat-dau.ket-thuc { box-shadow: inset 2px 0 0 var(--ink), inset -2px 0 0 var(--ink); }
+.o-ky.na.bat-dau { box-shadow: inset 0 0 0 1px var(--line), inset 2px 0 0 var(--ink); }
+.o-ky.na.ket-thuc { box-shadow: inset 0 0 0 1px var(--line), inset -2px 0 0 var(--ink); }

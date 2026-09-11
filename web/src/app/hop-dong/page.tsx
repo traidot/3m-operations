@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChiTiet } from "./chi-tiet";
 import { DaiKy } from "./dai-ky";
+import { Dong } from "./dong";
 import {
   CONTRACTS_PER_PAGE,
   countContracts,
@@ -122,7 +123,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <p className="empty">Không có hợp đồng nào khớp.</p>
       ) : (
         <div className="scroller">
-          <table>
+          <table className="bang-chon">
             <thead>
               <tr>
                 <th>Mã</th>
@@ -140,7 +141,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.subscription_id} className={r.subscription_id === dangMo ? "dang-mo" : undefined}>
+                <Dong
+                  key={r.subscription_id}
+                  href={link({ xem: r.subscription_id })}
+                  dangMo={r.subscription_id === dangMo}
+                >
                   <td className="mono">
                     <Link href={link({ xem: r.subscription_id })} scroll={false}>
                       {r.contract_code ?? "—"}
@@ -148,7 +153,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td>
                     {r.dia_chi ?? "—"}
-                    <DaiKy cac_ky={theoNam.get(r.subscription_id)} nam={nam} />
+                    <DaiKy nam={theoNam.get(r.subscription_id)} />
                   </td>
                   <td>{HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong}</td>
                   <td>{r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "—"}</td>
@@ -178,7 +183,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {n(r.con_no)}
                   </td>
                   <td className="mono">{r.ky_da_thu_gan_nhat ?? "—"}</td>
-                </tr>
+                </Dong>
               ))}
             </tbody>
           </table>
@@ -186,7 +191,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       )}
 
       <p className="muted chu-giai">
-        Dải {nam}: mỗi ô một tháng, tháng 1 bên trái.
+        Dải {nam}: mỗi ô một tháng, tháng 1 bên trái. Vạch đứng là tháng hợp đồng bắt
+        đầu hoặc kết thúc.
         <span className="chu-thich"><i className="o-ky mau da-thu" /> đã thu</span>
         <span className="chu-thich"><i className="o-ky mau mien-phi" /> miễn phí</span>
         <span className="chu-thich"><i className="o-ky mau cho-duyet" /> chờ duyệt hoặc ghi chú</span>

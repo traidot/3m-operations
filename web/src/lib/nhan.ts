@@ -33,8 +33,9 @@ export const CANH_BAO: Record<string, string> = {
   CHO_DUYET: "chờ duyệt",
   GHI_CHU: "chỉ ghi chú",
   NGOAI_KY: "kỳ ngoài khoảng",
+  THU_THIEU: "thu thiếu tiền",
   CHO_LAP_LAU: "chờ lắp lâu",
 };
 
 /** Ba cái này là mất tiền hoặc không tính được tiền, tô đỏ; còn lại là nhắc việc. */
-export const CANH_BAO_NANG = new Set(["NO_NANG", "HUY_CON_NO", "THIEU_CUOC"]);
+export const CANH_BAO_NANG = new Set(["NO_NANG", "HUY_CON_NO", "THIEU_CUOC", "THU_THIEU"]);
