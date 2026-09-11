@@ -105,7 +105,8 @@ function May({ may }: { may: TelecomDevice | undefined }) {
         <span className="mono muted">
           {" "}
           cọc {n(may.coc)}
-          {may.trang_thai_coc && ` (${COC[may.trang_thai_coc] ?? may.trang_thai_coc})`}
+          {may.trang_thai_coc &&
+            ` (${COC[may.trang_thai_coc] ?? may.trang_thai_coc})`}
         </span>
       )}
     </span>
@@ -124,11 +125,16 @@ function dichVu(
   const con = tb.length - hien.length;
 
   const dong = hien.map((s) => (
-    <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
+    <Dong
+      key={`${kh.party_id}-${s.subscription_id}`}
+      href={link({ hd: s.subscription_id })}
+      dangMo={false}
+      lop="sub"
+    >
       <td>
-        <Link href={link({ hd: s.subscription_id })} scroll={false}>
+        <span className="chip tat">
           {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
-        </Link>
+        </span>
         {s.goi && <span className="muted"> · {s.goi}</span>}
         {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
         <May may={theoMay.get(s.subscription_id)} />
@@ -164,7 +170,7 @@ function dichVu(
         {n(s.tien_mat)}
       </td>
       <td />
-    </tr>
+    </Dong>
   ));
 
   if (con === 0) return dong;
@@ -201,7 +207,9 @@ export default async function Page({
     countTelecomCustomers(loc),
   ]);
   const dichVuTheoKhach = await getSubsForParties(rows.map((r) => r.party_id));
-  const maThueBao = [...dichVuTheoKhach.values()].flat().map((s) => s.subscription_id);
+  const maThueBao = [...dichVuTheoKhach.values()]
+    .flat()
+    .map((s) => s.subscription_id);
   const mayTheoThueBao = await getDevicesForSubs(maThueBao);
   const namTheoThueBao = await getTelecomYearStatus(
     [...dichVuTheoKhach.values()].flat().map((s) => s.subscription_id),

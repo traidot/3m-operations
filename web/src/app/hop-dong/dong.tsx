@@ -9,17 +9,20 @@ import { useRouter } from "next/navigation";
 export function Dong({
   href,
   dangMo,
+  lop,
   children,
 }: {
   href: string;
   dangMo: boolean;
+  /** Lớp thêm, dùng cho dòng dịch vụ nằm dưới dòng khách. */
+  lop?: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
 
   return (
     <tr
-      className={dangMo ? "dang-mo" : undefined}
+      className={[lop, dangMo ? "dang-mo" : ""].filter(Boolean).join(" ") || undefined}
       onClick={(e) => {
         if (e.target instanceof Element && e.target.closest("a")) return;
         if (window.getSelection()?.toString()) return;

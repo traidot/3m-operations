@@ -122,7 +122,9 @@ select option { background: var(--surface); color: var(--ink); }
 .empty { color: var(--muted); padding: 24px 0; }
 
 td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-th:last-child, td:last-child { padding-right: 0; }
+/* Cột đầu và cột cuối cũng cần đệm, không thì chữ dính sát mép bảng. */
+th:first-child, td:first-child { padding-left: 10px; }
+th:last-child, td:last-child { padding-right: 14px; }
 .bad { color: var(--bad); }
 tr.sub td { border-bottom: 0; padding-top: 3px; padding-bottom: 3px; font-size: 0.82rem; }
 tr.sub td:first-child { padding-left: 16px; }
@@ -277,7 +279,9 @@ th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .bang-nhom tbody:nth-of-type(even) { background: var(--surface); }
 .bang-nhom tbody:hover { background: var(--surface-2); }
 .bang-nhom tbody tr { cursor: pointer; }
-.bang-nhom tbody tr.sub { cursor: default; }
+/* Dòng dịch vụ cũng bấm được — mở ngăn kéo hoá đơn của thuê bao đó. */
+.bang-nhom tbody tr.sub { cursor: pointer; }
+.bang-nhom tbody tr.sub:hover { background: var(--surface-2); }
 /* Dòng khách mở đầu nhóm, kẻ đậm hơn để mắt bắt được ranh giới. */
 .bang-nhom tbody > tr:first-child > td { border-top: 1px solid var(--line-strong); }
 /* Giữa các dịch vụ có đường ngăn, nhưng mờ hơn đường giữa các khách. */
@@ -287,7 +291,7 @@ th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .bang-nhom tbody tr.sub td { border-bottom: 1px solid var(--line); }
 .bang-nhom tbody > tr.sub:last-child > td { border-bottom: 0; }
 .bang-nhom tbody > tr.sub:last-child > td { padding-bottom: 10px; }
-tr.sub td:first-child { padding-left: 20px; }
+tr.sub td:first-child { padding-left: 26px; }
 /* Tháng bị đánh dấu không đòi được: đỏ đặc, khác với đỏ "chưa thu". */
 .o-ky.mat { background: var(--bad); color: var(--paper); box-shadow: inset 0 0 0 1px var(--ink); }
 

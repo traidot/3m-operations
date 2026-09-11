@@ -27,7 +27,7 @@ export default async function Page() {
     <main>
       <h1>Đồng bộ</h1>
       <p className="muted">
-        Kéo dữ liệu từ hệ thống wifi cố định về kho số liệu. Chỉ đọc — không ghi gì
+        Kéo dữ liệu từ cả hai hệ thống nguồn — wifi cố định và wifi cầm tay — về kho số liệu. Chỉ đọc — không ghi gì
         ngược lại hệ thống nguồn.
       </p>
       <p className="muted">
