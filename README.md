@@ -40,6 +40,9 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `016_finding_lifecycle.sql` | Một vấn đề một dòng suốt đời, gỡ được bỏ qua |
 | `017_fix_unallocated.sql` | Bỏ cảnh báo tiền chưa cấn ở nguồn không có hoá đơn |
 | `018_funnel.sql` | Phễu quảng cáo → hợp đồng → thu cước theo tháng |
+| `019_ads_cancelled.sql` | Đơn huỷ, thống kê lắp đặt, phát hiện tab đè nhau |
+| `020_split_business.sql` | Tách phễu wifi và eSIM |
+| `021_contract_link.sql` | Liên kết sang màn hình hợp đồng bên hệ thống nguồn |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 
@@ -110,7 +113,8 @@ cd web && npm install && npm run dev
 |---|---|
 | `/` | Bản tin: phán quyết đang mở, đánh dấu đã tiếp nhận / đã xử lý / bỏ qua |
 | `/duyet-trung` | Hàng đợi trùng khách, gộp hoặc bác từng cặp |
-| `/pheu` | Đồ thị phễu marketing → sale → thu cước |
+| `/wifi` | Phễu và số liệu mảng wifi cố định, wifi cầm tay (có cước) |
+| `/esim` | Phễu và số liệu mảng eSIM (bán đứt, không cước) |
 | `/cuoc` | Cước wifi cố định theo tháng, độ phủ tính cước, hợp đồng nợ |
 | `/dong-bo` | Nút kéo dữ liệu ngay, kèm lịch sử các lượt đồng bộ |
 | `/may-muon` | Nhập phiếu mượn máy pocket, đánh dấu đã nhận lại |

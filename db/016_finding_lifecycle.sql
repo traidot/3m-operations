@@ -82,6 +82,7 @@ begin
     evidence       = excluded.evidence,
     title          = excluded.title,
     action         = excluded.action,
+    metabase_url   = excluded.metabase_url,
     -- Đóng rồi mà thấy lại thì mở lại, đếm số lần tái diễn.
     reopened_count = finding.reopened_count
                      + case when finding.status = 'RESOLVED' then 1 else 0 end,

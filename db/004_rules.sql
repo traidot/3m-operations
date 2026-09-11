@@ -223,7 +223,7 @@ begin
         'so_ky_mien_phi', v_rec.so_ky_mien_phi, 'so_ky_no', v_rec.so_ky_no,
         'tong_da_thu', v_rec.tong_da_thu, 'con_no', v_rec.con_no),
       'Quyết định đòi tiếp hay ngừng dịch vụ.',
-      null, p_today);
+      contract_url(v_rec.subscription_id), p_today);
     v_fp := v_fp || ('R_FIXED_ARREARS:FIXED/' || v_rec.subscription_id);
   end loop;
   rule_key := 'R_FIXED_ARREARS'; so_phat_hien := coalesce(array_length(v_fp, 1), 0);

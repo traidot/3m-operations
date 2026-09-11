@@ -99,6 +99,8 @@ export type Coverage = {
 };
 
 export type Arrears = {
+  subscription_id: string;
+  lien_ket: string | null;
   contract_code: string;
   so_ky: number;
   so_ky_mien_phi: number;
@@ -129,7 +131,8 @@ export const getCoverage = () =>
 
 export const getArrears = () =>
   query<Arrears>(
-    `select contract_code, so_ky, so_ky_mien_phi, so_ky_no,
+    `select subscription_id, contract_url(subscription_id) as lien_ket,
+            contract_code, so_ky, so_ky_mien_phi, so_ky_no,
             tong_da_thu::text, con_no::text
        from v_fixed_arrears order by so_ky_no desc, con_no desc limit 20`,
   );
@@ -170,4 +173,57 @@ export const getFunnel = () =>
        from v_funnel_monthly
       where thang >= to_char(current_date - interval '12 months', 'YYYY-MM')
       order by thang`,
+  );
+
+export type WifiFunnel = {
+  thang: string;
+  chi_phi: string | null;
+  tiep_can: string | null;
+  click: string | null;
+  mess: string | null;
+  don_khai: string | null;
+  don_huy: string | null;
+  chi_phi_co_dinh: string | null;
+  mess_co_dinh: string | null;
+  don_co_dinh: string | null;
+  lich_lap: string | null;
+  lap_xong: string | null;
+  hop_dong_moi: string | null;
+  cuoc_phai_thu: string | null;
+  cuoc_mien_phi: string | null;
+  cuoc_da_thu: string | null;
+  ty_le_don_thanh_hop_dong: string | null;
+  chi_phi_moi_hop_dong: string | null;
+};
+
+export type EsimFunnel = {
+  thang: string;
+  chi_phi: string | null;
+  tiep_can: string | null;
+  click: string | null;
+  mess: string | null;
+  don: string | null;
+  don_huy: string | null;
+  gia_mess: string | null;
+  chi_phi_moi_don: string | null;
+};
+
+const TU = "to_char(current_date - interval '12 months', 'YYYY-MM')";
+
+export const getWifiFunnel = () =>
+  query<WifiFunnel>(
+    `select thang, chi_phi::text, tiep_can::text, click::text, mess::text,
+            don_khai::text, don_huy::text, chi_phi_co_dinh::text,
+            mess_co_dinh::text, don_co_dinh::text, lich_lap::text, lap_xong::text,
+            hop_dong_moi::text, cuoc_phai_thu::text, cuoc_mien_phi::text,
+            cuoc_da_thu::text, ty_le_don_thanh_hop_dong::text,
+            chi_phi_moi_hop_dong::text
+       from v_funnel_wifi where thang >= ${TU} order by thang`,
+  );
+
+export const getEsimFunnel = () =>
+  query<EsimFunnel>(
+    `select thang, chi_phi::text, tiep_can::text, click::text, mess::text,
+            don::text, don_huy::text, gia_mess::text, chi_phi_moi_don::text
+       from v_funnel_esim where thang >= ${TU} order by thang`,
   );

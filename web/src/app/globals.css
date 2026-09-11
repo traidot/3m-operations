@@ -108,3 +108,14 @@ summary:hover { color: var(--ok); }
 .chu-thich { display: inline-flex; align-items: center; gap: 6px; }
 .o-mau { width: 10px; height: 10px; display: inline-block; }
 .dinh-truc { margin-left: auto; font-family: var(--mono); font-size: 0.75rem; }
+
+.pheu .bac-0 { fill: var(--line-strong); }
+.pheu .bac-1 { fill: var(--muted); }
+.pheu .bac-2 { fill: var(--bad); }
+.pheu .bac-3 { fill: var(--ok); }
+.pheu .bac-4 { fill: var(--ok-ink, var(--ok)); opacity: .75; }
+.pheu-ten { fill: var(--ink); font-size: 13px; font-weight: 500; }
+.pheu-ghi-chu { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+.pheu-so { fill: var(--paper); font-size: 14px; font-weight: 500; font-family: var(--mono); }
+.pheu-ty-le { fill: var(--muted); font-size: 12px; font-family: var(--mono); }
+.pheu-ty-le.phinh { fill: var(--bad); }

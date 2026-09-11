@@ -94,8 +94,17 @@ export default async function Page() {
             </thead>
             <tbody>
               {arrears.map((a) => (
-                <tr key={a.contract_code}>
-                  <td className="mono">{a.contract_code}</td>
+                <tr key={a.subscription_id}>
+                  <td className="mono">
+                    {/* Lớp giám sát chỉ đọc, muốn sửa phải sang hệ thống nguồn. */}
+                    {a.lien_ket ? (
+                      <a href={a.lien_ket} target="_blank" rel="noreferrer">
+                        {a.contract_code}
+                      </a>
+                    ) : (
+                      a.contract_code
+                    )}
+                  </td>
                   <td className="num mono muted">{a.so_ky}</td>
                   <td className="num mono muted">{a.so_ky_mien_phi || "—"}</td>
                   <td className={`num mono ${a.so_ky_no >= 6 ? "bad" : ""}`}>{a.so_ky_no}</td>
