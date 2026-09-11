@@ -13,7 +13,6 @@ const MENU: { nhom: string; muc: { ten: string; href: string }[] }[] = [
     muc: [
       { ten: "Tổng quan", href: "/cam-tay" },
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
-      { ten: "Tra thuê bao", href: "/cam-tay/thue-bao" },
       { ten: "Máy cho mượn", href: "/may-muon" },
     ],
   },

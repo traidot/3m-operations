@@ -137,16 +137,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Khách wifi cầm tay</h1>
       <p className="muted">
-        Một khách có thể dùng nhiều dịch vụ cùng lúc, nên nợ phải cộng theo người chứ
-        không theo thuê bao. Bấm vào dòng để xem từng thuê bao của khách đó. Có party là
-        tài khoản CTV hoặc đại lý giữ hàng trăm thuê bao — lọc “nhiều thuê bao” để thấy.
+        Mỗi khách một dòng, các dịch vụ của khách nằm ngay dưới kèm trạng thái. Một khách
+        có thể dùng nhiều dịch vụ cùng lúc nên nợ cộng theo người, không theo thuê bao.
+        Tìm được cả theo mã máy. Có party là tài khoản CTV hoặc đại lý giữ hàng trăm thuê
+        bao — lọc “từ 2 thuê bao” để thấy.
       </p>
 
       <form method="get">
         <div className="formgrid">
           <label>
-            Tên hoặc điện thoại
-            <input type="search" name="q" defaultValue={loc.q} placeholder="tên khách…" />
+            Tên, điện thoại hoặc mã máy
+            <input type="search" name="q" defaultValue={loc.q} placeholder="tên khách, IMEI…" />
           </label>
           <Chon
             ten="loai"

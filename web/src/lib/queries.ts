@@ -831,7 +831,13 @@ function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
 
   if (f.q?.trim()) {
     params.push(`%${f.q.trim()}%`);
-    dieu.push(`(khach ilike $${params.length} or dien_thoai ilike $${params.length})`);
+    const t = `$${params.length}`;
+    // Tìm cả theo mã máy của thuê bao, nếu không thì bỏ bảng phẳng đi là mất
+    // đường tra theo IMEI.
+    dieu.push(`(khach ilike ${t} or dien_thoai ilike ${t}
+                or exists (select 1 from v_telecom_customer_sub s
+                            where s.party_id = v_telecom_customer.party_id
+                              and s.ma_may ilike ${t}))`);
   }
   if (f.dichVu) {
     params.push(f.dichVu);
