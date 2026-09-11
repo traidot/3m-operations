@@ -31,6 +31,8 @@ export const SUBSCRIPTION = `
     date(coalesce(c.feeCollectionEndDate, c.cancelDate, c.lineCancellationDate)) as fee_end_on,
     null                                        as device_ref,
     null                                        as sim_ref,
+    c.isRenewal = 1                             as is_renewal,
+    c.cancellationTiming                        as cancel_timing,
     c.createdAt                                 as created_at_src,
     c.updatedAt                                 as updated_at_src,
     c.createBy                                  as created_by_src
@@ -45,7 +47,7 @@ export const INSTALL_ORDER = `
     trim(concat_ws(' ', c.postalCode, c.addressLine, c.buildingName)) as address,
     case c.installationStatus
       when 'INSTALLATION_COMPLETED' then 'DONE'
-      when 'INSTALLATION_FAILED'    then 'CANCELLED'
+      when 'INSTALLATION_FAILED'    then 'FAILED'
       else 'SURVEY'
     end             as status,
     date(c.entryDate)                    as signed_on,

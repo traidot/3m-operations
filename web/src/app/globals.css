@@ -244,3 +244,11 @@ td .tag + .tag { margin-left: 4px; }
   .ngan-keo .chung-cu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .loc-thang { display: flex; gap: 12px; align-items: baseline; font-size: 0.86rem; color: var(--muted); margin: 10px 0 0; }
+
+/* Hàng thẻ số tổng trên đầu báo cáo. */
+.the-hang { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 20px 0 8px; }
+.the-so { background: var(--surface); border: 1px solid var(--line); border-radius: var(--bo-to); padding: 12px 14px; }
+.the-ten { color: var(--muted); font-size: 0.8rem; }
+.the-gia-tri { font-size: 1.35rem; color: var(--ink); margin-top: 2px; }
+.the-phu { color: var(--muted); font-size: 0.76rem; }
+th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }

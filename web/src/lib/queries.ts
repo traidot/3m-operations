@@ -510,3 +510,31 @@ export const getMonthStats = () =>
             tien_da_thu::text, tien_chua_thu::text, ty_le_ky_xong::text
        from v_fixed_month where ky >= ${TU} order by ky`,
   );
+
+export type RegisterReport = {
+  ky: string;
+  dang_ky_lan_dau: string;
+  dang_ky_lai: string;
+  dang_ky: string;
+  huy_truoc_lich: string;
+  huy_sau_lich: string;
+  huy_sau_lap: string;
+  huy: string;
+  ty_le_huy: string | null;
+  con_lai: string;
+  co_lich_lap: string;
+  chua_co_lich: string;
+  lap_xong: string;
+  lap_that_bai: string;
+};
+
+/** Báo cáo đăng ký theo ngày hoặc theo tháng — xem fixed_register_report. */
+export const getRegisterReport = (donVi: "ngay" | "thang", tu: string, den: string) =>
+  query<RegisterReport>(
+    `select ky, dang_ky_lan_dau::text, dang_ky_lai::text, dang_ky::text,
+            huy_truoc_lich::text, huy_sau_lich::text, huy_sau_lap::text, huy::text,
+            ty_le_huy::text, con_lai::text, co_lich_lap::text, chua_co_lich::text,
+            lap_xong::text, lap_that_bai::text
+       from fixed_register_report($1, $2::date, $3::date)`,
+    [donVi, tu, den],
+  );

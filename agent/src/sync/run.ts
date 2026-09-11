@@ -18,7 +18,8 @@ const INSERTS: Record<keyof typeof QUERIES, { table: string; cols: string[] }> =
     cols: ["source_id", "source_customer_id", "service_type", "plan_name", "status",
            "monthly_price", "monthly_cost", "activated_on", "terminated_on", "anchor_day",
            "fee_start_on", "fee_end_on",
-           "device_ref", "sim_ref", "created_at_src", "updated_at_src", "created_by_src"],
+           "device_ref", "sim_ref", "is_renewal", "cancel_timing",
+           "created_at_src", "updated_at_src", "created_by_src"],
   },
   fee_period: {
     table: "fee_period_snapshot",

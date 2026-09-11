@@ -27,6 +27,8 @@ export function Bars({
   );
 
   const oRong = (rong - leTrai * 2) / Math.max(nhan.length, 1);
+  // Nhãn ngày chen nhau khi có 30 cột, thưa bớt cho vừa chỗ.
+  const buoc = Math.max(1, Math.ceil(34 / Math.max(oRong, 1)));
   const cotRong = Math.min(18, (oRong - 10) / chuoi.length);
 
   return (
@@ -66,14 +68,16 @@ export function Bars({
                   />
                 );
               })}
-              <text
-                className="nhan-truc"
-                x={leTrai + i * oRong + oRong / 2}
-                y={cao - 18}
-                textAnchor="middle"
-              >
-                {thang.slice(5)}
-              </text>
+              {i % buoc === 0 && (
+                <text
+                  className="nhan-truc"
+                  x={leTrai + i * oRong + oRong / 2}
+                  y={cao - 18}
+                  textAnchor="middle"
+                >
+                  {thang.slice(5)}
+                </text>
+              )}
             </g>
           );
         })}
