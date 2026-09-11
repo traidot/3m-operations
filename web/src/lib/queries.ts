@@ -538,3 +538,31 @@ export const getRegisterReport = (donVi: "ngay" | "thang", tu: string, den: stri
        from fixed_register_report($1, $2::date, $3::date)`,
     [donVi, tu, den],
   );
+
+export type CollectionReport = {
+  ky: string;
+  so_ky: string;
+  ky_duyet: string;
+  ky_mien_phi: string;
+  ky_cho_duyet: string;
+  ky_ghi_chu: string;
+  so_hop_dong: string;
+  tien_thu: string;
+};
+
+/** Tiền cước thực nhận, gom theo NGÀY THU chứ không theo kỳ cước. */
+export const getCollectionReport = (donVi: "ngay" | "thang", tu: string, den: string) =>
+  query<CollectionReport>(
+    `select ky, so_ky::text, ky_duyet::text, ky_mien_phi::text, ky_cho_duyet::text,
+            ky_ghi_chu::text, so_hop_dong::text, tien_thu::text
+       from fixed_collection_report($1, $2::date, $3::date)`,
+    [donVi, tu, den],
+  );
+
+export type ChannelReport = { kenh: string; so_ky: string; tien: string };
+
+export const getChannelReport = (tu: string, den: string) =>
+  query<ChannelReport>(
+    `select kenh, so_ky::text, tien::text from fixed_channel_report($1::date, $2::date)`,
+    [tu, den],
+  );

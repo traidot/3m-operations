@@ -1,4 +1,10 @@
-import { getMonthStats, getRegisterReport, type RegisterReport } from "@/lib/queries";
+import {
+  getChannelReport,
+  getCollectionReport,
+  getMonthStats,
+  getRegisterReport,
+  type RegisterReport,
+} from "@/lib/queries";
 import { Bars } from "../wifi/bars";
 
 export const dynamic = "force-dynamic";
@@ -41,9 +47,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tu = mot(sp.tu) || mac.tu;
   const den = mot(sp.den) || mac.den;
 
-  const [dk, thang] = await Promise.all([
+  const [dk, thang, thu, kenh] = await Promise.all([
     getRegisterReport(donVi, tu, den),
     getMonthStats(),
+    getCollectionReport(donVi, tu, den),
+    getChannelReport(tu, den),
   ]);
 
   const tongDangKy = cong(dk, "dang_ky");
@@ -166,10 +174,83 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </table>
       </div>
 
+      <h2>Tiền cước thực nhận theo {donVi === "ngay" ? "ngày thu" : "tháng thu"}</h2>
+      <p className="muted">
+        Gom theo <b>ngày thu tiền</b>, không theo kỳ cước — hôm đó nhận về bao nhiêu, của
+        kỳ nào cũng tính. Kỳ miễn phí và kỳ chỉ ghi chú vẫn đếm là một lần chốt sổ nhưng
+        không sinh tiền.
+      </p>
+      {thu.length === 0 ? (
+        <p className="empty">Khoảng này không có lần thu nào.</p>
+      ) : (
+        <>
+          <Bars
+            nhan={thu.map((r) => r.ky)}
+            cao={150}
+            chuoi={[
+              { ten: "Tiền thu", mau: "var(--ok)", gia_tri: thu.map((r) => so(r.tien_thu)) },
+            ]}
+          />
+          <div className="scroller">
+            <table>
+              <thead>
+                <tr>
+                  <th>{donVi === "ngay" ? "Ngày thu" : "Tháng thu"}</th>
+                  <th className="num">Kỳ chốt</th>
+                  <th className="num">Thu tiền</th>
+                  <th className="num">Miễn phí</th>
+                  <th className="num">Chờ duyệt</th>
+                  <th className="num">Ghi chú</th>
+                  <th className="num">Hợp đồng</th>
+                  <th className="num">Tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...thu].reverse().map((r) => (
+                  <tr key={r.ky}>
+                    <td className="mono">{r.ky}</td>
+                    <td className="num mono">{n(r.so_ky)}</td>
+                    <td className="num mono">{n(r.ky_duyet)}</td>
+                    <td className="num mono muted">{n(r.ky_mien_phi)}</td>
+                    <td className="num mono">{n(r.ky_cho_duyet)}</td>
+                    <td className="num mono">{n(r.ky_ghi_chu)}</td>
+                    <td className="num mono muted">{n(r.so_hop_dong)}</td>
+                    <td className="num mono">{n(r.tien_thu)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      <h2>Theo kênh thu</h2>
+      <div className="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th>Kênh</th>
+              <th className="num">Kỳ chốt</th>
+              <th className="num">Tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            {kenh.map((k) => (
+              <tr key={k.kenh}>
+                <td>{k.kenh}</td>
+                <td className="num mono">{n(k.so_ky)}</td>
+                <td className="num mono">{n(k.tien)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <h2>Cước theo kỳ</h2>
       <p className="muted">
-        Kỳ cước luôn là tháng nên phần này không chia theo ngày được. Ghép theo kỳ, không
-        theo ngày thu. Bấm vào con số để ra danh sách hợp đồng.
+        Kỳ cước bên nguồn ghi dạng YYYY-MM nên phần này chỉ có đơn vị tháng — đây là
+        tháng <b>đáng lẽ phải thu</b>, khác với bảng trên. Bấm vào con số để ra danh sách
+        hợp đồng.
       </p>
       <div className="scroller">
         <table>
