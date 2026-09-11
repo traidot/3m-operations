@@ -108,8 +108,10 @@ select 'TELECOM', 'S1', 'T1', party_id, 'POCKET_WIFI', 'ACTIVE', 3000,
 
 insert into invoice_snapshot (source, source_id, party_id, subscription_source_id,
   issued_on, due_on, period_start, period_end, total_amount, paid_amount, status)
-select 'TELECOM', 'I1', party_id, 'S1', current_date - 40, current_date - 33,
-       current_date - 40, current_date - 10, 3000, 500, 'ISSUED'
+-- Kỳ cước kết thúc 60 ngày trước: quá ân hạn 35 ngày nên phải báo thiếu
+-- hoá đơn, đồng thời hoá đơn này còn nợ 2.500 và đã quá hạn.
+select 'TELECOM', 'I1', party_id, 'S1', current_date - 90, current_date - 83,
+       current_date - 90, current_date - 60, 3000, 500, 'ISSUED'
   from party_source where source_customer_id = 'T1';
 
 insert into loan_record (device_imei, issued_on, due_on, entered_by)
@@ -126,6 +128,10 @@ begin
   select count(*) into v_n from finding where status = 'OPEN';
   assert v_n = 3,
     'thiếu hoá đơn, nợ vượt ngưỡng, máy quá hạn — đúng 3 phán quyết, đang có ' || v_n;
+
+  -- Phán quyết thiếu hoá đơn gộp theo nguồn, không rải mỗi thuê bao một thẻ.
+  select count(*) into v_n from finding where rule_key = 'R_MISSING_INVOICE';
+  assert v_n = 1, 'thiếu hoá đơn phải gộp thành một thẻ mỗi nguồn — đang có ' || v_n;
 
   select times_reported into v_times from finding where rule_key = 'R_MISSING_INVOICE';
   assert v_times = 2, 'chạy hai lượt thì đếm 2 chứ không sinh dòng mới — đang là ' || v_times;
