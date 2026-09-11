@@ -81,16 +81,15 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
           ) : (
             <div className="scroller">
               <table>
+                {/* Ngăn kéo chỉ rộng nửa màn hình, tám cột thì cột cuối bị cắt.
+                    Gộp khoảng ngày thành một ô, cọc kèm luôn tình trạng. */}
                 <thead>
                   <tr>
                     <th>IMEI</th>
-                    <th>Gắn từ</th>
-                    <th>Gắn đến</th>
+                    <th>Gắn</th>
                     <th>Tình trạng máy</th>
                     <th className="num">Cọc</th>
-                    <th>Tình trạng cọc</th>
-                    <th>Thuê</th>
-                    <th>Trả</th>
+                    <th>Thuê · trả</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -98,10 +97,12 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                     <tr key={`${m.imei}-${m.gan_tu}`}>
                       <td className="mono">
                         {m.imei}
-                        {m.dang_gan && <span className="tag"> đang gắn</span>}
+                        {m.dang_gan && <div className="muted">đang gắn</div>}
                       </td>
-                      <td className="mono">{m.gan_tu ?? "—"}</td>
-                      <td className="mono">{m.gan_den ?? "—"}</td>
+                      <td className="mono">
+                        {m.gan_tu ?? "—"}
+                        {m.gan_den && ` → ${m.gan_den}`}
+                      </td>
                       <td>
                         {m.trang_thai_may ? (
                           <Chip ma={m.trang_thai_may} nhan={MAY} />
@@ -109,16 +110,16 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                           <span className="muted">không có phiếu thuê</span>
                         )}
                       </td>
-                      <td className="num mono">{n(m.coc)}</td>
-                      <td>
-                        {m.trang_thai_coc ? (
-                          <Chip ma={m.trang_thai_coc} nhan={COC} />
-                        ) : (
-                          <span className="muted">—</span>
+                      <td className="num mono">
+                        {n(m.coc)}
+                        {m.trang_thai_coc && (
+                          <div className="muted">{COC[m.trang_thai_coc] ?? m.trang_thai_coc}</div>
                         )}
                       </td>
-                      <td className="mono">{m.ngay_thue ?? "—"}</td>
-                      <td className="mono">{m.ngay_tra ?? "—"}</td>
+                      <td className="mono">
+                        {m.ngay_thue ?? "—"}
+                        {m.ngay_tra && ` → ${m.ngay_tra}`}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -140,13 +141,11 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                 <thead>
                   <tr>
                     <th>Kỳ</th>
-                    <th>Số</th>
                     <th>Trạng thái</th>
                     <th className="num">Tiền</th>
                     <th className="num">Đã trả</th>
                     <th className="num">Còn lại</th>
-                    <th>Hạn</th>
-                    <th>Kênh</th>
+                    <th>Hạn · kênh</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -154,8 +153,8 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                     <tr key={h.invoice_id}>
                       <td className="mono">
                         {h.ky_tu ? `${h.ky_tu.slice(0, 7)}` : (h.ngay_lap?.slice(0, 7) ?? "—")}
+                        {h.so_hoa_don && <div className="muted">{h.so_hoa_don}</div>}
                       </td>
-                      <td className="mono">{h.so_hoa_don ?? "—"}</td>
                       <td>
                         <Chip ma={h.trang_thai} nhan={HOA_DON} />
                       </td>
@@ -164,8 +163,10 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                       <td className={`num mono${Number(h.con_lai) > 0 ? " bad" : ""}`}>
                         {n(h.con_lai)}
                       </td>
-                      <td className="mono">{h.han_tra ?? "—"}</td>
-                      <td>{h.kenh_thu ?? "—"}</td>
+                      <td className="mono">
+                        {h.han_tra ?? "—"}
+                        {h.kenh_thu && <div className="muted">{h.kenh_thu}</div>}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
