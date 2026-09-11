@@ -1,5 +1,6 @@
 import {
   getCancelReasons,
+  getDifficultDebt,
   getChannelReport,
   getCollectionReport,
   getMonthStats,
@@ -7,7 +8,8 @@ import {
   type RegisterReport,
 } from "@/lib/queries";
 import { Bars } from "../wifi/bars";
-import { LY_DO_HUY } from "@/lib/nhan";
+import { HOP_DONG, LY_DO_HUY } from "@/lib/nhan";
+import { Chip } from "../chip";
 
 export const dynamic = "force-dynamic";
 
@@ -49,12 +51,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tu = mot(sp.tu) || mac.tu;
   const den = mot(sp.den) || mac.den;
 
-  const [dk, thang, thu, kenh, lyDo] = await Promise.all([
+  const [dk, thang, thu, kenh, lyDo, khoDoi] = await Promise.all([
     getRegisterReport(donVi, tu, den),
     getMonthStats(),
     getCollectionReport(donVi, tu, den),
     getChannelReport(tu, den),
     getCancelReasons(tu, den),
+    getDifficultDebt(),
   ]);
 
   const tongDangKy = cong(dk, "dang_ky");
@@ -229,6 +232,49 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         Cột “sau lắp xong” là mất khách sau khi đã tốn tiền thi công — đắt nhất trong ba
         mốc.
       </p>
+
+      <h2>Khách khó đòi</h2>
+      <p className="muted">
+        Kế toán đánh dấu tay bên hệ thống nguồn, không suy ra từ số kỳ nợ — nên có hợp
+        đồng đang nợ 0 đồng vẫn nằm đây, và ngược lại hợp đồng nợ nặng chưa chắc đã bị
+        đánh dấu. Không lọc theo khoảng ngày.
+      </p>
+      {khoDoi.length === 0 ? (
+        <p className="empty">Chưa hợp đồng nào bị đánh dấu khó đòi.</p>
+      ) : (
+        <div className="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>Hợp đồng</th>
+                <th>Trạng thái</th>
+                <th>Thu tới kỳ</th>
+                <th className="num">Kỳ nợ</th>
+                <th className="num">Còn nợ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {khoDoi.map((k) => (
+                <tr key={k.subscription_id}>
+                  <td className="mono">
+                    <a href={`/hop-dong?xem=${k.subscription_id}`}>{k.contract_code ?? "—"}</a>
+                  </td>
+                  <td>
+                    <Chip ma={k.trang_thai_hop_dong} nhan={HOP_DONG} />
+                  </td>
+                  <td className="mono">{k.ky_da_thu_gan_nhat ?? "chưa thu kỳ nào"}</td>
+                  <td className={`num mono${Number(k.so_ky_no) > 0 ? " bad" : ""}`}>
+                    {n(k.so_ky_no)}
+                  </td>
+                  <td className={`num mono${Number(k.con_no) > 0 ? " bad" : ""}`}>
+                    {n(k.con_no)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <h2>Tiền cước thực nhận theo {donVi === "ngay" ? "ngày thu" : "tháng thu"}</h2>
       <p className="muted">

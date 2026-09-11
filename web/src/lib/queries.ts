@@ -313,6 +313,7 @@ export type Contract = {
   ngay_huy: string | null;
   ly_do_huy: string | null;
   nhom_ly_do_huy: string | null;
+  kho_doi: boolean;
   so_ky: string;
   so_ky_mien_phi: string;
   so_ky_no: string;
@@ -415,7 +416,7 @@ export const getContracts = (f: ContractFilter) => {
     `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
             trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
             fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
-            ngay_huy::text, ly_do_huy, nhom_ly_do_huy,
+            ngay_huy::text, ly_do_huy, nhom_ly_do_huy, kho_doi,
             so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
             tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
             ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
@@ -441,7 +442,7 @@ export const getContract = async (id: string) => {
     `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
             trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
             fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
-            ngay_huy::text, ly_do_huy, nhom_ly_do_huy,
+            ngay_huy::text, ly_do_huy, nhom_ly_do_huy, kho_doi,
             so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
             tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
             ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
@@ -596,4 +597,24 @@ export const getCancelReasons = (tu: string, den: string) =>
     `select nhom, so_hop_dong::text, truoc_lich::text, sau_lich::text, sau_lap::text
        from fixed_cancel_reason_report($1::date, $2::date)`,
     [tu, den],
+  );
+
+export type DifficultDebt = {
+  contract_code: string | null;
+  subscription_id: string;
+  trang_thai_hop_dong: string;
+  so_ky_no: string;
+  con_no: string;
+  ky_da_thu_gan_nhat: string | null;
+};
+
+/**
+ * Hợp đồng kế toán đánh dấu tay là khó đòi. Cờ của người, không suy từ số kỳ
+ * nợ, nên có hợp đồng nợ 0 đồng vẫn nằm đây.
+ */
+export const getDifficultDebt = () =>
+  query<DifficultDebt>(
+    `select contract_code, subscription_id, trang_thai_hop_dong,
+            so_ky_no::text, con_no::text, ky_da_thu_gan_nhat
+       from v_fixed_contract where kho_doi order by con_no desc, contract_code`,
   );

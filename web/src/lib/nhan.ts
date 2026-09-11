@@ -34,11 +34,18 @@ export const CANH_BAO: Record<string, string> = {
   GHI_CHU: "chỉ ghi chú",
   NGOAI_KY: "kỳ ngoài khoảng",
   THU_THIEU: "thu thiếu tiền",
+  KHO_DOI: "khách khó đòi",
   CHO_LAP_LAU: "chờ lắp lâu",
 };
 
 /** Ba cái này là mất tiền hoặc không tính được tiền, tô đỏ; còn lại là nhắc việc. */
-export const CANH_BAO_NANG = new Set(["NO_NANG", "HUY_CON_NO", "THIEU_CUOC", "THU_THIEU"]);
+export const CANH_BAO_NANG = new Set([
+  "NO_NANG",
+  "HUY_CON_NO",
+  "THIEU_CUOC",
+  "THU_THIEU",
+  "KHO_DOI",
+]);
 
 /**
  * Màu cho chip trạng thái. Cố tình nhạt hơn thẻ cảnh báo: đây là sự thật về

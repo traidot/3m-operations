@@ -506,3 +506,24 @@ begin
   -- Nhà mạng phải chặn trước: câu tiếng Nhật hay kèm chữ キャンセル chung chung.
   assert cancel_reason_group('本件、NTT判定により提供不可 キャンセルになります') = 'NHA_MANG_TU_CHOI';
 end $$;
+
+-- ── Cờ khách khó đòi ──────────────────────────────────────────────────
+-- Cờ do người đánh, không suy từ số kỳ nợ, nên phải giữ riêng: nợ 0 đồng mà
+-- bị đánh dấu thì vẫn phải cảnh báo.
+do $$
+declare v_cb text[];
+begin
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, fee_start_on, is_difficult_debt, created_at_src)
+  values ('FIXED', 'C6', 'HD_KHO_DOI', 'FIXED_INTERNET', 'ACTIVE', 2000,
+          date_trunc('month', current_date)::date, true, now());
+
+  insert into fee_period_snapshot (source, source_id, subscription_source_id,
+    period, amount, is_free, status)
+  values ('FIXED','F6','C6', to_char(current_date,'YYYY-MM'), 2000, false, 'APPROVED');
+
+  select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C6';
+  assert 'KHO_DOI' = any(v_cb),
+    'hợp đồng bị đánh dấu khó đòi phải có KHO_DOI — đang là ' || v_cb::text;
+  assert not ('NO_NANG' = any(v_cb)), 'C6 đã thu đủ, không được gắn NO_NANG';
+end $$;

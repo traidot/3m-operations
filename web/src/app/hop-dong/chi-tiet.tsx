@@ -89,6 +89,11 @@ export async function ChiTiet({
             <O ten="ngày ký" gia_tri={hd.ngay_ky ?? "—"} />
             <O ten="lắp xong" gia_tri={hd.ngay_lap_xong ?? "—"} />
             {hd.ngay_huy && <O ten="ngày huỷ" gia_tri={hd.ngay_huy} />}
+            {hd.kho_doi && (
+              <O ten="đánh giá">
+                <span className="chip xau">khách khó đòi</span>
+              </O>
+            )}
             <O
               ten="tổng kỳ"
               gia_tri={

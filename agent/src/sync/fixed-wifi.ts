@@ -34,6 +34,7 @@ export const SUBSCRIPTION = `
     c.isRenewal = 1                             as is_renewal,
     c.cancellationTiming                        as cancel_timing,
     nullif(trim(coalesce(c.cancelReasonProvider, c.cancelReasonManager)), '') as cancel_reason,
+    c.isDifficultDebt = 1                       as is_difficult_debt,
     c.createdAt                                 as created_at_src,
     c.updatedAt                                 as updated_at_src,
     c.createBy                                  as created_by_src
