@@ -39,3 +39,23 @@ export const CANH_BAO: Record<string, string> = {
 
 /** Ba cái này là mất tiền hoặc không tính được tiền, tô đỏ; còn lại là nhắc việc. */
 export const CANH_BAO_NANG = new Set(["NO_NANG", "HUY_CON_NO", "THIEU_CUOC", "THU_THIEU"]);
+
+/**
+ * Màu cho chip trạng thái. Cố tình nhạt hơn thẻ cảnh báo: đây là sự thật về
+ * hợp đồng, không phải việc phải làm. "Đã huỷ" là trung tính, không phải lỗi.
+ */
+export const MAU_TRANG_THAI: Record<string, string> = {
+  // hợp đồng
+  ACTIVE: "ok",
+  TERMINATED: "tat",
+  SUSPENDED: "warn",
+  PENDING: "cho",
+  // lắp đặt
+  DONE: "ok",
+  SURVEY: "cho",
+  CANCELLED: "tat",
+  // tình trạng cước
+  DU: "ok",
+  NO: "xau",
+  CHUA_TINH_DUOC: "cho",
+};

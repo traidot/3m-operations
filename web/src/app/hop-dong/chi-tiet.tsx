@@ -1,3 +1,4 @@
+import { Chip } from "../chip";
 import { NganKeo } from "./ngan-keo";
 import { getContract, getContractPeriods, getContractUrl } from "@/lib/queries";
 import {
@@ -19,15 +20,17 @@ function O({
   ten,
   gia_tri,
   do: tomau,
+  children,
 }: {
   ten: string;
-  gia_tri: string;
+  gia_tri?: string;
   do?: boolean;
+  children?: React.ReactNode;
 }) {
   return (
     <div>
       <dt>{ten}</dt>
-      <dd className={tomau ? "bad" : undefined}>{gia_tri}</dd>
+      <dd className={tomau ? "bad" : undefined}>{children ?? gia_tri}</dd>
     </div>
   );
 }
@@ -70,27 +73,15 @@ export async function ChiTiet({
           )}
 
           <dl className="chung-cu">
-            <O
-              ten="hợp đồng"
-              gia_tri={
-                HOP_DONG[hd.trang_thai_hop_dong] ?? hd.trang_thai_hop_dong
-              }
-            />
-            <O
-              ten="lắp đặt"
-              gia_tri={
-                hd.trang_thai_lap_dat
-                  ? (LAP_DAT[hd.trang_thai_lap_dat] ?? hd.trang_thai_lap_dat)
-                  : "—"
-              }
-            />
-            <O
-              ten="cước"
-              gia_tri={
-                TINH_TRANG_CUOC[hd.tinh_trang_cuoc] ?? hd.tinh_trang_cuoc
-              }
-              do={hd.tinh_trang_cuoc === "NO"}
-            />
+            <O ten="hợp đồng">
+              <Chip ma={hd.trang_thai_hop_dong} nhan={HOP_DONG} />
+            </O>
+            <O ten="lắp đặt">
+              <Chip ma={hd.trang_thai_lap_dat} nhan={LAP_DAT} />
+            </O>
+            <O ten="cước">
+              <Chip ma={hd.tinh_trang_cuoc} nhan={TINH_TRANG_CUOC} />
+            </O>
             {hd.goi_cuoc && <O ten="gói" gia_tri={hd.goi_cuoc} />}
             <O ten="cước/tháng" gia_tri={n(hd.cuoc_thang)} />
             <O ten="bắt đầu thu" gia_tri={hd.fee_start_on ?? "—"} />

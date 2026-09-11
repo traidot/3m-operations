@@ -203,6 +203,7 @@ tr.dang-mo { background: var(--surface-2); }
 .o-ky.ket-thuc { border-radius: 0 7px 7px 0; }
 .o-ky.mo-dau.ket-thuc { border-radius: 7px; }
 .chu-giai { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 12px; }
+td .tag { border-radius: 10px; padding: 2px 9px; }
 td .tag + .tag { margin-left: 4px; }
 
 /* Cả dòng bấm được nên phải cho thấy nó bấm được. */
@@ -211,3 +212,18 @@ td .tag + .tag { margin-left: 4px; }
 .bang-chon tbody tr.dang-mo { background: var(--surface-2); }
 /* Ô ngoài hợp đồng trong suốt nên trong chú giải phải cho nó cái nền mờ. */
 .o-ky.mau.ngoai { background: var(--surface-2); }
+
+/* Chip trạng thái: nền pha từ chính màu ý nghĩa nên hợp cả nền sáng lẫn tối. */
+.chip {
+  display: inline-block; padding: 2px 9px; border-radius: 10px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 0.78rem; line-height: 1.5; white-space: nowrap;
+  background: color-mix(in srgb, var(--mau-chip) 14%, transparent);
+  color: var(--mau-chip);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mau-chip) 32%, transparent);
+}
+.chip.ok   { --mau-chip: var(--ok); }
+.chip.warn { --mau-chip: var(--warn); }
+.chip.cho  { --mau-chip: var(--warn); }
+.chip.xau  { --mau-chip: var(--bad); }
+.chip.tat  { --mau-chip: var(--muted); }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChiTiet } from "./chi-tiet";
+import { Chip } from "../chip";
 import { DaiKy } from "./dai-ky";
 import { Dong } from "./dong";
 import {
@@ -157,8 +158,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {r.dia_chi ?? "—"}
                     <DaiKy nam={theoNam.get(r.subscription_id)} />
                   </td>
-                  <td>{HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong}</td>
-                  <td>{r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "—"}</td>
+                  <td>
+                    <Chip ma={r.trang_thai_hop_dong} nhan={HOP_DONG} />
+                  </td>
+                  <td>
+                    <Chip ma={r.trang_thai_lap_dat} nhan={LAP_DAT} />
+                  </td>
                   <td>
                     {r.canh_bao.length === 0 ? (
                       <span className="muted">—</span>
