@@ -273,7 +273,11 @@ th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 /* Dòng khách mở đầu nhóm, kẻ đậm hơn để mắt bắt được ranh giới. */
 .bang-nhom tbody > tr:first-child > td { border-top: 1px solid var(--line-strong); }
 /* Giữa các dịch vụ có đường ngăn, nhưng mờ hơn đường giữa các khách. */
-.bang-nhom tbody tr.sub td { border-bottom-color: color-mix(in srgb, var(--line) 45%, transparent); }
+/* Dòng 127 đặt border-bottom: 0 cho mọi tr.sub, nên phải khai lại cả đường
+   chứ không chỉ đổi màu. Đường giữa các dịch vụ mảnh hơn đường giữa các khách
+   (line vs line-strong) để vẫn phân biệt được hai mức. */
+.bang-nhom tbody tr.sub td { border-bottom: 1px solid var(--line); }
+.bang-nhom tbody > tr.sub:last-child > td { border-bottom: 0; }
 .bang-nhom tbody > tr.sub:last-child > td { padding-bottom: 10px; }
 tr.sub td:first-child { padding-left: 20px; }
 /* Tháng bị đánh dấu không đòi được: đỏ đặc, khác với đỏ "chưa thu". */
