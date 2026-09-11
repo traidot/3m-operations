@@ -293,8 +293,9 @@ tr.sub td:first-child { padding-left: 20px; }
 /* Ô có chip thì chữ ở ô bên cạnh phải dóng vào giữa chip, không thì chip trông
    như tụt xuống một nửa dòng. Mặc định của bảng là dóng theo mép trên. */
 .ngan-keo td, .ngan-keo th { vertical-align: middle; }
-/* Ngăn kéo hẹp hơn trang, ngày tháng bị bẻ làm đôi trông như hai giá trị. */
-.ngan-keo td.mono { white-space: nowrap; }
+/* Ngăn kéo hẹp hơn trang, ngày tháng bị bẻ làm đôi trông như hai giá trị.
+   Tiêu đề cột cũng vậy — "tình trạng máy" gãy làm hai dòng đọc rất khó. */
+.ngan-keo td.mono, .ngan-keo th { white-space: nowrap; }
 tr:has(.chip) > td { vertical-align: middle; }
 
 /* Dòng khách là tiêu đề của nhóm, phải nổi hơn các dòng dịch vụ bên dưới. */
@@ -307,3 +308,5 @@ tr:has(.chip) > td { vertical-align: middle; }
 /* Thẻ số bấm được thì phải cho thấy nó bấm được. */
 a.the-so { display: block; text-decoration: none; transition: border-color 0.12s; }
 a.the-so:hover { border-color: var(--ok); }
+/* Ghi chú dưới bảng đang dính sát mép bảng, đọc ra như một dòng của bảng. */
+.ghi-chu { margin-top: 12px; line-height: 1.7; }

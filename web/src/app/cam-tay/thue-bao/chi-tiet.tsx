@@ -97,7 +97,7 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                     <tr key={`${m.imei}-${m.gan_tu}`}>
                       <td className="mono">
                         {m.imei}
-                        {m.dang_gan && <div className="muted">đang gắn</div>}
+                        {m.dang_gan && <span className="muted"> · đang gắn</span>}
                       </td>
                       <td className="mono">
                         {m.gan_tu ?? "—"}
@@ -107,13 +107,16 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                         {m.trang_thai_may ? (
                           <Chip ma={m.trang_thai_may} nhan={MAY} />
                         ) : (
-                          <span className="muted">không có phiếu thuê</span>
+                          <span className="muted khong-xuong-dong">không có phiếu</span>
                         )}
                       </td>
                       <td className="num mono">
                         {n(m.coc)}
                         {m.trang_thai_coc && (
-                          <div className="muted">{COC[m.trang_thai_coc] ?? m.trang_thai_coc}</div>
+                          <span className="muted">
+                            {" "}
+                            · {COC[m.trang_thai_coc] ?? m.trang_thai_coc}
+                          </span>
                         )}
                       </td>
                       <td className="mono">
@@ -126,10 +129,10 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
               </table>
             </div>
           )}
-          <p className="muted">
-            “Không có phiếu thuê” là máy được gắn vào thuê bao nhưng bên nguồn không có
-            dòng nào trong sổ cho thuê — nên không biết cọc bao nhiêu. Đang có 1.287 lượt
-            gắn máy như vậy.
+          <p className="muted ghi-chu">
+            “Không có phiếu” là máy được gắn vào thuê bao nhưng bên nguồn không có dòng
+            nào trong sổ cho thuê, nên không biết cọc bao nhiêu.{" "}
+            <a href="/cam-tay/coc?nhom=KHONG_CO_PHIEU">Xem tất cả</a>.
           </p>
 
           <h2>Hoá đơn</h2>
@@ -173,7 +176,7 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
               </table>
             </div>
           )}
-          <p className="muted">
+          <p className="muted ghi-chu">
             “Không đòi được” là hoá đơn bên hệ thống gốc đã đánh dấu bỏ, tiền coi như mất.
           </p>
         </>
