@@ -9,20 +9,25 @@ const LOP: Record<string, string> = {
   NA: "na",
 };
 
-/** 12 ô cho 12 tháng của năm hiện tại, ô trống là tháng ngoài khoảng hợp đồng. */
+/** 12 ô T01–T12 của năm hiện tại, ô mờ là tháng ngoài khoảng đóng cước. */
 export function DaiKy({ cac_ky, nam }: { cac_ky: string[] | undefined; nam: number }) {
-  if (!cac_ky) return <span className="muted">—</span>;
+  if (!cac_ky) return null;
   return (
     <span className="dai-ky">
-      {cac_ky.map((tt, i) => (
-        <i
-          key={i}
-          className={`o-ky ${LOP[tt] ?? "na"}`}
-          title={`${nam}-${String(i + 1).padStart(2, "0")}: ${
-            tt === "NA" ? "ngoài khoảng đóng cước" : (KY_CUOC[tt] ?? tt)
-          }`}
-        />
-      ))}
+      {cac_ky.map((tt, i) => {
+        const thang = String(i + 1).padStart(2, "0");
+        return (
+          <span
+            key={i}
+            className={`o-ky ${LOP[tt] ?? "na"}`}
+            title={`${nam}-${thang}: ${
+              tt === "NA" ? "ngoài khoảng đóng cước" : (KY_CUOC[tt] ?? tt)
+            }`}
+          >
+            T{thang}
+          </span>
+        );
+      })}
     </span>
   );
 }

@@ -121,7 +121,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th>Địa chỉ lắp</th>
                 <th>Hợp đồng</th>
                 <th>Lắp đặt</th>
-                <th>Cước {nam}</th>
                 <th className="num">Cước/tháng</th>
                 <th className="num">Kỳ</th>
                 <th className="num">Miễn</th>
@@ -138,12 +137,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       {r.contract_code ?? "—"}
                     </Link>
                   </td>
-                  <td>{r.dia_chi ?? "—"}</td>
-                  <td>{HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong}</td>
-                  <td>{r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "—"}</td>
                   <td>
+                    {r.dia_chi ?? "—"}
                     <DaiKy cac_ky={theoNam.get(r.subscription_id)} nam={nam} />
                   </td>
+                  <td>{HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong}</td>
+                  <td>{r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "—"}</td>
                   <td className="num mono">{n(r.cuoc_thang)}</td>
                   <td className="num mono">
                     {r.tinh_trang_cuoc === "CHUA_TINH_DUOC" ? "—" : n(r.so_ky)}
@@ -165,11 +164,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <p className="muted chu-giai">
         Dải {nam}: mỗi ô một tháng, tháng 1 bên trái.
-        <span className="chu-thich"><i className="o-ky da-thu" /> đã thu</span>
-        <span className="chu-thich"><i className="o-ky mien-phi" /> miễn phí</span>
-        <span className="chu-thich"><i className="o-ky cho-duyet" /> chờ duyệt hoặc ghi chú</span>
-        <span className="chu-thich"><i className="o-ky no" /> chưa thu</span>
-        <span className="chu-thich"><i className="o-ky na" /> ngoài khoảng đóng cước</span>
+        <span className="chu-thich"><i className="o-ky mau da-thu" /> đã thu</span>
+        <span className="chu-thich"><i className="o-ky mau mien-phi" /> miễn phí</span>
+        <span className="chu-thich"><i className="o-ky mau cho-duyet" /> chờ duyệt hoặc ghi chú</span>
+        <span className="chu-thich"><i className="o-ky mau no" /> chưa thu</span>
+        <span className="chu-thich"><i className="o-ky mau na" /> ngoài khoảng đóng cước</span>
       </p>
 
       {soTrang > 1 && (

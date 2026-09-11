@@ -140,11 +140,17 @@ summary:hover { color: var(--ok); }
 tr.dang-mo { background: var(--surface-2); }
 
 /* Dải 12 kỳ cước của năm hiện tại trên mỗi dòng hợp đồng. */
-.dai-ky { display: inline-flex; gap: 2px; }
-.o-ky { width: 11px; height: 15px; display: inline-block; background: var(--surface-2); }
-.o-ky.da-thu { background: var(--ok); }
-.o-ky.mien-phi { background: var(--line-strong); }
-.o-ky.cho-duyet, .o-ky.ghi-chu { background: var(--warn); }
-.o-ky.no { background: var(--bad); }
+.dai-ky { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 6px; }
+.o-ky {
+  display: inline-block; min-width: 30px; padding: 2px 4px;
+  font-family: var(--mono); font-size: 0.64rem; text-align: center;
+  background: var(--surface-2); color: var(--muted);
+}
+/* Ô vuông nhỏ trong chú giải, không có chữ nên không cần bề rộng. */
+.o-ky.mau { min-width: 0; width: 11px; height: 14px; padding: 0; }
+.o-ky.da-thu { background: var(--ok); color: var(--paper); }
+.o-ky.mien-phi { background: var(--line-strong); color: var(--ink); }
+.o-ky.cho-duyet, .o-ky.ghi-chu { background: var(--warn); color: var(--paper); }
+.o-ky.no { background: var(--bad); color: var(--paper); }
 .o-ky.na { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 .chu-giai { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 12px; }
