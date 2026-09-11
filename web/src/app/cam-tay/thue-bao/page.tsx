@@ -91,8 +91,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Thuê bao wifi cầm tay</h1>
       <p className="muted">
-        Toàn bộ thuê bao trong hệ telecom. Bấm vào dòng để xem từng hoá đơn. Công nợ đọc
-        thẳng từ hoá đơn chứ không suy ra như bên wifi cố định.
+        Bảng phẳng, mỗi thuê bao một dòng — dùng để tra nhanh theo mã máy. Một khách dùng
+        nhiều dịch vụ sẽ hiện ra nhiều lần ở đây; muốn xem gom theo người thì sang{" "}
+        <a href="/cam-tay/khach">Khách và dịch vụ</a>.
       </p>
 
       <form method="get">

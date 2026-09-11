@@ -12,8 +12,8 @@ const MENU: { nhom: string; muc: { ten: string; href: string }[] }[] = [
     nhom: "Wifi cầm tay",
     muc: [
       { ten: "Tổng quan", href: "/cam-tay" },
-      { ten: "Khách", href: "/cam-tay/khach" },
-      { ten: "Thuê bao", href: "/cam-tay/thue-bao" },
+      { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
+      { ten: "Tra thuê bao", href: "/cam-tay/thue-bao" },
       { ten: "Máy cho mượn", href: "/may-muon" },
     ],
   },
