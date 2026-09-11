@@ -796,6 +796,9 @@ export type TelecomCustomer = {
   party_id: string;
   khach: string;
   dien_thoai: string | null;
+  loai_khach: string | null;
+  loai_khach_chu: string;
+  nhom_khach: string | null;
   so_thue_bao: string;
   dang_chay: string;
   dich_vu: string[] | null;
@@ -813,10 +816,12 @@ export type CustomerFilter = {
   dichVu?: string;
   canhBao?: string;
   nhieuTb?: string;
+  loai?: string;
   trang?: number;
 };
 
-const COT_KHACH = `party_id::text, khach, dien_thoai, so_thue_bao::text,
+const COT_KHACH = `party_id::text, khach, dien_thoai, loai_khach, loai_khach_chu,
+       nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
        may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao`;
 
@@ -839,6 +844,10 @@ function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
     dieu.push(`$${params.length} = any(canh_bao)`);
   }
   if (f.nhieuTb === "1") dieu.push("so_thue_bao > 1");
+  if (f.loai) {
+    params.push(f.loai);
+    dieu.push(`loai_khach = $${params.length}`);
+  }
 
   return { sql: dieu.length > 0 ? `where ${dieu.join(" and ")}` : "", params };
 }
@@ -897,3 +906,23 @@ export const getCustomerSubs = (id: string) =>
       order by con_no desc, ngay_kich_hoat desc nulls last`,
     [id],
   );
+
+/** Thuê bao của nhiều khách một lượt, để bày kèm ngay dưới dòng khách. */
+export const getSubsForParties = async (ids: string[]) => {
+  if (ids.length === 0) return new Map<string, CustomerSub[]>();
+  const rows = await query<CustomerSub & { party_id: string }>(
+    `select party_id::text, subscription_id, service_type, goi, trang_thai,
+            gia_thang::text, ngay_kich_hoat::text, ngay_ngung::text, ma_may,
+            so_hoa_don::text, da_thu::text, con_no::text, tien_mat::text,
+            ky_gan_nhat_den::text, canh_bao
+       from v_telecom_customer_sub
+      where party_id = any($1::uuid[])
+      order by con_no desc, ngay_kich_hoat desc nulls last`,
+    [ids],
+  );
+  const theo = new Map<string, CustomerSub[]>();
+  for (const r of rows) {
+    theo.set(r.party_id, [...(theo.get(r.party_id) ?? []), r]);
+  }
+  return theo;
+};

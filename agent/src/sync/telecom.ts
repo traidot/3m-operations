@@ -22,9 +22,12 @@ export const CUSTOMER = `
         and cc."contactType" = 'EMAIL'
       order by cc.id limit 1)                    as email,
     c.code                                       as id_document,
+    c."customerType"::text                       as customer_type,
+    g.name                                       as customer_group,
     c."createdAt"                                as created_at_src,
     c."authorId"::text                           as created_by_src
   from customer c
+  left join customer_group g on g.id = c."customerGroupId"
   where c."deletedAt" is null
 `;
 

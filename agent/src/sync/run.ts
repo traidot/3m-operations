@@ -124,6 +124,31 @@ async function syncCustomer(src: ReadOnlyDb, nguon: Nguon): Promise<number> {
       params,
     );
   }
+
+  // Vai trò và nhóm là thuộc tính theo nguồn nên ghi vào party_source, sau khi
+  // link_customer đã tạo xong dòng nối.
+  const coVaiTro = rows.some((r) => r.customer_type ?? r.customer_group);
+  if (coVaiTro) {
+    for (let i = 0; i < rows.length; i += LO) {
+      const lo = rows.slice(i, i + LO);
+      const params: unknown[] = [nguon.key];
+      const tuples = lo.map((r) => {
+        const cho = ["source_customer_id", "customer_type", "customer_group"].map((c) => {
+          params.push(r[c] ?? null);
+          return `$${params.length}`;
+        });
+        return `(${cho.join(", ")})`;
+      });
+      await q(
+        `update party_source ps
+            set customer_type = v.loai, customer_group = v.nhom
+           from (values ${tuples.join(", ")}) as v(cid, loai, nhom)
+          where ps.source = $1 and ps.source_customer_id = v.cid`,
+        params,
+      );
+    }
+  }
+
   return rows.length;
 }
 

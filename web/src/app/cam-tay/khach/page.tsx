@@ -4,10 +4,13 @@ import { ChiTietKhach } from "./chi-tiet";
 import {
   CONTRACTS_PER_PAGE,
   countTelecomCustomers,
+  getSubsForParties,
   getTelecomCustomers,
   type CustomerFilter,
+  type CustomerSub,
 } from "@/lib/queries";
-import { CANH_BAO_TELECOM, CANH_BAO_TELECOM_NANG, DICH_VU } from "@/lib/nhan";
+import { CANH_BAO_TELECOM, CANH_BAO_TELECOM_NANG, DICH_VU, HOP_DONG } from "@/lib/nhan";
+import { Chip } from "../../chip";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +39,64 @@ function Chon({ ten, nhan, chon, lua }: {
   );
 }
 
+/** Đại lý có tới 802 thuê bao, bày hết thì một khách chiếm cả trang. */
+const TOI_DA_DICH_VU = 6;
+
+/** Các dịch vụ của một khách, hiện thành dòng phụ ngay dưới dòng khách. */
+function dichVu(
+  kh: { party_id: string; so_thue_bao: string },
+  tb: CustomerSub[],
+  link: (doi: Record<string, string | undefined>) => string,
+) {
+  const hien = tb.slice(0, TOI_DA_DICH_VU);
+  const con = tb.length - hien.length;
+
+  return [
+    ...hien.map((s) => (
+      <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
+        <td>
+          <a href={`/cam-tay/thue-bao?xem=${s.subscription_id}`}>
+            {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
+          </a>
+          {s.goi && <span className="muted"> · {s.goi}</span>}
+          {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
+        </td>
+        <td>
+          <Chip ma={s.trang_thai} nhan={HOP_DONG} />
+        </td>
+        <td>
+          {s.canh_bao.map((cb) => (
+            <span
+              key={cb}
+              className={`tag ${CANH_BAO_TELECOM_NANG.has(cb) ? "critical" : "warn"}`}
+            >
+              {CANH_BAO_TELECOM[cb] ?? cb}
+            </span>
+          ))}
+        </td>
+        {/* Hai cột đếm thuê bao không có nghĩa ở dòng dịch vụ; để trống cho
+            ba cột tiền bên phải vẫn dóng thẳng với dòng khách bên trên. */}
+        <td colSpan={2} className="num mono muted">
+          {n(s.gia_thang)}/tháng · kỳ {s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}
+        </td>
+        <td className="num mono muted">{n(s.da_thu)}</td>
+        <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>{n(s.con_no)}</td>
+        <td className={`num mono${Number(s.tien_mat) > 0 ? " bad" : ""}`}>{n(s.tien_mat)}</td>
+        <td />
+      </tr>
+    )),
+    ...(con > 0
+      ? [
+          <tr key={`${kh.party_id}-them`} className="sub">
+            <td colSpan={9}>
+              <a href={link({ xem: kh.party_id })}>còn {con} dịch vụ nữa →</a>
+            </td>
+          </tr>,
+        ]
+      : []),
+  ];
+}
+
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const loc: CustomerFilter = {
@@ -43,6 +104,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     dichVu: mot(sp.dv),
     canhBao: mot(sp.cb),
     nhieuTb: mot(sp.nhieu),
+    loai: mot(sp.loai),
     trang: Math.max(1, Number(mot(sp.trang)) || 1),
   };
 
@@ -50,6 +112,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     getTelecomCustomers(loc),
     countTelecomCustomers(loc),
   ]);
+  const dichVuTheoKhach = await getSubsForParties(rows.map((r) => r.party_id));
   const soTrang = Math.max(1, Math.ceil(tong / CONTRACTS_PER_PAGE));
   const trang = loc.trang!;
   const dangMo = mot(sp.xem);
@@ -60,6 +123,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     if (loc.dichVu) p.set("dv", loc.dichVu);
     if (loc.canhBao) p.set("cb", loc.canhBao);
     if (loc.nhieuTb) p.set("nhieu", loc.nhieuTb);
+    if (loc.loai) p.set("loai", loc.loai);
     if (trang > 1) p.set("trang", String(trang));
     for (const [k, v] of Object.entries(doi)) {
       if (v === undefined) p.delete(k);
@@ -84,6 +148,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             Tên hoặc điện thoại
             <input type="search" name="q" defaultValue={loc.q} placeholder="tên khách…" />
           </label>
+          <Chon
+            ten="loai"
+            nhan="Loại khách"
+            chon={loc.loai!}
+            lua={{ CUSTOMER: "khách lẻ", COLLABORATOR: "cộng tác viên", AGENCY: "đại lý" }}
+          />
           <Chon ten="dv" nhan="Dịch vụ" chon={loc.dichVu!} lua={DICH_VU} />
           <Chon
             ten="cb"
@@ -121,10 +191,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <thead>
               <tr>
                 <th>Khách</th>
-                <th>Dịch vụ đang dùng</th>
+                <th>Loại</th>
+                <th>Cảnh báo</th>
                 <th className="num">Thuê bao</th>
                 <th className="num">Đang chạy</th>
-                <th>Cảnh báo</th>
                 <th className="num">Đã thu</th>
                 <th className="num">Còn nợ</th>
                 <th className="num">Mất trắng</th>
@@ -132,7 +202,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {rows.flatMap((r) => [
                 <Dong
                   key={r.party_id}
                   href={link({ xem: r.party_id })}
@@ -145,10 +215,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {r.dien_thoai && <div className="mono muted">{r.dien_thoai}</div>}
                   </td>
                   <td>
-                    {(r.dich_vu ?? []).map((d) => DICH_VU[d] ?? d).join(", ") || "—"}
+                    {r.loai_khach_chu}
+                    {r.nhom_khach && <div className="muted">{r.nhom_khach}</div>}
                   </td>
-                  <td className="num mono">{n(r.so_thue_bao)}</td>
-                  <td className="num mono muted">{n(r.dang_chay)}</td>
                   <td>
                     {r.canh_bao.length === 0 ? (
                       <span className="muted">—</span>
@@ -163,6 +232,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       ))
                     )}
                   </td>
+                  <td className="num mono">{n(r.so_thue_bao)}</td>
+                  <td className="num mono muted">{n(r.dang_chay)}</td>
                   <td className="num mono">{n(r.da_thu)}</td>
                   <td className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}>
                     {n(r.con_no)}
@@ -173,8 +244,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className={`num mono${Number(r.may_chua_tra) > 0 ? " bad" : ""}`}>
                     {n(r.may_chua_tra)}
                   </td>
-                </Dong>
-              ))}
+                </Dong>,
+                ...dichVu(r, dichVuTheoKhach.get(r.party_id) ?? [], link),
+              ])}
             </tbody>
           </table>
         </div>
