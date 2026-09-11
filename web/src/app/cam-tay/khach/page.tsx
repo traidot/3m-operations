@@ -25,13 +25,23 @@ import { DaiKy } from "../../hop-dong/dai-ky";
 
 export const dynamic = "force-dynamic";
 
-const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
+const n = (v: string | null) =>
+  v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
 type Tham = Record<string, string | string[] | undefined>;
-const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+const mot = (v: string | string[] | undefined) =>
+  (Array.isArray(v) ? v[0] : v) ?? "";
 
-function Chon({ ten, nhan, chon, lua }: {
-  ten: string; nhan: string; chon: string; lua: Record<string, string>;
+function Chon({
+  ten,
+  nhan,
+  chon,
+  lua,
+}: {
+  ten: string;
+  nhan: string;
+  chon: string;
+  lua: Record<string, string>;
 }) {
   return (
     <label>
@@ -49,6 +59,9 @@ function Chon({ ten, nhan, chon, lua }: {
     </label>
   );
 }
+
+/** "NHÓM KHÁCH HÀNG LẺ" viết hoa hết thì chiếm gấp đôi chỗ mà chẳng rõ hơn. */
+const tenNhom = (s: string) => s.replace(/^NHÓM\s+/i, "").toLowerCase();
 
 /** Đại lý có tới 802 thuê bao, bày hết thì một khách chiếm cả trang. */
 const TOI_DA_DICH_VU = 6;
@@ -97,8 +110,12 @@ function dichVu(
           {n(s.gia_thang)}/tháng · kỳ {s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}
         </td>
         <td className="num mono muted">{n(s.da_thu)}</td>
-        <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>{n(s.con_no)}</td>
-        <td className={`num mono${Number(s.tien_mat) > 0 ? " bad" : ""}`}>{n(s.tien_mat)}</td>
+        <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>
+          {n(s.con_no)}
+        </td>
+        <td className={`num mono${Number(s.tien_mat) > 0 ? " bad" : ""}`}>
+          {n(s.tien_mat)}
+        </td>
         <td />
       </tr>
     )),
@@ -116,7 +133,11 @@ function dichVu(
   ];
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Tham>;
+}) {
   const sp = await searchParams;
   const loc: CustomerFilter = {
     q: mot(sp.q),
@@ -162,23 +183,32 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Khách wifi cầm tay</h1>
       <p className="muted">
-        Mỗi khách một dòng, các dịch vụ của khách nằm ngay dưới kèm trạng thái. Một khách
-        có thể dùng nhiều dịch vụ cùng lúc nên nợ cộng theo người, không theo thuê bao.
-        Tìm được cả theo mã máy. Có party là tài khoản CTV hoặc đại lý giữ hàng trăm thuê
-        bao — lọc “từ 2 thuê bao” để thấy.
+        Mỗi khách một dòng, các dịch vụ của khách nằm ngay dưới kèm trạng thái.
+        Một khách có thể dùng nhiều dịch vụ cùng lúc nên nợ cộng theo người,
+        không theo thuê bao. Tìm được cả theo mã máy. Có party là tài khoản CTV
+        hoặc đại lý giữ hàng trăm thuê bao — lọc “từ 2 thuê bao” để thấy.
       </p>
 
       <form method="get">
         <div className="formgrid">
           <label>
             Tên, điện thoại hoặc mã máy
-            <input type="search" name="q" defaultValue={loc.q} placeholder="tên khách, IMEI…" />
+            <input
+              type="search"
+              name="q"
+              defaultValue={loc.q}
+              placeholder="tên khách, IMEI…"
+            />
           </label>
           <Chon
             ten="loai"
             nhan="Loại khách"
             chon={loc.loai!}
-            lua={{ CUSTOMER: "khách lẻ", COLLABORATOR: "cộng tác viên", AGENCY: "đại lý" }}
+            lua={{
+              CUSTOMER: "khách lẻ",
+              COLLABORATOR: "cộng tác viên",
+              AGENCY: "đại lý",
+            }}
           />
           <Chon ten="dv" nhan="Dịch vụ" chon={loc.dichVu!} lua={DICH_VU} />
           <Chon
@@ -213,7 +243,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <p className="empty">Không có khách nào khớp.</p>
       ) : (
         <div className="scroller">
-          <table className="bang-chon">
+          <table className="bang-nhom">
             <thead>
               <tr>
                 <th>Khách</th>
@@ -227,8 +257,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th className="num">Máy chưa trả</th>
               </tr>
             </thead>
-            <tbody>
-              {rows.flatMap((r) => [
+            {rows.map((r) => (
+              <tbody key={r.party_id}>
                 <Dong
                   key={r.party_id}
                   href={link({ xem: r.party_id })}
@@ -238,11 +268,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     <Link href={link({ xem: r.party_id })} scroll={false}>
                       {r.khach}
                     </Link>
-                    {r.dien_thoai && <div className="mono muted">{r.dien_thoai}</div>}
+                    {r.dien_thoai && (
+                      <div className="mono muted">{r.dien_thoai}</div>
+                    )}
                   </td>
                   <td>
-                    {r.loai_khach_chu}
-                    {r.nhom_khach && <div className="muted">{r.nhom_khach}</div>}
+                    <span className="khong-xuong-dong">{r.loai_khach_chu}</span>
+                    {r.nhom_khach && (
+                      <div className="muted">{tenNhom(r.nhom_khach)}</div>
+                    )}
                   </td>
                   <td>
                     {r.canh_bao.length === 0 ? (
@@ -261,19 +295,30 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className="num mono">{n(r.so_thue_bao)}</td>
                   <td className="num mono muted">{n(r.dang_chay)}</td>
                   <td className="num mono">{n(r.da_thu)}</td>
-                  <td className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}>
+                  <td
+                    className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}
+                  >
                     {n(r.con_no)}
                   </td>
-                  <td className={`num mono${Number(r.tien_mat) > 0 ? " bad" : ""}`}>
+                  <td
+                    className={`num mono${Number(r.tien_mat) > 0 ? " bad" : ""}`}
+                  >
                     {n(r.tien_mat)}
                   </td>
-                  <td className={`num mono${Number(r.may_chua_tra) > 0 ? " bad" : ""}`}>
+                  <td
+                    className={`num mono${Number(r.may_chua_tra) > 0 ? " bad" : ""}`}
+                  >
                     {n(r.may_chua_tra)}
                   </td>
-                </Dong>,
-                ...dichVu(r, dichVuTheoKhach.get(r.party_id) ?? [], link, namTheoThueBao),
-              ])}
-            </tbody>
+                </Dong>
+                {dichVu(
+                  r,
+                  dichVuTheoKhach.get(r.party_id) ?? [],
+                  link,
+                  namTheoThueBao,
+                )}
+              </tbody>
+            ))}
           </table>
         </div>
       )}

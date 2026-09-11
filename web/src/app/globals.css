@@ -221,6 +221,8 @@ td .tag + .tag { margin-left: 4px; }
 
 /* Cả dòng bấm được nên phải cho thấy nó bấm được. */
 .bang-chon tbody tr { cursor: pointer; }
+/* Chẵn lẻ để mắt lần theo hàng ngang khỏi lạc cột. */
+.bang-chon tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface) 60%, transparent); }
 .bang-chon tbody tr:hover { background: var(--surface); }
 .bang-chon tbody tr.dang-mo { background: var(--surface-2); }
 /* Ô ngoài hợp đồng trong suốt nên trong chú giải phải cho nó cái nền mờ. */
@@ -260,8 +262,23 @@ th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .ly-do { background: var(--surface-2); border-radius: var(--bo); padding: 10px 14px; font-size: 0.88rem; margin: 10px 0; }
 .ngan-keo td a { white-space: nowrap; }
 /* Dòng dịch vụ nằm dưới dòng khách: thụt vào, chữ nhỏ, không kẻ ngăn. */
-.bang-chon tbody tr.sub { cursor: default; }
-.bang-chon tbody tr.sub:hover { background: transparent; }
+/* Bảng gom nhóm: mỗi khách một tbody, nên tô chẵn lẻ và rê chuột theo NHÓM
+   chứ không theo dòng — tô từng dòng thì một khách nhiều dịch vụ trông như
+   nhiều khách khác nhau. */
+.bang-nhom tbody { background: transparent; transition: background 0.1s; }
+.bang-nhom tbody:nth-of-type(even) { background: var(--surface); }
+.bang-nhom tbody:hover { background: var(--surface-2); }
+.bang-nhom tbody tr { cursor: pointer; }
+.bang-nhom tbody tr.sub { cursor: default; }
+/* Dòng khách mở đầu nhóm, kẻ đậm hơn để mắt bắt được ranh giới. */
+.bang-nhom tbody > tr:first-child > td { border-top: 1px solid var(--line-strong); }
+.bang-nhom tbody tr.sub td { border-bottom: 0; }
+.bang-nhom tbody > tr.sub:last-child > td { padding-bottom: 10px; }
 tr.sub td:first-child { padding-left: 20px; }
 /* Tháng bị đánh dấu không đòi được: đỏ đặc, khác với đỏ "chưa thu". */
 .o-ky.mat { background: var(--bad); color: var(--paper); box-shadow: inset 0 0 0 1px var(--ink); }
+
+/* Đang mở ngăn kéo thì thắng cả chẵn lẻ lẫn rê chuột. */
+.bang-nhom tbody tr.dang-mo,
+.bang-nhom tbody:has(tr.dang-mo) { background: var(--surface-2); }
+.khong-xuong-dong { white-space: nowrap; }
