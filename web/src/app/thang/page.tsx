@@ -109,15 +109,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <The ten="Còn lại" gia_tri={cong(dk, "con_lai")} />
       </div>
 
-      <h2>Đăng ký và huỷ theo {donVi === "ngay" ? "ngày" : "tháng"}</h2>
-      <Bars
-        nhan={dk.map((r) => r.ky)}
-        chuoi={[
-          { ten: "Đăng ký", mau: "var(--line-strong)", gia_tri: dk.map((r) => so(r.dang_ky)) },
-          { ten: "Lắp xong", mau: "var(--ok)", gia_tri: dk.map((r) => so(r.lap_xong)) },
-          { ten: "Huỷ", mau: "var(--bad)", gia_tri: dk.map((r) => so(r.huy)) },
-        ]}
-      />
+      {/* Theo ngày thì cột quá dày, đọc bảng nhanh hơn nhìn đồ thị. */}
+      {donVi === "thang" && (
+        <>
+          <h2>Đăng ký và huỷ theo tháng</h2>
+          <Bars
+            nhan={dk.map((r) => r.ky)}
+            chuoi={[
+              { ten: "Đăng ký", mau: "var(--line-strong)", gia_tri: dk.map((r) => so(r.dang_ky)) },
+              { ten: "Lắp xong", mau: "var(--ok)", gia_tri: dk.map((r) => so(r.lap_xong)) },
+              { ten: "Huỷ", mau: "var(--bad)", gia_tri: dk.map((r) => so(r.huy)) },
+            ]}
+          />
+        </>
+      )}
 
       <div className="scroller">
         <table>
@@ -184,13 +189,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <p className="empty">Khoảng này không có lần thu nào.</p>
       ) : (
         <>
-          <Bars
-            nhan={thu.map((r) => r.ky)}
-            cao={150}
-            chuoi={[
-              { ten: "Tiền thu", mau: "var(--ok)", gia_tri: thu.map((r) => so(r.tien_thu)) },
-            ]}
-          />
+          {donVi === "thang" && (
+            <Bars
+              nhan={thu.map((r) => r.ky)}
+              cao={150}
+              chuoi={[
+                { ten: "Tiền thu", mau: "var(--ok)", gia_tri: thu.map((r) => so(r.tien_thu)) },
+              ]}
+            />
+          )}
           <div className="scroller">
             <table>
               <thead>
