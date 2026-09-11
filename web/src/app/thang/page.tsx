@@ -1,4 +1,5 @@
 import {
+  getCancelReasons,
   getChannelReport,
   getCollectionReport,
   getMonthStats,
@@ -6,6 +7,7 @@ import {
   type RegisterReport,
 } from "@/lib/queries";
 import { Bars } from "../wifi/bars";
+import { LY_DO_HUY } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +49,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tu = mot(sp.tu) || mac.tu;
   const den = mot(sp.den) || mac.den;
 
-  const [dk, thang, thu, kenh] = await Promise.all([
+  const [dk, thang, thu, kenh, lyDo] = await Promise.all([
     getRegisterReport(donVi, tu, den),
     getMonthStats(),
     getCollectionReport(donVi, tu, den),
     getChannelReport(tu, den),
+    getCancelReasons(tu, den),
   ]);
 
   const tongDangKy = cong(dk, "dang_ky");
@@ -178,6 +181,54 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </tbody>
         </table>
       </div>
+
+      <h2>Vì sao huỷ</h2>
+      <p className="muted">
+        Lý do bên nguồn là ô chữ tự do — 582 cách viết cho cùng vài ý, lẫn tiếng Nhật và
+        lỗi chính tả — nên phải gom nhóm theo từ khoá. Bấm vào nhóm để ra danh sách.
+      </p>
+      <div className="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th>Nhóm lý do</th>
+              <th className="num">Hợp đồng</th>
+              <th className="num">Trước lịch</th>
+              <th className="num">Sau lịch</th>
+              <th className="num">Sau lắp xong</th>
+              <th>Tỉ trọng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lyDo.map((r) => {
+              const ty = tongHuy > 0 ? (100 * Number(r.so_hop_dong)) / tongHuy : 0;
+              return (
+                <tr key={r.nhom}>
+                  <td>
+                    <a href={loc({ ly_do: r.nhom })}>{LY_DO_HUY[r.nhom] ?? r.nhom}</a>
+                  </td>
+                  <td className="num mono">{n(r.so_hop_dong)}</td>
+                  <td className="num mono">{n(r.truoc_lich)}</td>
+                  <td className="num mono">{n(r.sau_lich)}</td>
+                  <td className={`num mono${Number(r.sau_lap) > 0 ? " bad" : ""}`}>
+                    {n(r.sau_lap)}
+                  </td>
+                  <td>
+                    <span className="bar">
+                      <span className="bar-fill" style={{ width: `${Math.min(ty, 100)}%` }} />
+                      <span className="bar-label mono">{ty.toFixed(1)}%</span>
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">
+        Cột “sau lắp xong” là mất khách sau khi đã tốn tiền thi công — đắt nhất trong ba
+        mốc.
+      </p>
 
       <h2>Tiền cước thực nhận theo {donVi === "ngay" ? "ngày thu" : "tháng thu"}</h2>
       <p className="muted">

@@ -10,7 +10,15 @@ import {
   getYearStatus,
   type ContractFilter,
 } from "@/lib/queries";
-import { CANH_BAO, CANH_BAO_NANG, HOP_DONG, KY_CUOC, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
+import {
+  CANH_BAO,
+  CANH_BAO_NANG,
+  HOP_DONG,
+  KY_CUOC,
+  LAP_DAT,
+  LY_DO_HUY,
+  TINH_TRANG_CUOC,
+} from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +67,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     kyTrangThai: mot(sp.ky_tt),
     thangKy: mot(sp.thang_ky),
     thangHuy: mot(sp.thang_huy),
+    lyDoHuy: mot(sp.ly_do),
     trang: Math.max(1, Number(mot(sp.trang)) || 1),
   };
 
@@ -80,6 +89,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     if (loc.kyTrangThai) p.set("ky_tt", loc.kyTrangThai);
     if (loc.thangKy) p.set("thang_ky", loc.thangKy);
     if (loc.thangHuy) p.set("thang_huy", loc.thangHuy);
+    if (loc.lyDoHuy) p.set("ly_do", loc.lyDoHuy);
     if (trang > 1) p.set("trang", String(trang));
     for (const [k, v] of Object.entries(doi)) {
       if (v === undefined) p.delete(k);
@@ -94,6 +104,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     loc.ky && `kỳ cước ${loc.ky}${loc.kyTrangThai ? ` — ${KY_CUOC[loc.kyTrangThai] ?? loc.kyTrangThai}` : ""}`,
     loc.thangKy && `ký trong ${loc.thangKy}`,
     loc.thangHuy && `huỷ trong ${loc.thangHuy}`,
+    loc.lyDoHuy && `huỷ vì ${LY_DO_HUY[loc.lyDoHuy] ?? loc.lyDoHuy}`,
   ].filter(Boolean) as string[];
 
   return (
@@ -114,6 +125,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <Chon ten="hd" nhan="Trạng thái hợp đồng" chon={loc.hopDong!} lua={HOP_DONG} />
           <Chon ten="lap" nhan="Lắp đặt" chon={loc.lapDat!} lua={LAP_DAT} />
           <Chon ten="cuoc" nhan="Tình trạng cước" chon={loc.cuoc!} lua={TINH_TRANG_CUOC} />
+          <Chon ten="ly_do" nhan="Lý do huỷ" chon={loc.lyDoHuy!} lua={LY_DO_HUY} />
           <Chon
             ten="cb"
             nhan="Cảnh báo"
@@ -134,7 +146,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       {theoThang.length > 0 && (
         <p className="loc-thang">
           Đang lọc: {theoThang.join(" · ")}
-          <a href={link({ ky: undefined, ky_tt: undefined, thang_ky: undefined, thang_huy: undefined })}>
+          <a
+            href={link({
+              ky: undefined,
+              ky_tt: undefined,
+              thang_ky: undefined,
+              thang_huy: undefined,
+              ly_do: undefined,
+            })}
+          >
             gỡ
           </a>
         </p>

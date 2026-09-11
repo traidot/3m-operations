@@ -33,6 +33,7 @@ export const SUBSCRIPTION = `
     null                                        as sim_ref,
     c.isRenewal = 1                             as is_renewal,
     c.cancellationTiming                        as cancel_timing,
+    nullif(trim(coalesce(c.cancelReasonProvider, c.cancelReasonManager)), '') as cancel_reason,
     c.createdAt                                 as created_at_src,
     c.updatedAt                                 as updated_at_src,
     c.createBy                                  as created_by_src

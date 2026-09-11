@@ -7,6 +7,7 @@ import {
   HOP_DONG,
   KY_CUOC,
   LAP_DAT,
+  LY_DO_HUY,
   TINH_TRANG_CUOC,
 } from "@/lib/nhan";
 
@@ -87,6 +88,7 @@ export async function ChiTiet({
             <O ten="bắt đầu thu" gia_tri={hd.fee_start_on ?? "—"} />
             <O ten="ngày ký" gia_tri={hd.ngay_ky ?? "—"} />
             <O ten="lắp xong" gia_tri={hd.ngay_lap_xong ?? "—"} />
+            {hd.ngay_huy && <O ten="ngày huỷ" gia_tri={hd.ngay_huy} />}
             <O
               ten="tổng kỳ"
               gia_tri={
@@ -96,6 +98,15 @@ export async function ChiTiet({
             <O ten="đã thu" gia_tri={n(hd.tong_da_thu)} />
             <O ten="còn nợ" gia_tri={n(hd.con_no)} do={Number(hd.con_no) > 0} />
           </dl>
+
+          {hd.ly_do_huy && (
+            <p className="ly-do">
+              <b>Lý do huỷ</b>
+              {hd.nhom_ly_do_huy &&
+                ` (${LY_DO_HUY[hd.nhom_ly_do_huy] ?? hd.nhom_ly_do_huy})`}
+              : “{hd.ly_do_huy}”
+            </p>
+          )}
 
           {hd.tinh_trang_cuoc === "CHUA_TINH_DUOC" && (
             <p className="stale">

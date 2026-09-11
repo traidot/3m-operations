@@ -481,3 +481,28 @@ begin
   select so_ky into v_n from v_fixed_month where ky = v_ky;
   assert v_n is null, 'kỳ ngoài khoảng không được tính vào tháng — đang là ' || coalesce(v_n::text,'null');
 end $$;
+
+-- ── Gom nhóm lý do huỷ ────────────────────────────────────────────────
+-- Chữ tự do, lẫn tiếng Nhật và sai chính tả, nên phải chắc bộ từ khoá còn bắt
+-- được các biến thể thật đã gặp trong dữ liệu.
+do $$
+begin
+  assert cancel_reason_group('không liên lạc được') = 'KHONG_LIEN_LAC';
+  assert cancel_reason_group('khôg phản hồi') = 'KHONG_LIEN_LAC', 'phải chịu được lỗi gõ';
+  assert cancel_reason_group('連絡つかず') = 'KHONG_LIEN_LAC', 'phải đọc được tiếng Nhật';
+  assert cancel_reason_group('提供不可') = 'NHA_MANG_TU_CHOI';
+  assert cancel_reason_group('ngoài khu vực lắp') = 'NHA_MANG_TU_CHOI';
+  assert cancel_reason_group('khách chuyeenr nhà') = 'CHUYEN_NHA';
+  assert cancel_reason_group('công ty quản lý không cho lắp') = 'TOA_NHA_TU_CHOI';
+  assert cancel_reason_group('đăng ký trùng kiện') = 'DON_TRUNG_HOAC_SAI';
+  assert cancel_reason_group('khách đăng ký bên khác') = 'DA_DANG_KY_NOI_KHAC';
+  assert cancel_reason_group('hết slot family') = 'HET_SLOT';
+  assert cancel_reason_group('lâu quá khách không đợi được') = 'KHACH_KHONG_CHO_DUOC';
+  assert cancel_reason_group('khách không còn nhu cầu') = 'KHACH_DOI_Y';
+  assert cancel_reason_group('') is null, 'ô rỗng không được xếp nhóm';
+  assert cancel_reason_group(null) is null;
+  assert cancel_reason_group('abcxyz') = 'KHAC';
+
+  -- Nhà mạng phải chặn trước: câu tiếng Nhật hay kèm chữ キャンセル chung chung.
+  assert cancel_reason_group('本件、NTT判定により提供不可 キャンセルになります') = 'NHA_MANG_TU_CHOI';
+end $$;

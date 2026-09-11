@@ -59,3 +59,18 @@ export const MAU_TRANG_THAI: Record<string, string> = {
   NO: "xau",
   CHUA_TINH_DUOC: "cho",
 };
+
+export const LY_DO_HUY: Record<string, string> = {
+  KHONG_LIEN_LAC: "không liên lạc được",
+  NHA_MANG_TU_CHOI: "nhà mạng không cung cấp",
+  CHUYEN_NHA: "khách chuyển nhà, về nước",
+  TOA_NHA_TU_CHOI: "toà nhà không cho lắp",
+  KHACH_KHONG_CHO_DUOC: "khách không chờ được",
+  DA_DANG_KY_NOI_KHAC: "khách đã đăng ký nơi khác",
+  KHACH_DOI_Y: "khách đổi ý",
+  DON_TRUNG_HOAC_SAI: "đơn trùng hoặc nhập sai",
+  HET_SLOT: "hết slot",
+  SONG_YEU: "sóng yếu",
+  KHAC: "khác",
+  KHONG_GHI: "không ghi lý do",
+};

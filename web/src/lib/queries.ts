@@ -310,6 +310,9 @@ export type Contract = {
   fee_start_on: string | null;
   ngay_ky: string | null;
   ngay_lap_xong: string | null;
+  ngay_huy: string | null;
+  ly_do_huy: string | null;
+  nhom_ly_do_huy: string | null;
   so_ky: string;
   so_ky_mien_phi: string;
   so_ky_no: string;
@@ -333,6 +336,7 @@ export type ContractFilter = {
   kyTrangThai?: string;
   thangKy?: string;
   thangHuy?: string;
+  lyDoHuy?: string;
   trang?: number;
 };
 
@@ -387,6 +391,15 @@ function contractWhere(f: ContractFilter): { sql: string; params: unknown[] } {
     params.push(f.thangKy);
     dieu.push(`to_char(ngay_ky, 'YYYY-MM') = $${params.length}`);
   }
+  if (f.lyDoHuy) {
+    params.push(f.lyDoHuy);
+    // Chỉ hợp đồng đã huỷ mới có lý do; không chặn thì "không ghi lý do" gom
+    // luôn cả mấy nghìn hợp đồng còn đang chạy.
+    dieu.push(
+      `trang_thai_hop_dong = 'TERMINATED'
+       and coalesce(nhom_ly_do_huy, 'KHONG_GHI') = $${params.length}`,
+    );
+  }
   if (f.thangHuy) {
     params.push(f.thangHuy);
     dieu.push(`to_char(ngay_huy, 'YYYY-MM') = $${params.length}`);
@@ -402,6 +415,7 @@ export const getContracts = (f: ContractFilter) => {
     `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
             trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
             fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
+            ngay_huy::text, ly_do_huy, nhom_ly_do_huy,
             so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
             tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
             ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
@@ -427,6 +441,7 @@ export const getContract = async (id: string) => {
     `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
             trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
             fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
+            ngay_huy::text, ly_do_huy, nhom_ly_do_huy,
             so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
             tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
             ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
@@ -564,5 +579,21 @@ export type ChannelReport = { kenh: string; so_ky: string; tien: string };
 export const getChannelReport = (tu: string, den: string) =>
   query<ChannelReport>(
     `select kenh, so_ky::text, tien::text from fixed_channel_report($1::date, $2::date)`,
+    [tu, den],
+  );
+
+export type CancelReason = {
+  nhom: string;
+  so_hop_dong: string;
+  truoc_lich: string;
+  sau_lich: string;
+  sau_lap: string;
+};
+
+/** Lý do huỷ theo lứa đăng ký — xem fixed_cancel_reason_report. */
+export const getCancelReasons = (tu: string, den: string) =>
+  query<CancelReason>(
+    `select nhom, so_hop_dong::text, truoc_lich::text, sau_lich::text, sau_lap::text
+       from fixed_cancel_reason_report($1::date, $2::date)`,
     [tu, den],
   );
