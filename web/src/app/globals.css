@@ -84,12 +84,15 @@ form.inline { display: inline; }
 .formgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); align-items: end; }
 label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
 input, textarea, select {
-  font: inherit; font-size: 0.88rem; padding: 7px 10px; height: 34px;
+  /* Cao cố định thì bỏ đệm dọc và line-height thừa hưởng từ body, không thì
+     dòng chữ cao hơn lòng ô nên bị đẩy lên trên. */
+  font: inherit; font-size: 0.88rem; line-height: normal;
+  padding: 0 10px; height: 34px;
   background: var(--surface); color: var(--ink);
   border: 1px solid var(--line-strong); border-radius: var(--bo);
   transition: border-color 0.12s, box-shadow 0.12s;
 }
-textarea { height: auto; }
+textarea { height: auto; padding: 8px 10px; line-height: 1.6; }
 input:hover, select:hover { border-color: var(--muted); }
 input:focus, textarea:focus, select:focus {
   outline: none; border-color: var(--ok); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 22%, transparent);
@@ -232,3 +235,12 @@ td .tag + .tag { margin-left: 4px; }
 .chip.cho  { --mau-chip: var(--warn); }
 .chip.xau  { --mau-chip: var(--bad); }
 .chip.tat  { --mau-chip: var(--muted); }
+
+/* Trong ngăn kéo có hơn chục cặp nhãn–giá trị, để chảy tự do thì mỗi dòng
+   một kiểu, mắt không dóng được. Ép ba cột. */
+.ngan-keo .chung-cu { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 24px; }
+.ngan-keo .chung-cu dt { min-width: 84px; }
+@media (max-width: 900px) {
+  .ngan-keo .chung-cu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.loc-thang { display: flex; gap: 12px; align-items: baseline; font-size: 0.86rem; color: var(--muted); margin: 10px 0 0; }

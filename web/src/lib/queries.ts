@@ -329,6 +329,10 @@ export type ContractFilter = {
   lapDat?: string;
   cuoc?: string;
   canhBao?: string;
+  ky?: string;
+  kyTrangThai?: string;
+  thangKy?: string;
+  thangHuy?: string;
   trang?: number;
 };
 
@@ -361,6 +365,31 @@ function contractWhere(f: ContractFilter): { sql: string; params: unknown[] } {
   } else if (f.canhBao) {
     params.push(f.canhBao);
     dieu.push(`$${params.length} = any(canh_bao)`);
+  }
+
+  // Lọc theo một kỳ cước cụ thể, dùng khi bấm từ bảng thống kê tháng sang.
+  if (f.ky) {
+    params.push(f.ky);
+    const ky = `$${params.length}`;
+    let them = "";
+    if (f.kyTrangThai) {
+      params.push(f.kyTrangThai);
+      them = ` and p.trang_thai = $${params.length}`;
+    }
+    // Bỏ kỳ ngoài khoảng cho khớp với bảng thống kê tháng, vốn cũng bỏ chúng.
+    dieu.push(
+      `exists (select 1 from v_fixed_contract_period p
+                where p.subscription_id = v_fixed_contract.subscription_id
+                  and p.ky = ${ky} and not p.ngoai_ky_tinh${them})`,
+    );
+  }
+  if (f.thangKy) {
+    params.push(f.thangKy);
+    dieu.push(`to_char(ngay_ky, 'YYYY-MM') = $${params.length}`);
+  }
+  if (f.thangHuy) {
+    params.push(f.thangHuy);
+    dieu.push(`to_char(ngay_huy, 'YYYY-MM') = $${params.length}`);
   }
 
   return { sql: dieu.length > 0 ? `where ${dieu.join(" and ")}` : "", params };
@@ -453,3 +482,31 @@ export const getYearStatus = async (ids: string[]) => {
   );
   return new Map(rows.map((r) => [r.subscription_id, r]));
 };
+
+export type MonthStat = {
+  ky: string;
+  ky_moi: string;
+  lap_xong: string;
+  huy: string;
+  luy_ke_chua_huy: string;
+  so_ky: string | null;
+  ky_da_thu: string | null;
+  ky_mien_phi: string | null;
+  ky_cho_duyet: string | null;
+  ky_ghi_chu: string | null;
+  ky_chua_thu: string | null;
+  tien_phai_thu: string | null;
+  tien_da_thu: string | null;
+  tien_chua_thu: string | null;
+  ty_le_ky_xong: string | null;
+};
+
+/** Thống kê theo tháng của mảng wifi cố định — xem v_fixed_month. */
+export const getMonthStats = () =>
+  query<MonthStat>(
+    `select ky, ky_moi::text, lap_xong::text, huy::text, luy_ke_chua_huy::text,
+            so_ky::text, ky_da_thu::text, ky_mien_phi::text, ky_cho_duyet::text,
+            ky_ghi_chu::text, ky_chua_thu::text, tien_phai_thu::text,
+            tien_da_thu::text, tien_chua_thu::text, ty_le_ky_xong::text
+       from v_fixed_month where ky >= ${TU} order by ky`,
+  );

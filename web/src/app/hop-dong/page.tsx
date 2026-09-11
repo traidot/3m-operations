@@ -10,7 +10,7 @@ import {
   getYearStatus,
   type ContractFilter,
 } from "@/lib/queries";
-import { CANH_BAO, CANH_BAO_NANG, HOP_DONG, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
+import { CANH_BAO, CANH_BAO_NANG, HOP_DONG, KY_CUOC, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +55,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     lapDat: mot(sp.lap),
     cuoc: mot(sp.cuoc),
     canhBao: mot(sp.cb),
+    ky: mot(sp.ky),
+    kyTrangThai: mot(sp.ky_tt),
+    thangKy: mot(sp.thang_ky),
+    thangHuy: mot(sp.thang_huy),
     trang: Math.max(1, Number(mot(sp.trang)) || 1),
   };
 
@@ -72,6 +76,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     if (loc.lapDat) p.set("lap", loc.lapDat);
     if (loc.cuoc) p.set("cuoc", loc.cuoc);
     if (loc.canhBao) p.set("cb", loc.canhBao);
+    if (loc.ky) p.set("ky", loc.ky);
+    if (loc.kyTrangThai) p.set("ky_tt", loc.kyTrangThai);
+    if (loc.thangKy) p.set("thang_ky", loc.thangKy);
+    if (loc.thangHuy) p.set("thang_huy", loc.thangHuy);
     if (trang > 1) p.set("trang", String(trang));
     for (const [k, v] of Object.entries(doi)) {
       if (v === undefined) p.delete(k);
@@ -81,6 +89,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     return duoi ? `/hop-dong?${duoi}` : "/hop-dong";
   };
   const dangMo = mot(sp.xem);
+
+  const theoThang = [
+    loc.ky && `kỳ cước ${loc.ky}${loc.kyTrangThai ? ` — ${KY_CUOC[loc.kyTrangThai] ?? loc.kyTrangThai}` : ""}`,
+    loc.thangKy && `ký trong ${loc.thangKy}`,
+    loc.thangHuy && `huỷ trong ${loc.thangHuy}`,
+  ].filter(Boolean) as string[];
 
   return (
     <main>
@@ -116,6 +130,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </div>
         </div>
       </form>
+
+      {theoThang.length > 0 && (
+        <p className="loc-thang">
+          Đang lọc: {theoThang.join(" · ")}
+          <a href={link({ ky: undefined, ky_tt: undefined, thang_ky: undefined, thang_huy: undefined })}>
+            gỡ
+          </a>
+        </p>
+      )}
 
       <h2>
         {n(String(tong))} hợp đồng

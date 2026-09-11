@@ -19,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="/esim">eSIM</a>
             <a href="/cuoc">Cước wifi cố định</a>
             <a href="/hop-dong">Hợp đồng wifi cố định</a>
+            <a href="/thang">Theo tháng</a>
             <a href="/duyet-trung">Duyệt trùng khách</a>
             <a href="/may-muon">Máy cho mượn</a>
             <a href="/dong-bo">Đồng bộ</a>

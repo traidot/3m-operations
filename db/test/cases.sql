@@ -450,3 +450,34 @@ begin
   assert 'THU_THIEU' = any(v_cb),
     'kỳ duyệt rồi mà thu thiếu tiền phải có THU_THIEU — đang là ' || v_cb::text;
 end $$;
+
+-- ── Thống kê theo tháng ───────────────────────────────────────────────
+-- C4 ký tháng 3, lắp xong tháng 4, huỷ tháng 9 — cùng năm hiện tại.
+do $$
+declare v_n bigint; v_ky text;
+begin
+  update install_order_snapshot set signed_on = make_date(extract(year from current_date)::int, 3, 5),
+                                    completed_on = make_date(extract(year from current_date)::int, 4, 2)
+   where source = 'FIXED' and source_id = 'C4';
+  insert into install_order_snapshot (source, source_id, status, signed_on, completed_on)
+  select 'FIXED', 'C4', 'DONE',
+         make_date(extract(year from current_date)::int, 3, 5),
+         make_date(extract(year from current_date)::int, 4, 2)
+   where not exists (select 1 from install_order_snapshot where source='FIXED' and source_id='C4');
+
+  update subscription_snapshot set terminated_on = make_date(extract(year from current_date)::int, 9, 30)
+   where source = 'FIXED' and source_id = 'C4';
+
+  v_ky := to_char(make_date(extract(year from current_date)::int, 3, 1), 'YYYY-MM');
+  select ky_moi into v_n from v_fixed_month where ky = v_ky;
+  assert v_n >= 1, 'tháng ký của C4 phải đếm được hợp đồng mới — đang là ' || coalesce(v_n::text,'null');
+
+  v_ky := to_char(make_date(extract(year from current_date)::int, 9, 1), 'YYYY-MM');
+  select huy into v_n from v_fixed_month where ky = v_ky;
+  assert v_n >= 1, 'tháng huỷ của C4 phải đếm được — đang là ' || coalesce(v_n::text,'null');
+
+  -- Kỳ ngoài khoảng tính được không được vào bảng tháng.
+  v_ky := to_char(current_date + interval '18 months', 'YYYY-MM');
+  select so_ky into v_n from v_fixed_month where ky = v_ky;
+  assert v_n is null, 'kỳ ngoài khoảng không được tính vào tháng — đang là ' || coalesce(v_n::text,'null');
+end $$;
