@@ -130,9 +130,8 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
             </div>
           )}
           <p className="muted ghi-chu">
-            “Không có phiếu” là máy được gắn vào thuê bao nhưng bên nguồn không có dòng
-            nào trong sổ cho thuê, nên không biết cọc bao nhiêu.{" "}
-            <a href="/cam-tay/coc?nhom=KHONG_CO_PHIEU">Xem tất cả</a>.
+            “Không có phiếu” — bên nguồn không có dòng nào trong sổ cho thuê, chưa biết
+            cọc. <a href="/cam-tay/coc?nhom=KHONG_CO_PHIEU">Xem tất cả</a>.
           </p>
 
           <h2>Hoá đơn</h2>

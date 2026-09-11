@@ -308,5 +308,7 @@ tr:has(.chip) > td { vertical-align: middle; }
 /* Thẻ số bấm được thì phải cho thấy nó bấm được. */
 a.the-so { display: block; text-decoration: none; transition: border-color 0.12s; }
 a.the-so:hover { border-color: var(--ok); }
-/* Ghi chú dưới bảng đang dính sát mép bảng, đọc ra như một dòng của bảng. */
-.ghi-chu { margin-top: 12px; line-height: 1.7; }
+/* Ghi chú dưới bảng đang dính sát mép bảng, đọc ra như một dòng của bảng.
+   Bỏ luôn giới hạn 62ch của thẻ p: giới hạn đó để đoạn văn dài dễ đọc, còn
+   câu chú thích một dòng thì nó bẻ đôi một cách vô cớ. */
+.ghi-chu { margin-top: 12px; line-height: 1.7; max-width: none; }
