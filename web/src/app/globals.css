@@ -49,8 +49,13 @@ body {
 
 .wrap { margin: 0 auto; padding: 32px 28px 64px; }
 
-nav { display: flex; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line-strong); margin-bottom: 28px; }
+nav { display: flex; gap: 12px 28px; flex-wrap: wrap; align-items: flex-end; padding-bottom: 18px; border-bottom: 1px solid var(--line-strong); margin-bottom: 28px; }
 nav a { color: var(--muted); text-decoration: none; font-size: 0.92rem; }
+nav a:hover { color: var(--ink); }
+.nav-chinh { color: var(--ink) !important; font-weight: 500; }
+.nav-nhom { display: flex; flex-direction: column; gap: 3px; }
+.nav-ten-nhom { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--line-strong); }
+.nav-muc { display: flex; gap: 14px; flex-wrap: wrap; }
 nav a:hover, nav a[aria-current="page"] { color: var(--ok); }
 
 h1 { color: var(--ink); font-size: 1.5rem; font-weight: 600; margin: 0 0 4px; }

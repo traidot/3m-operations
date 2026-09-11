@@ -1,5 +1,5 @@
 import { Chip } from "../chip";
-import { NganKeo } from "./ngan-keo";
+import { NganKeo } from "../ngan-keo";
 import { getContract, getContractPeriods, getContractUrl } from "@/lib/queries";
 import {
   CANH_BAO,

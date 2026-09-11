@@ -620,3 +620,172 @@ export const getDifficultDebt = () =>
             so_ky_no::text, con_no::text, ky_da_thu_gan_nhat
        from v_fixed_contract where kho_doi order by con_no desc, contract_code`,
   );
+
+// ── Mảng wifi cầm tay (hệ telecom) ──────────────────────────────────────
+
+export type TelecomSub = {
+  subscription_id: string;
+  khach: string | null;
+  service_type: string | null;
+  goi: string | null;
+  trang_thai: string;
+  gia_thang: string | null;
+  ngay_kich_hoat: string | null;
+  ngay_ngung: string | null;
+  ma_may: string | null;
+  so_hoa_don: string;
+  hoa_don_dang_doi: string;
+  con_no: string;
+  hoa_don_mat: string;
+  tien_mat: string;
+  da_thu: string;
+  ky_gan_nhat_den: string | null;
+  ngay_qua_han: string;
+  may_chua_tra: string;
+  ngay_khong_co_cuoc: string | null;
+  canh_bao: string[];
+};
+
+export type TelecomFilter = {
+  q?: string;
+  trangThai?: string;
+  dichVu?: string;
+  canhBao?: string;
+  trang?: number;
+};
+
+const COT_TELECOM = `subscription_id, khach, service_type, goi, trang_thai,
+       gia_thang::text, ngay_kich_hoat::text, ngay_ngung::text, ma_may,
+       so_hoa_don::text, hoa_don_dang_doi::text, con_no::text, hoa_don_mat::text,
+       tien_mat::text, da_thu::text, ky_gan_nhat_den::text, ngay_qua_han::text,
+       may_chua_tra::text, ngay_khong_co_cuoc::text, canh_bao`;
+
+function telecomWhere(f: TelecomFilter): { sql: string; params: unknown[] } {
+  const dieu: string[] = [];
+  const params: unknown[] = [];
+
+  if (f.q?.trim()) {
+    params.push(`%${f.q.trim()}%`);
+    dieu.push(`(khach ilike $${params.length} or ma_may ilike $${params.length}
+                or subscription_id = ${`btrim($${params.length}, '%')`})`);
+  }
+  if (f.trangThai) {
+    params.push(f.trangThai);
+    dieu.push(`trang_thai = $${params.length}`);
+  }
+  if (f.dichVu) {
+    params.push(f.dichVu);
+    dieu.push(`service_type = $${params.length}`);
+  }
+  if (f.canhBao === "CO") {
+    dieu.push("canh_bao <> '{}'");
+  } else if (f.canhBao) {
+    params.push(f.canhBao);
+    dieu.push(`$${params.length} = any(canh_bao)`);
+  }
+
+  return { sql: dieu.length > 0 ? `where ${dieu.join(" and ")}` : "", params };
+}
+
+export const getTelecomSubs = (f: TelecomFilter) => {
+  const { sql, params } = telecomWhere(f);
+  const offset = Math.max(0, ((f.trang ?? 1) - 1) * CONTRACTS_PER_PAGE);
+  return query<TelecomSub>(
+    `select ${COT_TELECOM} from v_telecom_subscription ${sql}
+      order by con_no desc, ngay_qua_han desc, subscription_id
+      limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
+    params,
+  );
+};
+
+export const countTelecomSubs = async (f: TelecomFilter) => {
+  const { sql, params } = telecomWhere(f);
+  const [row] = await query<{ n: string }>(
+    `select count(*)::text as n from v_telecom_subscription ${sql}`,
+    params,
+  );
+  return Number(row?.n ?? 0);
+};
+
+export const getTelecomSub = async (id: string) => {
+  const [row] = await query<TelecomSub>(
+    `select ${COT_TELECOM} from v_telecom_subscription where subscription_id = $1`,
+    [id],
+  );
+  return row ?? null;
+};
+
+export type TelecomInvoice = {
+  invoice_id: string;
+  so_hoa_don: string | null;
+  ngay_lap: string | null;
+  han_tra: string | null;
+  ky_tu: string | null;
+  ky_den: string | null;
+  tien: string;
+  da_tra: string;
+  con_lai: string;
+  trang_thai: string;
+  kenh_thu: string | null;
+};
+
+export const getTelecomInvoices = (id: string) =>
+  query<TelecomInvoice>(
+    `select invoice_id, so_hoa_don, ngay_lap::text, han_tra::text, ky_tu::text,
+            ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai, kenh_thu
+       from v_telecom_invoice where subscription_id = $1
+      order by coalesce(ky_tu, ngay_lap) desc`,
+    [id],
+  );
+
+export type TelecomMonth = {
+  ky: string;
+  so_hoa_don: string;
+  so_thue_bao: string;
+  phai_thu: string;
+  da_thu: string;
+  con_doi: string | null;
+  mat_trang: string | null;
+  hoa_don_dang_doi: string;
+  hoa_don_mat: string;
+  ty_le_thu: string | null;
+};
+
+export const getTelecomMonths = () =>
+  query<TelecomMonth>(
+    `select ky, so_hoa_don::text, so_thue_bao::text, phai_thu::text, da_thu::text,
+            con_doi::text, mat_trang::text, hoa_don_dang_doi::text,
+            hoa_don_mat::text, ty_le_thu::text
+       from v_telecom_month where ky >= ${TU} order by ky`,
+  );
+
+export const getTelecomChannels = (tu: string, den: string) =>
+  query<ChannelReport>(
+    `select kenh, so_lan::text as so_ky, tien::text
+       from telecom_channel_report($1::date, $2::date)`,
+    [tu, den],
+  );
+
+export type TelecomTotals = {
+  thue_bao: string;
+  dang_chay: string;
+  con_no: string;
+  no_qua_han: string;
+  tien_mat: string;
+  thieu_hoa_don: string;
+  may_chua_tra: string;
+};
+
+export const getTelecomTotals = async () => {
+  const [row] = await query<TelecomTotals>(
+    `select count(*)::text                                          as thue_bao,
+            count(*) filter (where trang_thai = 'ACTIVE')::text     as dang_chay,
+            round(sum(con_no))::text                                as con_no,
+            round(sum(con_no) filter (where 'NO_QUA_HAN' = any(canh_bao)))::text as no_qua_han,
+            round(sum(tien_mat))::text                              as tien_mat,
+            count(*) filter (where 'THIEU_HOA_DON' = any(canh_bao))::text as thieu_hoa_don,
+            sum(may_chua_tra)::text                                 as may_chua_tra
+       from v_telecom_subscription`,
+  );
+  return row!;
+};

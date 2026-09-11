@@ -61,6 +61,11 @@ export const MAU_TRANG_THAI: Record<string, string> = {
   DONE: "ok",
   SURVEY: "cho",
   CANCELLED: "tat",
+  // hoá đơn
+  PAID: "ok",
+  ISSUED: "cho",
+  UNPAYABLE: "xau",
+  VOID: "tat",
   // tình trạng cước
   DU: "ok",
   NO: "xau",
@@ -80,4 +85,34 @@ export const LY_DO_HUY: Record<string, string> = {
   SONG_YEU: "sóng yếu",
   KHAC: "khác",
   KHONG_GHI: "không ghi lý do",
+};
+
+export const DICH_VU: Record<string, string> = {
+  WIFI_DEVICE: "wifi cầm tay",
+  SOFTBANK_SIM: "sim Softbank",
+  DATA_CALL_SIM: "sim datacall",
+  ONE_YEAR_DATA_SIM: "sim data 1 năm",
+  FIXED_INTERNET: "wifi cố định",
+};
+
+export const CANH_BAO_TELECOM: Record<string, string> = {
+  NO_QUA_HAN: "nợ quá hạn",
+  KHONG_DOI_DUOC: "có hoá đơn mất trắng",
+  THIEU_HOA_DON: "đang chạy mà không có hoá đơn",
+  THIEU_GIA: "thiếu giá gói",
+  MAY_CHUA_TRA: "máy chưa thu hồi",
+};
+
+/** Mất tiền hoặc không tính được tiền thì đỏ, còn lại là nhắc việc. */
+export const CANH_BAO_TELECOM_NANG = new Set([
+  "NO_QUA_HAN",
+  "KHONG_DOI_DUOC",
+  "THIEU_HOA_DON",
+]);
+
+export const HOA_DON: Record<string, string> = {
+  PAID: "đã thu",
+  ISSUED: "đang đòi",
+  UNPAYABLE: "không đòi được",
+  VOID: "đã huỷ",
 };
