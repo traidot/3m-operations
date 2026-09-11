@@ -32,14 +32,16 @@ function Chon({
   return (
     <label>
       {nhan}
-      <select name={ten} defaultValue={chon}>
-        <option value="">tất cả</option>
-        {Object.entries(lua).map(([ma, chu]) => (
-          <option key={ma} value={ma}>
-            {chu}
-          </option>
-        ))}
-      </select>
+      <span className="o-chon">
+        <select name={ten} defaultValue={chon}>
+          <option value="">tất cả</option>
+          {Object.entries(lua).map(([ma, chu]) => (
+            <option key={ma} value={ma}>
+              {chu}
+            </option>
+          ))}
+        </select>
+      </span>
     </label>
   );
 }

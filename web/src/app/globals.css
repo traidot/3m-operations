@@ -69,7 +69,7 @@ p { margin: 0 0 12px; max-width: 62ch; }
 .tag.warn { background: var(--warn-soft); color: var(--warn); }
 
 .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-button { font: inherit; font-size: 0.85rem; padding: 5px 12px; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line-strong); cursor: pointer; }
+button { font: inherit; font-size: 0.85rem; padding: 6px 14px; height: 34px; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 3px; cursor: pointer; transition: border-color 0.12s, color 0.12s; }
 button:hover { border-color: var(--ok); color: var(--ok); }
 button.primary { background: var(--ok); color: var(--paper); border-color: var(--ok); }
 
@@ -80,7 +80,32 @@ thead th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; 
 form.inline { display: inline; }
 .formgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); align-items: end; }
 label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
-input, textarea, select { font: inherit; font-size: 0.88rem; padding: 6px 8px; background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
+input, textarea, select {
+  font: inherit; font-size: 0.88rem; padding: 7px 10px; height: 34px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: 3px;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+textarea { height: auto; }
+input:hover, select:hover { border-color: var(--muted); }
+input:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--ok); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 22%, transparent);
+}
+input::placeholder { color: var(--muted); }
+
+/* Mũi tên mặc định của trình duyệt không theo màu nền, tự vẽ lấy. */
+select { appearance: none; padding-right: 30px; cursor: pointer; }
+.o-chon { position: relative; display: block; }
+.o-chon select { width: 100%; }
+.o-chon::after {
+  content: ""; position: absolute; right: 12px; top: 50%; pointer-events: none;
+  width: 6px; height: 6px; margin-top: -5px;
+  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg);
+}
+.o-chon:hover::after { border-color: var(--ink); }
+/* Danh sách xổ ra do hệ điều hành vẽ, chỉ ép được màu nền và màu chữ. */
+select option { background: var(--surface); color: var(--ink); }
 
 .stale { background: var(--bad-soft); color: var(--bad); padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
 .empty { color: var(--muted); padding: 24px 0; }
