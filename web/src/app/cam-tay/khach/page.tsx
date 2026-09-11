@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Dong } from "../../hop-dong/dong";
 import { ChiTietKhach } from "./chi-tiet";
+import { ChiTietThueBao } from "../thue-bao/chi-tiet";
 import {
   CONTRACTS_PER_PAGE,
   countTelecomCustomers,
@@ -55,7 +56,7 @@ function dichVu(
     ...hien.map((s) => (
       <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
         <td>
-          <a href={`/cam-tay/thue-bao?xem=${s.subscription_id}`}>
+          <a href={link({ hd: s.subscription_id })}>
             {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
           </a>
           {s.goi && <span className="muted"> · {s.goi}</span>}
@@ -116,6 +117,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const soTrang = Math.max(1, Math.ceil(tong / CONTRACTS_PER_PAGE));
   const trang = loc.trang!;
   const dangMo = mot(sp.xem);
+  const hoaDon = mot(sp.hd);
 
   const link = (doi: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
@@ -124,6 +126,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     if (loc.canhBao) p.set("cb", loc.canhBao);
     if (loc.nhieuTb) p.set("nhieu", loc.nhieuTb);
     if (loc.loai) p.set("loai", loc.loai);
+    if (dangMo) p.set("xem", dangMo);
+    if (hoaDon) p.set("hd", hoaDon);
     if (trang > 1) p.set("trang", String(trang));
     for (const [k, v] of Object.entries(doi)) {
       if (v === undefined) p.delete(k);
@@ -268,7 +272,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </div>
       )}
 
-      {dangMo && <ChiTietKhach id={dangMo} dongLai={link({ xem: undefined })} />}
+      {hoaDon ? (
+        <ChiTietThueBao id={hoaDon} dongLai={link({ hd: undefined })} />
+      ) : (
+        dangMo && (
+          <ChiTietKhach
+            id={dangMo}
+            dongLai={link({ xem: undefined })}
+            linkHoaDon={(sid) => link({ hd: sid })}
+          />
+        )
+      )}
     </main>
   );
 }

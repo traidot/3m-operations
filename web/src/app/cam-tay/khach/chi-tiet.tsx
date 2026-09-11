@@ -19,7 +19,15 @@ function O({ ten, gia_tri, children }: { ten: string; gia_tri?: string; children
   );
 }
 
-export async function ChiTietKhach({ id, dongLai }: { id: string; dongLai: string }) {
+export async function ChiTietKhach({
+  id,
+  dongLai,
+  linkHoaDon,
+}: {
+  id: string;
+  dongLai: string;
+  linkHoaDon: (subscriptionId: string) => string;
+}) {
   const [kh, tb] = await Promise.all([getTelecomCustomer(id), getCustomerSubs(id)]);
 
   return (
@@ -93,7 +101,7 @@ export async function ChiTietKhach({ id, dongLai }: { id: string; dongLai: strin
                     </td>
                     <td className="mono">{s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}</td>
                     <td>
-                      <a href={`/cam-tay/thue-bao?xem=${s.subscription_id}`}>hoá đơn →</a>
+                      <a href={linkHoaDon(s.subscription_id)}>hoá đơn →</a>
                     </td>
                   </tr>
                 ))}
