@@ -11,6 +11,19 @@ export const dynamic = "force-dynamic";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
+/** Trạng thái bên hệ thống nguồn viết bằng mã, dịch ra cho dễ đọc. */
+const HOP_DONG: Record<string, string> = {
+  ACTIVE: "đang chạy",
+  TERMINATED: "đã huỷ",
+  SUSPENDED: "tạm ngưng",
+  PENDING: "chưa rõ",
+};
+const LAP_DAT: Record<string, string> = {
+  DONE: "lắp xong",
+  SURVEY: "chưa lắp",
+  CANCELLED: "huỷ lắp",
+};
+
 export default async function Page() {
   const [total, byStatus, [coverage], arrears, pending] = await Promise.all([
     getMonthlyTotal(),
@@ -85,6 +98,8 @@ export default async function Page() {
             <thead>
               <tr>
                 <th>Hợp đồng</th>
+                <th>Trạng thái</th>
+                <th>Thu tới kỳ</th>
                 <th className="num">Tổng kỳ</th>
                 <th className="num">Miễn phí</th>
                 <th className="num">Kỳ nợ</th>
@@ -103,6 +118,26 @@ export default async function Page() {
                       </a>
                     ) : (
                       a.contract_code
+                    )}
+                  </td>
+                  <td>
+                    <span className="mono">{HOP_DONG[a.trang_thai_hop_dong] ?? a.trang_thai_hop_dong}</span>
+                    <br />
+                    <span className="mono muted">
+                      {a.trang_thai_lap_dat ? (LAP_DAT[a.trang_thai_lap_dat] ?? a.trang_thai_lap_dat) : "—"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="mono">{a.ky_da_thu_gan_nhat ?? "chưa thu kỳ nào"}</span>
+                    {(a.ky_cho_duyet > 0 || a.ky_ghi_chu > 0) && (
+                      <>
+                        <br />
+                        <span className="mono muted">
+                          {a.ky_cho_duyet > 0 && `${a.ky_cho_duyet} kỳ chờ duyệt`}
+                          {a.ky_cho_duyet > 0 && a.ky_ghi_chu > 0 && " · "}
+                          {a.ky_ghi_chu > 0 && `${a.ky_ghi_chu} kỳ ghi chú`}
+                        </span>
+                      </>
                     )}
                   </td>
                   <td className="num mono muted">{a.so_ky}</td>

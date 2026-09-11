@@ -43,6 +43,7 @@ for f in db/0*.sql; do psql -v ON_ERROR_STOP=1 "$WAREHOUSE_URL" -f "$f"; done
 | `019_ads_cancelled.sql` | Đơn huỷ, thống kê lắp đặt, phát hiện tab đè nhau |
 | `020_split_business.sql` | Tách phễu wifi và eSIM |
 | `021_contract_link.sql` | Liên kết sang màn hình hợp đồng bên hệ thống nguồn |
+| `022_contract_status.sql` | Trạng thái hợp đồng, lắp đặt và tình hình thu cước |
 
 Rồi đặt ngưỡng — giá trị khởi tạo là phỏng đoán:
 

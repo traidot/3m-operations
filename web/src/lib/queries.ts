@@ -102,6 +102,11 @@ export type Arrears = {
   subscription_id: string;
   lien_ket: string | null;
   contract_code: string;
+  trang_thai_hop_dong: string;
+  trang_thai_lap_dat: string | null;
+  ky_da_thu_gan_nhat: string | null;
+  ky_cho_duyet: number;
+  ky_ghi_chu: number;
   so_ky: number;
   so_ky_mien_phi: number;
   so_ky_no: number;
@@ -132,7 +137,9 @@ export const getCoverage = () =>
 export const getArrears = () =>
   query<Arrears>(
     `select subscription_id, contract_url(subscription_id) as lien_ket,
-            contract_code, so_ky, so_ky_mien_phi, so_ky_no,
+            contract_code, trang_thai_hop_dong, trang_thai_lap_dat,
+            ky_da_thu_gan_nhat, ky_cho_duyet, ky_ghi_chu,
+            so_ky, so_ky_mien_phi, so_ky_no,
             tong_da_thu::text, con_no::text
        from v_fixed_arrears order by so_ky_no desc, con_no desc limit 20`,
   );
