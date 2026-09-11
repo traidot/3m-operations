@@ -1,7 +1,11 @@
+import Link from "next/link";
+import { ChiTiet } from "./chi-tiet";
+import { DaiKy } from "./dai-ky";
 import {
   CONTRACTS_PER_PAGE,
   countContracts,
   getContracts,
+  getYearStatus,
   type ContractFilter,
 } from "@/lib/queries";
 import { HOP_DONG, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
@@ -50,18 +54,27 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   };
 
   const [rows, tong] = await Promise.all([getContracts(loc), countContracts(loc)]);
+  const nam = new Date().getFullYear();
+  const theoNam = await getYearStatus(rows.map((r) => r.subscription_id));
   const soTrang = Math.max(1, Math.ceil(tong / CONTRACTS_PER_PAGE));
   const trang = loc.trang!;
 
-  const linkTrang = (t: number) => {
+  // Giữ nguyên bộ lọc khi sang trang hoặc mở ngăn kéo, chỉ đổi một tham số.
+  const link = (doi: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
     if (loc.q) p.set("q", loc.q);
     if (loc.hopDong) p.set("hd", loc.hopDong);
     if (loc.lapDat) p.set("lap", loc.lapDat);
     if (loc.cuoc) p.set("cuoc", loc.cuoc);
-    p.set("trang", String(t));
-    return `/hop-dong?${p}`;
+    if (trang > 1) p.set("trang", String(trang));
+    for (const [k, v] of Object.entries(doi)) {
+      if (v === undefined) p.delete(k);
+      else p.set(k, v);
+    }
+    const duoi = p.toString();
+    return duoi ? `/hop-dong?${duoi}` : "/hop-dong";
   };
+  const dangMo = mot(sp.xem);
 
   return (
     <main>
@@ -108,6 +121,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th>Địa chỉ lắp</th>
                 <th>Hợp đồng</th>
                 <th>Lắp đặt</th>
+                <th>Cước {nam}</th>
                 <th className="num">Cước/tháng</th>
                 <th className="num">Kỳ</th>
                 <th className="num">Miễn</th>
@@ -118,13 +132,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.subscription_id}>
+                <tr key={r.subscription_id} className={r.subscription_id === dangMo ? "dang-mo" : undefined}>
                   <td className="mono">
-                    <a href={`/hop-dong/${r.subscription_id}`}>{r.contract_code ?? "—"}</a>
+                    <Link href={link({ xem: r.subscription_id })} scroll={false}>
+                      {r.contract_code ?? "—"}
+                    </Link>
                   </td>
                   <td>{r.dia_chi ?? "—"}</td>
                   <td>{HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong}</td>
                   <td>{r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "—"}</td>
+                  <td>
+                    <DaiKy cac_ky={theoNam.get(r.subscription_id)} nam={nam} />
+                  </td>
                   <td className="num mono">{n(r.cuoc_thang)}</td>
                   <td className="num mono">
                     {r.tinh_trang_cuoc === "CHUA_TINH_DUOC" ? "—" : n(r.so_ky)}
@@ -144,20 +163,31 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </div>
       )}
 
+      <p className="muted chu-giai">
+        Dải {nam}: mỗi ô một tháng, tháng 1 bên trái.
+        <span className="chu-thich"><i className="o-ky da-thu" /> đã thu</span>
+        <span className="chu-thich"><i className="o-ky mien-phi" /> miễn phí</span>
+        <span className="chu-thich"><i className="o-ky cho-duyet" /> chờ duyệt hoặc ghi chú</span>
+        <span className="chu-thich"><i className="o-ky no" /> chưa thu</span>
+        <span className="chu-thich"><i className="o-ky na" /> ngoài khoảng đóng cước</span>
+      </p>
+
       {soTrang > 1 && (
         <div className="actions">
           {trang > 1 && (
-            <a href={linkTrang(trang - 1)}>
+            <Link href={link({ trang: String(trang - 1), xem: undefined })}>
               <button type="button">← Trang trước</button>
-            </a>
+            </Link>
           )}
           {trang < soTrang && (
-            <a href={linkTrang(trang + 1)}>
+            <Link href={link({ trang: String(trang + 1), xem: undefined })}>
               <button type="button">Trang sau →</button>
-            </a>
+            </Link>
           )}
         </div>
       )}
+
+      {dangMo && <ChiTiet id={dangMo} dongLai={link({ xem: undefined })} />}
     </main>
   );
 }

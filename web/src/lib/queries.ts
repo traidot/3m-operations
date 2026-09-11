@@ -420,3 +420,13 @@ export const getContractUrl = async (id: string) => {
   const [row] = await query<{ url: string | null }>("select contract_url($1) as url", [id]);
   return row?.url ?? null;
 };
+
+/** Trạng thái 12 kỳ của năm hiện tại, chỉ lấy cho đúng trang đang xem. */
+export const getYearStatus = async (ids: string[]) => {
+  if (ids.length === 0) return new Map<string, string[]>();
+  const rows = await query<{ subscription_id: string; cac_ky: string[] }>(
+    "select subscription_id, cac_ky from v_fixed_year_status where subscription_id = any($1)",
+    [ids],
+  );
+  return new Map(rows.map((r) => [r.subscription_id, r.cac_ky]));
+};
