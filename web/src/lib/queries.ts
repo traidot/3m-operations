@@ -767,6 +767,7 @@ export const getTelecomChannels = (tu: string, den: string) =>
   );
 
 export type TelecomTotals = {
+  khach: string;
   thue_bao: string;
   dang_chay: string;
   con_no: string;
@@ -778,7 +779,8 @@ export type TelecomTotals = {
 
 export const getTelecomTotals = async () => {
   const [row] = await query<TelecomTotals>(
-    `select count(*)::text                                          as thue_bao,
+    `select count(distinct party_id)::text                          as khach,
+            count(*)::text                                          as thue_bao,
             count(*) filter (where trang_thai = 'ACTIVE')::text     as dang_chay,
             round(sum(con_no))::text                                as con_no,
             round(sum(con_no) filter (where 'NO_QUA_HAN' = any(canh_bao)))::text as no_qua_han,
@@ -789,3 +791,109 @@ export const getTelecomTotals = async () => {
   );
   return row!;
 };
+
+export type TelecomCustomer = {
+  party_id: string;
+  khach: string;
+  dien_thoai: string | null;
+  so_thue_bao: string;
+  dang_chay: string;
+  dich_vu: string[] | null;
+  da_thu: string;
+  con_no: string;
+  tien_mat: string;
+  may_chua_tra: string;
+  ngay_qua_han: string;
+  ky_gan_nhat_den: string | null;
+  canh_bao: string[];
+};
+
+export type CustomerFilter = {
+  q?: string;
+  dichVu?: string;
+  canhBao?: string;
+  nhieuTb?: string;
+  trang?: number;
+};
+
+const COT_KHACH = `party_id::text, khach, dien_thoai, so_thue_bao::text,
+       dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
+       may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao`;
+
+function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
+  const dieu: string[] = [];
+  const params: unknown[] = [];
+
+  if (f.q?.trim()) {
+    params.push(`%${f.q.trim()}%`);
+    dieu.push(`(khach ilike $${params.length} or dien_thoai ilike $${params.length})`);
+  }
+  if (f.dichVu) {
+    params.push(f.dichVu);
+    dieu.push(`$${params.length} = any(dich_vu)`);
+  }
+  if (f.canhBao === "CO") {
+    dieu.push("canh_bao <> '{}'");
+  } else if (f.canhBao) {
+    params.push(f.canhBao);
+    dieu.push(`$${params.length} = any(canh_bao)`);
+  }
+  if (f.nhieuTb === "1") dieu.push("so_thue_bao > 1");
+
+  return { sql: dieu.length > 0 ? `where ${dieu.join(" and ")}` : "", params };
+}
+
+export const getTelecomCustomers = (f: CustomerFilter) => {
+  const { sql, params } = customerWhere(f);
+  const offset = Math.max(0, ((f.trang ?? 1) - 1) * CONTRACTS_PER_PAGE);
+  return query<TelecomCustomer>(
+    `select ${COT_KHACH} from v_telecom_customer ${sql}
+      order by con_no desc, tien_mat desc, so_thue_bao desc
+      limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
+    params,
+  );
+};
+
+export const countTelecomCustomers = async (f: CustomerFilter) => {
+  const { sql, params } = customerWhere(f);
+  const [row] = await query<{ n: string }>(
+    `select count(*)::text as n from v_telecom_customer ${sql}`,
+    params,
+  );
+  return Number(row?.n ?? 0);
+};
+
+export const getTelecomCustomer = async (id: string) => {
+  const [row] = await query<TelecomCustomer>(
+    `select ${COT_KHACH} from v_telecom_customer where party_id = $1::uuid`,
+    [id],
+  );
+  return row ?? null;
+};
+
+export type CustomerSub = {
+  subscription_id: string;
+  service_type: string | null;
+  goi: string | null;
+  trang_thai: string;
+  gia_thang: string | null;
+  ngay_kich_hoat: string | null;
+  ngay_ngung: string | null;
+  ma_may: string | null;
+  so_hoa_don: string;
+  da_thu: string;
+  con_no: string;
+  tien_mat: string;
+  ky_gan_nhat_den: string | null;
+  canh_bao: string[];
+};
+
+export const getCustomerSubs = (id: string) =>
+  query<CustomerSub>(
+    `select subscription_id, service_type, goi, trang_thai, gia_thang::text,
+            ngay_kich_hoat::text, ngay_ngung::text, ma_may, so_hoa_don::text,
+            da_thu::text, con_no::text, tien_mat::text, ky_gan_nhat_den::text, canh_bao
+       from v_telecom_customer_sub where party_id = $1::uuid
+      order by con_no desc, ngay_kich_hoat desc nulls last`,
+    [id],
+  );

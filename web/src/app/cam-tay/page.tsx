@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 const so = (v: string | null) => (v === null ? null : Number(v));
 const loc = (t: Record<string, string>) => `/cam-tay/thue-bao?${new URLSearchParams(t)}`;
+const locKhach = (t: Record<string, string>) => `/cam-tay/khach?${new URLSearchParams(t)}`;
 
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
@@ -50,11 +51,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
 
       <div className="the-hang">
+        <The ten="Khách" gia_tri={tong.khach} den={locKhach({})} />
         <The ten="Thuê bao" gia_tri={tong.thue_bao} den={loc({})} />
         <The ten="Đang chạy" gia_tri={tong.dang_chay} den={loc({ tt: "ACTIVE" })} />
-        <The ten="Còn đang đòi" gia_tri={tong.con_no} den={loc({ cb: "CO" })} xau />
-        <The ten="Nợ quá hạn" gia_tri={tong.no_qua_han} den={loc({ cb: "NO_QUA_HAN" })} xau />
-        <The ten="Mất trắng" gia_tri={tong.tien_mat} den={loc({ cb: "KHONG_DOI_DUOC" })} xau />
+        <The ten="Còn đang đòi" gia_tri={tong.con_no} den={locKhach({ cb: "CO" })} xau />
+        <The ten="Nợ quá hạn" gia_tri={tong.no_qua_han} den={locKhach({ cb: "NO_QUA_HAN" })} xau />
+        <The ten="Mất trắng" gia_tri={tong.tien_mat} den={locKhach({ cb: "KHONG_DOI_DUOC" })} xau />
         <The
           ten="Chạy mà không hoá đơn"
           gia_tri={tong.thieu_hoa_don}

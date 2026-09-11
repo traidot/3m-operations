@@ -258,3 +258,4 @@ td .tag + .tag { margin-left: 4px; }
 .the-phu { color: var(--muted); font-size: 0.76rem; }
 th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .ly-do { background: var(--surface-2); border-radius: var(--bo); padding: 10px 14px; font-size: 0.88rem; margin: 10px 0; }
+.ngan-keo td a { white-space: nowrap; }
