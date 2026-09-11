@@ -132,15 +132,33 @@ export const DEVICE = `
   select
     d.id::text                                   as source_id,
     d."deviceCode"                               as imei,
-    null                                         as model,
+    di.msn                                       as model,
     d."rentalStatus"::text                       as status,
     (select sd."subscriptionId"::text from subscription_device sd
       where sd."deviceCode" = d."deviceCode" and sd."deletedAt" is null
       order by sd.id desc limit 1)               as subscription_source_id,
     null                                         as location,
+    d.deposit                                    as deposit,
+    d."returnDepositStatus"::text                as deposit_status,
+    d."rentalDate"::date                         as rented_on,
+    d."returnDate"::date                         as returned_on,
     d."updatedAt"                                as updated_at_src
   from rental_device d
+  left join device_info di on di."deviceCode" = d."deviceCode" and di."deletedAt" is null
   where d."deletedAt" is null
+`;
+
+/** Lịch sử gắn máy vào thuê bao — một thuê bao có thể đổi máy giữa chừng. */
+export const SUBSCRIPTION_DEVICE = `
+  select
+    sd.id::text                                  as source_id,
+    sd."subscriptionId"::text                    as subscription_source_id,
+    sd."deviceCode"                              as imei,
+    sd."startDate"::date                         as started_on,
+    sd."endDate"::date                           as ended_on,
+    sd."createdAt"                               as created_at_src
+  from subscription_device sd
+  where sd."deletedAt" is null and sd."deviceCode" is not null
 `;
 
 export const STAFF = `
@@ -161,4 +179,5 @@ export const QUERIES = {
   invoice: INVOICE,
   payment: PAYMENT,
   device: DEVICE,
+  subscription_device: SUBSCRIPTION_DEVICE,
 } as const;

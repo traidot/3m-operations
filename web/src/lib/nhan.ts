@@ -61,6 +61,11 @@ export const MAU_TRANG_THAI: Record<string, string> = {
   DONE: "ok",
   SURVEY: "cho",
   CANCELLED: "tat",
+  // máy và cọc — PENDING đã khai ở nhánh hợp đồng, cùng màu "cho" nên dùng chung
+  RENTING: "ok",
+  NOT_RETURNED: "xau",
+  NOT_RETURNABLE: "xau",
+  RETURNED: "tat",
   // hoá đơn
   PAID: "ok",
   ISSUED: "cho",
@@ -130,4 +135,16 @@ export const LOP_KY_TELECOM: Record<string, string> = {
   DANG_DOI: "cho-duyet",
   MAT: "mat",
   NA: "na",
+};
+
+export const MAY: Record<string, string> = {
+  RENTING: "đang thuê",
+  NOT_RETURNED: "chưa trả",
+  RETURNED: "đã trả",
+};
+
+export const COC: Record<string, string> = {
+  PENDING: "chưa xử lý",
+  RETURNED: "đã hoàn",
+  NOT_RETURNABLE: "không hoàn",
 };

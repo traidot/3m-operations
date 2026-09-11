@@ -5,22 +5,27 @@ import { ChiTietThueBao } from "../thue-bao/chi-tiet";
 import {
   CONTRACTS_PER_PAGE,
   countTelecomCustomers,
+  getDevicesForSubs,
   getSubsForParties,
   getTelecomCustomers,
   getTelecomYearStatus,
   type CustomerFilter,
   type CustomerSub,
+  type TelecomDevice,
   type YearStatus,
 } from "@/lib/queries";
 import {
   CANH_BAO_TELECOM,
   CANH_BAO_TELECOM_NANG,
   DICH_VU,
+  COC,
   HOP_DONG,
   KY_TELECOM,
   LOP_KY_TELECOM,
+  MAY,
 } from "@/lib/nhan";
 import { Chip } from "../../chip";
+import { MAU_TRANG_THAI } from "@/lib/nhan";
 import { DaiKy } from "../../hop-dong/dai-ky";
 
 export const dynamic = "force-dynamic";
@@ -86,12 +91,34 @@ function tenNhom(nhom: string | null, loai: string | null): string | null {
  */
 const TOI_DA_DICH_VU = 25;
 
+/** Máy đang gắn và tiền cọc, hiện cạnh mã máy trên dòng dịch vụ. */
+function May({ may }: { may: TelecomDevice | undefined }) {
+  if (!may) return null;
+  return (
+    <span className="may-dong">
+      {may.trang_thai_may && (
+        <span className={`chip ${MAU_TRANG_THAI[may.trang_thai_may] ?? "tat"}`}>
+          {MAY[may.trang_thai_may] ?? may.trang_thai_may}
+        </span>
+      )}
+      {Number(may.coc ?? 0) > 0 && (
+        <span className="mono muted">
+          {" "}
+          cọc {n(may.coc)}
+          {may.trang_thai_coc && ` (${COC[may.trang_thai_coc] ?? may.trang_thai_coc})`}
+        </span>
+      )}
+    </span>
+  );
+}
+
 /** Các dịch vụ của một khách, hiện thành dòng phụ ngay dưới dòng khách. */
 function dichVu(
   kh: { party_id: string; so_thue_bao: string },
   tb: CustomerSub[],
   link: (doi: Record<string, string | undefined>) => string,
   theoNam: Map<string, YearStatus>,
+  theoMay: Map<string, TelecomDevice>,
 ) {
   const hien = tb.slice(0, TOI_DA_DICH_VU);
   const con = tb.length - hien.length;
@@ -104,6 +131,7 @@ function dichVu(
         </Link>
         {s.goi && <span className="muted"> · {s.goi}</span>}
         {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
+        <May may={theoMay.get(s.subscription_id)} />
         <DaiKy
           nam={theoNam.get(s.subscription_id)}
           lop={LOP_KY_TELECOM}
@@ -173,6 +201,8 @@ export default async function Page({
     countTelecomCustomers(loc),
   ]);
   const dichVuTheoKhach = await getSubsForParties(rows.map((r) => r.party_id));
+  const maThueBao = [...dichVuTheoKhach.values()].flat().map((s) => s.subscription_id);
+  const mayTheoThueBao = await getDevicesForSubs(maThueBao);
   const namTheoThueBao = await getTelecomYearStatus(
     [...dichVuTheoKhach.values()].flat().map((s) => s.subscription_id),
   );
@@ -343,6 +373,7 @@ export default async function Page({
                   dichVuTheoKhach.get(r.party_id) ?? [],
                   link,
                   namTheoThueBao,
+                  mayTheoThueBao,
                 )}
               </tbody>
             ))}

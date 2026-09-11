@@ -287,3 +287,5 @@ tr.sub td:first-child { padding-left: 20px; }
 .bang-nhom tbody tr.dang-mo,
 .bang-nhom tbody:has(tr.dang-mo) { background: var(--surface-2); }
 .khong-xuong-dong { white-space: nowrap; }
+/* Mã máy và chip trạng thái dính nhau thì đọc ra một cục. */
+.may-dong { display: inline-flex; align-items: baseline; gap: 8px; margin-left: 10px; }

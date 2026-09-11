@@ -943,3 +943,40 @@ export const getTelecomYearStatus = async (ids: string[]) => {
   );
   return new Map(rows.map((r) => [r.subscription_id, r]));
 };
+
+export type TelecomDevice = {
+  subscription_id: string;
+  imei: string;
+  gan_tu: string | null;
+  gan_den: string | null;
+  trang_thai_may: string | null;
+  coc: string | null;
+  trang_thai_coc: string | null;
+  ngay_thue: string | null;
+  ngay_tra: string | null;
+  dang_gan: boolean;
+};
+
+const COT_MAY = `subscription_id, imei, gan_tu::text, gan_den::text, trang_thai_may,
+       coc::text, trang_thai_coc, ngay_thue::text, ngay_tra::text, dang_gan`;
+
+/** Máy và cọc của một thuê bao, kể cả máy đã đổi đi. */
+export const getTelecomDevices = (id: string) =>
+  query<TelecomDevice>(
+    `select ${COT_MAY} from v_telecom_device where subscription_id = $1
+      order by gan_tu desc nulls last`,
+    [id],
+  );
+
+/** Máy đang gắn của nhiều thuê bao, để bày kèm dòng dịch vụ. */
+export const getDevicesForSubs = async (ids: string[]) => {
+  if (ids.length === 0) return new Map<string, TelecomDevice>();
+  const rows = await query<TelecomDevice>(
+    `select distinct on (subscription_id) ${COT_MAY}
+       from v_telecom_device
+      where subscription_id = any($1) and dang_gan
+      order by subscription_id, gan_tu desc nulls last`,
+    [ids],
+  );
+  return new Map(rows.map((r) => [r.subscription_id, r]));
+};

@@ -1,12 +1,14 @@
 import { NganKeo } from "../../ngan-keo";
 import { Chip } from "../../chip";
-import { getTelecomInvoices, getTelecomSub } from "@/lib/queries";
+import { getTelecomDevices, getTelecomInvoices, getTelecomSub } from "@/lib/queries";
 import {
   CANH_BAO_TELECOM,
   CANH_BAO_TELECOM_NANG,
+  COC,
   DICH_VU,
   HOA_DON,
   HOP_DONG,
+  MAY,
 } from "@/lib/nhan";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
@@ -21,7 +23,11 @@ function O({ ten, gia_tri, children }: { ten: string; gia_tri?: string; children
 }
 
 export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: string }) {
-  const [tb, hd] = await Promise.all([getTelecomSub(id), getTelecomInvoices(id)]);
+  const [tb, hd, may] = await Promise.all([
+    getTelecomSub(id),
+    getTelecomInvoices(id),
+    getTelecomDevices(id),
+  ]);
 
   return (
     <NganKeo dongLai={dongLai}>
@@ -68,6 +74,62 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
             </O>
             <O ten="quá hạn" gia_tri={`${n(tb.ngay_qua_han)} ngày`} />
           </dl>
+
+          <h2>Máy và cọc</h2>
+          {may.length === 0 ? (
+            <p className="empty">Thuê bao này chưa gắn máy nào.</p>
+          ) : (
+            <div className="scroller">
+              <table>
+                <thead>
+                  <tr>
+                    <th>IMEI</th>
+                    <th>Gắn từ</th>
+                    <th>Gắn đến</th>
+                    <th>Tình trạng máy</th>
+                    <th className="num">Cọc</th>
+                    <th>Tình trạng cọc</th>
+                    <th>Thuê</th>
+                    <th>Trả</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {may.map((m) => (
+                    <tr key={`${m.imei}-${m.gan_tu}`}>
+                      <td className="mono">
+                        {m.imei}
+                        {m.dang_gan && <span className="tag"> đang gắn</span>}
+                      </td>
+                      <td className="mono">{m.gan_tu ?? "—"}</td>
+                      <td className="mono">{m.gan_den ?? "—"}</td>
+                      <td>
+                        {m.trang_thai_may ? (
+                          <Chip ma={m.trang_thai_may} nhan={MAY} />
+                        ) : (
+                          <span className="muted">không có phiếu thuê</span>
+                        )}
+                      </td>
+                      <td className="num mono">{n(m.coc)}</td>
+                      <td>
+                        {m.trang_thai_coc ? (
+                          <Chip ma={m.trang_thai_coc} nhan={COC} />
+                        ) : (
+                          <span className="muted">—</span>
+                        )}
+                      </td>
+                      <td className="mono">{m.ngay_thue ?? "—"}</td>
+                      <td className="mono">{m.ngay_tra ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="muted">
+            “Không có phiếu thuê” là máy được gắn vào thuê bao nhưng bên nguồn không có
+            dòng nào trong sổ cho thuê — nên không biết cọc bao nhiêu. Đang có 1.287 lượt
+            gắn máy như vậy.
+          </p>
 
           <h2>Hoá đơn</h2>
           {hd.length === 0 ? (
