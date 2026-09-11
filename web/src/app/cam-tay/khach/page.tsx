@@ -60,8 +60,31 @@ function Chon({
   );
 }
 
-/** "NHÓM KHÁCH HÀNG LẺ" viết hoa hết thì chiếm gấp đôi chỗ mà chẳng rõ hơn. */
-const tenNhom = (s: string) => s.replace(/^NHÓM\s+/i, "").toLowerCase();
+/**
+ * Nguồn có hai trường gần trùng nhau: customerType (vai trò) và customerGroup
+ * (nhóm nghiệp vụ). Phần lớn khách thì nhóm chỉ nói lại đúng vai trò — "khách
+ * lẻ" với "khách hàng lẻ" — nên bày cả hai là bày thừa một dòng.
+ *
+ * Chỉ hiện nhóm khi nó nói thêm điều gì: nhóm wifi cố định, hoặc nhóm lệch với
+ * vai trò (khách lẻ mà nằm trong nhóm đại lý — dữ liệu bên nguồn nhập lệch).
+ */
+const TRUNG_NGHIA: Record<string, string> = {
+  CUSTOMER: "khách hàng lẻ",
+  COLLABORATOR: "cộng tác viên",
+  AGENCY: "khách hàng đại lý",
+};
+
+function tenNhom(nhom: string | null, loai: string | null): string | null {
+  if (!nhom) return null;
+  const gon = nhom.replace(/^NHÓM\s+/i, "").toLowerCase();
+  return gon === TRUNG_NGHIA[loai ?? ""] ? null : gon;
+}
+
+/**
+ * Khách thường bày hết dịch vụ. Riêng đại lý có tới 802 thuê bao: dựng ngần ấy
+ * dòng làm trang mất 4-5 giây, nên cắt ở đây và mời sang ngăn kéo xem đủ.
+ */
+const TOI_DA_DICH_VU = 25;
 
 /** Các dịch vụ của một khách, hiện thành dòng phụ ngay dưới dòng khách. */
 function dichVu(
@@ -70,7 +93,10 @@ function dichVu(
   link: (doi: Record<string, string | undefined>) => string,
   theoNam: Map<string, YearStatus>,
 ) {
-  return tb.map((s) => (
+  const hien = tb.slice(0, TOI_DA_DICH_VU);
+  const con = tb.length - hien.length;
+
+  const dong = hien.map((s) => (
     <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
       <td>
         <Link href={link({ hd: s.subscription_id })} scroll={false}>
@@ -112,6 +138,19 @@ function dichVu(
       <td />
     </tr>
   ));
+
+  if (con === 0) return dong;
+
+  return [
+    ...dong,
+    <tr key={`${kh.party_id}-them`} className="sub">
+      <td colSpan={9}>
+        <Link href={link({ xem: kh.party_id })} scroll={false}>
+          còn {con.toLocaleString("vi-VN")} dịch vụ nữa — xem tất cả →
+        </Link>
+      </td>
+    </tr>,
+  ];
 }
 
 export default async function Page({
@@ -235,7 +274,10 @@ export default async function Page({
                 <th className="num">Đã thu</th>
                 <th className="num">Còn nợ</th>
                 <th className="num">Mất trắng</th>
-                <th className="num" title="Thiết bị cho thuê bên nguồn đánh dấu NOT_RETURNED: hết hạn thuê mà chưa nhận lại máy, cọc vẫn treo">
+                <th
+                  className="num"
+                  title="Thiết bị cho thuê bên nguồn đánh dấu NOT_RETURNED: hết hạn thuê mà chưa nhận lại máy, cọc vẫn treo"
+                >
                   Máy chưa trả
                 </th>
               </tr>
@@ -257,8 +299,10 @@ export default async function Page({
                   </td>
                   <td>
                     <span className="khong-xuong-dong">{r.loai_khach_chu}</span>
-                    {r.nhom_khach && (
-                      <div className="muted">{tenNhom(r.nhom_khach)}</div>
+                    {tenNhom(r.nhom_khach, r.loai_khach) && (
+                      <div className="muted">
+                        {tenNhom(r.nhom_khach, r.loai_khach)}
+                      </div>
                     )}
                   </td>
                   <td>

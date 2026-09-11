@@ -27,6 +27,9 @@ export function DaiKy({
   nhan?: Record<string, string>;
 }) {
   if (!nam) return null;
+  // Thuê bao không dính năm nay thì dải toàn ô mờ, chẳng nói gì mà vẫn tốn 12
+  // thẻ mỗi dòng — trang đại lý có hàng trăm dòng như thế.
+  if (nam.tu_thang === null) return null;
 
   return (
     <span className="dai-ky">
