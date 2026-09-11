@@ -77,11 +77,14 @@ function key(raw: string): string {
 
 /**
  * "5.159.377" -> 5159377. Dấu chấm là phân cách nghìn, không phải thập phân.
+ * Dấu phẩy mới là thập phân: "119,00" -> 119, bỏ phần lẻ vì đây đều là số đếm.
+ * Không cắt phần sau dấu phẩy thì "119,00" thành 11900, gấp trăm lần số thật.
  * Ô rỗng trả null: không có số khác với số 0.
  */
 export function parseNumber(raw: string | undefined): number | null {
   if (raw === undefined) return null;
-  const cleaned = raw.replace(/[.\s]/g, "").replace(/[^\d-]/g, "");
+  const [phanNguyen = ""] = raw.split(",");
+  const cleaned = phanNguyen.replace(/[.\s]/g, "").replace(/[^\d-]/g, "");
   if (cleaned === "" || cleaned === "-") return null;
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : null;

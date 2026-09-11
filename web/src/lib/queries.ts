@@ -228,6 +228,70 @@ export const getWifiFunnel = () =>
        from v_funnel_wifi where thang >= ${TU} order by thang`,
   );
 
+export type WifiPersonFunnel = {
+  thang: string;
+  chi_phi: string | null;
+  tiep_can: string | null;
+  click: string | null;
+  mess: string | null;
+  don_khai: string | null;
+  don_huy: string | null;
+  chi_phi_co_dinh: string | null;
+  mess_co_dinh: string | null;
+  don_co_dinh: string | null;
+  chi_phi_cam_tay: string | null;
+  mess_cam_tay: string | null;
+  don_cam_tay: string | null;
+  chi_phi_wimax: string | null;
+  mess_wimax: string | null;
+  don_wimax: string | null;
+  lich_lap: string | null;
+  lap_xong: string | null;
+  gia_mess: string | null;
+  chi_phi_moi_don: string | null;
+};
+
+const COT_NGUOI = `thang, chi_phi::text, tiep_can::text, click::text, mess::text,
+       don_khai::text, don_huy::text,
+       chi_phi_co_dinh::text, mess_co_dinh::text, don_co_dinh::text,
+       chi_phi_cam_tay::text, mess_cam_tay::text, don_cam_tay::text,
+       chi_phi_wimax::text, mess_wimax::text, don_wimax::text,
+       lich_lap::text, lap_xong::text, gia_mess::text, chi_phi_moi_don::text`;
+
+/** Phễu quảng cáo của riêng một người. Dừng ở lắp đặt — xem v_funnel_wifi_nguoi. */
+export const getWifiFunnelByPerson = (nguoiKey: string) =>
+  query<WifiPersonFunnel>(
+    `select ${COT_NGUOI} from v_funnel_wifi_nguoi
+      where nguoi_key = $1 and thang >= ${TU} order by thang`,
+    [nguoiKey],
+  );
+
+export type WifiPersonTotal = {
+  nguoi_key: string;
+  nguoi: string;
+  chi_phi: string | null;
+  mess: string | null;
+  don_khai: string | null;
+  don_co_dinh: string | null;
+  lap_xong: string | null;
+  gia_mess: string | null;
+};
+
+/** Cộng dồn 12 tháng gần nhất để hai người đứng cạnh nhau trên trang chung. */
+export const getWifiPersonTotals = () =>
+  query<WifiPersonTotal>(
+    `select nguoi_key, max(nguoi) as nguoi,
+            sum(chi_phi)::text     as chi_phi,
+            sum(mess)::text        as mess,
+            sum(don_khai)::text    as don_khai,
+            sum(don_co_dinh)::text as don_co_dinh,
+            sum(lap_xong)::text    as lap_xong,
+            round(sum(chi_phi) / nullif(sum(mess), 0))::text as gia_mess
+       from v_funnel_wifi_nguoi where thang >= ${TU}
+      group by nguoi_key order by nguoi_key`,
+  );
+
+
 export const getEsimFunnel = () =>
   query<EsimFunnel>(
     `select thang, chi_phi::text, tiep_can::text, click::text, mess::text,

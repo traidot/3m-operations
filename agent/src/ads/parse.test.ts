@@ -30,6 +30,13 @@ test("bỏ dấu chấm phân cách nghìn", () => {
   assert.equal(parseNumber("0"), 0);
 });
 
+test("dấu phẩy là thập phân, không phải phân cách nghìn", () => {
+  // Tab cũ ghi số đơn dạng "119,00". Cắt dấu chấm rồi ghép lại thành 11900.
+  assert.equal(parseNumber("119,00"), 119);
+  assert.equal(parseNumber("1,00"), 1);
+  assert.equal(parseNumber("1.312.223,50"), 1312223);
+});
+
 test("ô rỗng ra null chứ không ra 0", () => {
   assert.equal(parseNumber(""), null);
   assert.equal(parseNumber(undefined), null);

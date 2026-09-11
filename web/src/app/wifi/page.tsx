@@ -1,4 +1,4 @@
-import { getWifiFunnel } from "@/lib/queries";
+import { getWifiFunnel, getWifiPersonTotals } from "@/lib/queries";
 import { Bars } from "./bars";
 import { Funnel } from "./funnel";
 
@@ -12,7 +12,7 @@ const cong = (rows: Record<string, string | null>[], k: string) => {
 };
 
 export default async function Page() {
-  const rows = await getWifiFunnel();
+  const [rows, nguoi] = await Promise.all([getWifiFunnel(), getWifiPersonTotals()]);
   const nhan = rows.map((r) => r.thang);
   const ky = rows.length > 0 ? `${rows[0]!.thang} → ${rows[rows.length - 1]!.thang}` : "";
   const bang = rows as unknown as Record<string, string | null>[];
@@ -24,6 +24,42 @@ export default async function Page() {
         Mảng cho thuê thiết bị, có cước hàng tháng. Quảng cáo do Đình Việt và Việt Hoàng
         chạy. Phễu kéo dài tới lúc thu được tiền.
       </p>
+
+      <h2>Từng người chạy ads, cộng dồn {ky}</h2>
+      <div className="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th>Người chạy</th>
+              <th className="num">Chi phí</th>
+              <th className="num">Mess</th>
+              <th className="num">Giá mess</th>
+              <th className="num">Đơn khai</th>
+              <th className="num">Đơn cố định</th>
+              <th className="num">Lắp xong</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {nguoi.map((p) => (
+              <tr key={p.nguoi_key}>
+                <td>{p.nguoi}</td>
+                <td className="num mono">{n(p.chi_phi)}</td>
+                <td className="num mono">{n(p.mess)}</td>
+                <td className="num mono">{n(p.gia_mess)}</td>
+                <td className="num mono">{n(p.don_khai)}</td>
+                <td className="num mono">{n(p.don_co_dinh)}</td>
+                <td className="num mono">{n(p.lap_xong)}</td>
+                <td>
+                  <a href={`/wifi/${p.nguoi_key === "dinh_viet" ? "viet" : "hoang"}`}>
+                    xem riêng
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <h2>Phễu cộng dồn {ky}</h2>
       <Funnel

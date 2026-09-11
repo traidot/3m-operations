@@ -13,7 +13,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="wrap">
           <nav>
             <a href="/">Bản tin</a>
-            <a href="/wifi">Wifi</a>
+            <a href="/wifi">Wifi chung</a>
+            <a href="/wifi/viet">Đình Việt</a>
+            <a href="/wifi/hoang">Việt Hoàng</a>
             <a href="/esim">eSIM</a>
             <a href="/cuoc">Cước wifi cố định</a>
             <a href="/duyet-trung">Duyệt trùng khách</a>
