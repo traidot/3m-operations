@@ -296,3 +296,11 @@ tr.sub td:first-child { padding-left: 20px; }
 /* Ngăn kéo hẹp hơn trang, ngày tháng bị bẻ làm đôi trông như hai giá trị. */
 .ngan-keo td.mono { white-space: nowrap; }
 tr:has(.chip) > td { vertical-align: middle; }
+
+/* Dòng khách là tiêu đề của nhóm, phải nổi hơn các dòng dịch vụ bên dưới. */
+.bang-nhom tbody > tr:first-child > td {
+  font-size: 0.95rem; font-weight: 500; color: var(--ink);
+  padding-top: 12px; padding-bottom: 12px;
+}
+.bang-nhom tbody > tr:first-child > td.muted,
+.bang-nhom tbody > tr:first-child > td .muted { font-weight: 400; }
