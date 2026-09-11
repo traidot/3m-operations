@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getWifiFunnelByPerson } from "@/lib/queries";
 import { Bars } from "../bars";
 import { Funnel } from "../funnel";
@@ -35,7 +36,7 @@ export default async function Page({ params }: { params: Promise<{ nguoi: string
         Quảng cáo mảng wifi do {ai.ten} chạy, đọc từ sheet riêng của {ai.ten}. Phễu dừng
         ở lắp đặt: hợp đồng trong hệ thống và cước thu được không ghi ai là người kéo
         khách về, nên không chia được cho từng người. Hai bậc đó chỉ có ở{" "}
-        <a href="/wifi">trang chung</a>.
+        <Link href="/wifi">trang chung</Link>.
       </p>
 
       <h2>Phễu cộng dồn {ky}</h2>

@@ -932,3 +932,14 @@ export const getSubsForParties = async (ids: string[]) => {
   }
   return theo;
 };
+
+/** Dải 12 tháng của mảng cầm tay, chỉ lấy cho các thuê bao đang hiện. */
+export const getTelecomYearStatus = async (ids: string[]) => {
+  if (ids.length === 0) return new Map<string, YearStatus>();
+  const rows = await query<YearStatus>(
+    `select subscription_id, nam, tu_thang, den_thang, co_mo_dau, co_ket_thuc, cac_ky
+       from v_telecom_year_status where subscription_id = any($1)`,
+    [ids],
+  );
+  return new Map(rows.map((r) => [r.subscription_id, r]));
+};

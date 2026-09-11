@@ -1,4 +1,5 @@
 import { Bars } from "../wifi/bars";
+import Link from "next/link";
 import {
   getTelecomChannels,
   getTelecomMonths,
@@ -21,7 +22,7 @@ function The({ ten, gia_tri, den, xau }: { ten: string; gia_tri: string; den?: s
   return (
     <div className="the-so">
       <div className="the-ten">{ten}</div>
-      {den ? <a href={den}>{so_}</a> : so_}
+      {den ? <Link href={den}>{so_}</Link> : so_}
     </div>
   );
 }

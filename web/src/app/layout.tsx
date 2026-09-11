@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -48,17 +49,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="wrap">
           <nav>
-            <a className="nav-chinh" href="/">
+            <Link className="nav-chinh" href="/">
               Bản tin
-            </a>
+            </Link>
             {MENU.map((g) => (
               <div key={g.nhom} className="nav-nhom">
                 <span className="nav-ten-nhom">{g.nhom}</span>
                 <span className="nav-muc">
                   {g.muc.map((m) => (
-                    <a key={m.href} href={m.href}>
+                    <Link key={m.href} href={m.href}>
                       {m.ten}
-                    </a>
+                    </Link>
                   ))}
                 </span>
               </div>

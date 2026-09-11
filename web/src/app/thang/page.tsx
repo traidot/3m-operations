@@ -8,6 +8,7 @@ import {
   type RegisterReport,
 } from "@/lib/queries";
 import { Bars } from "../wifi/bars";
+import Link from "next/link";
 import { HOP_DONG, LY_DO_HUY } from "@/lib/nhan";
 import { Chip } from "../chip";
 
@@ -95,9 +96,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <button className="primary" type="submit">
             Xem
           </button>
-          <a href="/thang">
+          <Link href="/thang">
             <button type="button">Mặc định</button>
-          </a>
+          </Link>
         </div>
       </form>
 
@@ -160,7 +161,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               return (
                 <tr key={r.ky}>
                   <td className="mono">
-                    {donVi === "ngay" ? r.ky : <a href={loc({ thang_ky: r.ky })}>{r.ky}</a>}
+                    {donVi === "ngay" ? r.ky : <Link href={loc({ thang_ky: r.ky })}>{r.ky}</Link>}
                   </td>
                   <td className="num mono">{n(r.dang_ky_lan_dau)}</td>
                   <td className="num mono muted">{n(r.dang_ky_lai)}</td>
@@ -208,7 +209,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               return (
                 <tr key={r.nhom}>
                   <td>
-                    <a href={loc({ ly_do: r.nhom })}>{LY_DO_HUY[r.nhom] ?? r.nhom}</a>
+                    <Link href={loc({ ly_do: r.nhom })}>{LY_DO_HUY[r.nhom] ?? r.nhom}</Link>
                   </td>
                   <td className="num mono">{n(r.so_hop_dong)}</td>
                   <td className="num mono">{n(r.truoc_lich)}</td>
@@ -257,7 +258,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               {khoDoi.map((k) => (
                 <tr key={k.subscription_id}>
                   <td className="mono">
-                    <a href={`/hop-dong?xem=${k.subscription_id}`}>{k.contract_code ?? "—"}</a>
+                    <Link href={`/hop-dong?xem=${k.subscription_id}`}>{k.contract_code ?? "—"}</Link>
                   </td>
                   <td>
                     <Chip ma={k.trang_thai_hop_dong} nhan={HOP_DONG} />
@@ -380,20 +381,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <tr key={r.ky}>
                   <td className="mono">{r.ky}</td>
                   <td className="num mono">
-                    <a href={loc({ ky: r.ky })}>{n(r.so_ky)}</a>
+                    <Link href={loc({ ky: r.ky })}>{n(r.so_ky)}</Link>
                   </td>
                   <td className="num mono">
-                    <a href={loc({ ky: r.ky, ky_tt: "DA_THU" })}>{n(r.ky_da_thu)}</a>
+                    <Link href={loc({ ky: r.ky, ky_tt: "DA_THU" })}>{n(r.ky_da_thu)}</Link>
                   </td>
                   <td className="num mono muted">{n(r.ky_mien_phi)}</td>
                   <td className="num mono">{n(r.ky_cho_duyet)}</td>
                   <td className="num mono">{n(r.ky_ghi_chu)}</td>
                   <td className={`num mono${Number(r.ky_chua_thu ?? 0) > 0 ? " bad" : ""}`}>
-                    <a href={loc({ ky: r.ky, ky_tt: "NO" })}>{n(r.ky_chua_thu)}</a>
+                    <Link href={loc({ ky: r.ky, ky_tt: "NO" })}>{n(r.ky_chua_thu)}</Link>
                   </td>
                   <td className={`num mono${Number(r.hop_dong_kho_doi ?? 0) > 0 ? " bad" : ""}`}>
                     {Number(r.hop_dong_kho_doi ?? 0) > 0 ? (
-                      <a href={loc({ ky: r.ky, cb: "KHO_DOI" })}>{n(r.hop_dong_kho_doi)}</a>
+                      <Link href={loc({ ky: r.ky, cb: "KHO_DOI" })}>{n(r.hop_dong_kho_doi)}</Link>
                     ) : (
                       n(r.hop_dong_kho_doi)
                     )}

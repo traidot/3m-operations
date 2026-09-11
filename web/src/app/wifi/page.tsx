@@ -1,4 +1,5 @@
 import { getWifiFunnel, getWifiPersonTotals } from "@/lib/queries";
+import Link from "next/link";
 import { Bars } from "./bars";
 import { Funnel } from "./funnel";
 
@@ -51,9 +52,9 @@ export default async function Page() {
                 <td className="num mono">{n(p.don_co_dinh)}</td>
                 <td className="num mono">{n(p.lap_xong)}</td>
                 <td>
-                  <a href={`/wifi/${p.nguoi_key === "dinh_viet" ? "viet" : "hoang"}`}>
+                  <Link href={`/wifi/${p.nguoi_key === "dinh_viet" ? "viet" : "hoang"}`}>
                     xem riêng
-                  </a>
+                  </Link>
                 </td>
               </tr>
             ))}

@@ -116,3 +116,18 @@ export const HOA_DON: Record<string, string> = {
   UNPAYABLE: "không đòi được",
   VOID: "đã huỷ",
 };
+
+/** Trạng thái một tháng cước bên mảng cầm tay, đọc thẳng từ hoá đơn. */
+export const KY_TELECOM: Record<string, string> = {
+  DA_THU: "đã thu",
+  DANG_DOI: "đang đòi",
+  MAT: "mất trắng",
+  NA: "không có hoá đơn",
+};
+
+export const LOP_KY_TELECOM: Record<string, string> = {
+  DA_THU: "da-thu",
+  DANG_DOI: "cho-duyet",
+  MAT: "mat",
+  NA: "na",
+};

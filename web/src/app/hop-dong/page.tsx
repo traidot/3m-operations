@@ -136,9 +136,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <button className="primary" type="submit">
               Lọc
             </button>
-            <a href="/hop-dong">
+            <Link href="/hop-dong">
               <button type="button">Bỏ lọc</button>
-            </a>
+            </Link>
           </div>
         </div>
       </form>

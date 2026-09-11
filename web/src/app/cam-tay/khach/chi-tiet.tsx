@@ -1,4 +1,5 @@
 import { NganKeo } from "../../ngan-keo";
+import Link from "next/link";
 import { Chip } from "../../chip";
 import { getCustomerSubs, getTelecomCustomer } from "@/lib/queries";
 import {
@@ -101,7 +102,9 @@ export async function ChiTietKhach({
                     </td>
                     <td className="mono">{s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}</td>
                     <td>
-                      <a href={linkHoaDon(s.subscription_id)}>hoá đơn →</a>
+                      <Link href={linkHoaDon(s.subscription_id)} scroll={false}>
+                        hoá đơn →
+                      </Link>
                     </td>
                   </tr>
                 ))}

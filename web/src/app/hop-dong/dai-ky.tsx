@@ -1,7 +1,7 @@
 import { KY_CUOC } from "@/lib/nhan";
 import type { YearStatus } from "@/lib/queries";
 
-const LOP: Record<string, string> = {
+const LOP_CO_DINH: Record<string, string> = {
   DA_THU: "da-thu",
   MIEN_PHI: "mien-phi",
   CHO_DUYET: "cho-duyet",
@@ -17,7 +17,15 @@ const LOP: Record<string, string> = {
  * đồng; cạnh không bo là đoạn chạy tiếp sang năm khác. Tháng ngoài hợp đồng
  * mờ hẳn đi. Không cần vạch đánh dấu vì chính khối đã là mốc.
  */
-export function DaiKy({ nam }: { nam: YearStatus | undefined }) {
+export function DaiKy({
+  nam,
+  lop = LOP_CO_DINH,
+  nhan = KY_CUOC,
+}: {
+  nam: YearStatus | undefined;
+  lop?: Record<string, string>;
+  nhan?: Record<string, string>;
+}) {
   if (!nam) return null;
 
   return (
@@ -30,15 +38,19 @@ export function DaiKy({ nam }: { nam: YearStatus | undefined }) {
           thang >= nam.tu_thang &&
           thang <= nam.den_thang;
 
-        const lop = [
+        const lopO = [
           "o-ky",
-          trong ? (LOP[tt] ?? "na") : "ngoai",
+          trong ? (lop[tt] ?? "na") : "ngoai",
           trong && nam.co_mo_dau && thang === nam.tu_thang ? "mo-dau" : "",
           trong && nam.co_ket_thuc && thang === nam.den_thang ? "ket-thuc" : "",
         ].filter(Boolean);
 
         return (
-          <span key={thang} className={lop.join(" ")} title={nhac(nam, thang, tt, trong)}>
+          <span
+            key={thang}
+            className={lopO.join(" ")}
+            title={nhac(nam, thang, tt, trong, nhan)}
+          >
             T{String(thang).padStart(2, "0")}
           </span>
         );
@@ -47,12 +59,18 @@ export function DaiKy({ nam }: { nam: YearStatus | undefined }) {
   );
 }
 
-function nhac(nam: YearStatus, thang: number, tt: string, trong: boolean): string {
+function nhac(
+  nam: YearStatus,
+  thang: number,
+  tt: string,
+  trong: boolean,
+  nhan: Record<string, string>,
+): string {
   const ky = `${nam.nam}-${String(thang).padStart(2, "0")}`;
   if (!trong) {
     return tt === "NA"
       ? `${ky}: ngoài thời hạn hợp đồng`
-      : `${ky}: ${KY_CUOC[tt] ?? tt} — nhưng nằm ngoài thời hạn hợp đồng`;
+      : `${ky}: ${nhan[tt] ?? tt} — nhưng nằm ngoài thời hạn hợp đồng`;
   }
   const moc = [
     nam.co_mo_dau && thang === nam.tu_thang && "bắt đầu hợp đồng",
@@ -60,6 +78,6 @@ function nhac(nam: YearStatus, thang: number, tt: string, trong: boolean): strin
   ]
     .filter(Boolean)
     .join(", ");
-  const trangThai = tt === "NA" ? "chưa tới hạn" : (KY_CUOC[tt] ?? tt);
+  const trangThai = tt === "NA" ? "chưa tới hạn" : (nhan[tt] ?? tt);
   return `${ky}: ${trangThai}${moc ? ` — ${moc}` : ""}`;
 }

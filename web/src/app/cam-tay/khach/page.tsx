@@ -7,11 +7,21 @@ import {
   countTelecomCustomers,
   getSubsForParties,
   getTelecomCustomers,
+  getTelecomYearStatus,
   type CustomerFilter,
   type CustomerSub,
+  type YearStatus,
 } from "@/lib/queries";
-import { CANH_BAO_TELECOM, CANH_BAO_TELECOM_NANG, DICH_VU, HOP_DONG } from "@/lib/nhan";
+import {
+  CANH_BAO_TELECOM,
+  CANH_BAO_TELECOM_NANG,
+  DICH_VU,
+  HOP_DONG,
+  KY_TELECOM,
+  LOP_KY_TELECOM,
+} from "@/lib/nhan";
 import { Chip } from "../../chip";
+import { DaiKy } from "../../hop-dong/dai-ky";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +58,7 @@ function dichVu(
   kh: { party_id: string; so_thue_bao: string },
   tb: CustomerSub[],
   link: (doi: Record<string, string | undefined>) => string,
+  theoNam: Map<string, YearStatus>,
 ) {
   const hien = tb.slice(0, TOI_DA_DICH_VU);
   const con = tb.length - hien.length;
@@ -56,11 +67,16 @@ function dichVu(
     ...hien.map((s) => (
       <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
         <td>
-          <a href={link({ hd: s.subscription_id })}>
+          <Link href={link({ hd: s.subscription_id })} scroll={false}>
             {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
-          </a>
+          </Link>
           {s.goi && <span className="muted"> · {s.goi}</span>}
           {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
+          <DaiKy
+            nam={theoNam.get(s.subscription_id)}
+            lop={LOP_KY_TELECOM}
+            nhan={KY_TELECOM}
+          />
         </td>
         <td>
           <Chip ma={s.trang_thai} nhan={HOP_DONG} />
@@ -90,7 +106,9 @@ function dichVu(
       ? [
           <tr key={`${kh.party_id}-them`} className="sub">
             <td colSpan={9}>
-              <a href={link({ xem: kh.party_id })}>còn {con} dịch vụ nữa →</a>
+              <Link href={link({ xem: kh.party_id })} scroll={false}>
+                còn {con} dịch vụ nữa →
+              </Link>
             </td>
           </tr>,
         ]
@@ -114,6 +132,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     countTelecomCustomers(loc),
   ]);
   const dichVuTheoKhach = await getSubsForParties(rows.map((r) => r.party_id));
+  const namTheoThueBao = await getTelecomYearStatus(
+    [...dichVuTheoKhach.values()].flat().map((s) => s.subscription_id),
+  );
   const soTrang = Math.max(1, Math.ceil(tong / CONTRACTS_PER_PAGE));
   const trang = loc.trang!;
   const dangMo = mot(sp.xem);
@@ -176,9 +197,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <button className="primary" type="submit">
               Lọc
             </button>
-            <a href="/cam-tay/khach">
+            <Link href="/cam-tay/khach">
               <button type="button">Bỏ lọc</button>
-            </a>
+            </Link>
           </div>
         </div>
       </form>
@@ -250,7 +271,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {n(r.may_chua_tra)}
                   </td>
                 </Dong>,
-                ...dichVu(r, dichVuTheoKhach.get(r.party_id) ?? [], link),
+                ...dichVu(r, dichVuTheoKhach.get(r.party_id) ?? [], link, namTheoThueBao),
               ])}
             </tbody>
           </table>
