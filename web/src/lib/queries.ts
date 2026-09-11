@@ -298,3 +298,125 @@ export const getEsimFunnel = () =>
             don::text, don_huy::text, gia_mess::text, chi_phi_moi_don::text
        from v_funnel_esim where thang >= ${TU} order by thang`,
   );
+
+export type Contract = {
+  subscription_id: string;
+  contract_code: string | null;
+  dia_chi: string | null;
+  trang_thai_hop_dong: string;
+  trang_thai_lap_dat: string | null;
+  goi_cuoc: string | null;
+  cuoc_thang: string | null;
+  fee_start_on: string | null;
+  ngay_ky: string | null;
+  ngay_lap_xong: string | null;
+  so_ky: string;
+  so_ky_mien_phi: string;
+  so_ky_no: string;
+  tong_da_thu: string;
+  con_no: string;
+  ky_da_thu_gan_nhat: string | null;
+  ky_cho_duyet: string;
+  ky_ghi_chu: string;
+  tinh_trang_cuoc: string;
+};
+
+export type ContractFilter = {
+  q?: string;
+  hopDong?: string;
+  lapDat?: string;
+  cuoc?: string;
+  trang?: number;
+};
+
+export const CONTRACTS_PER_PAGE = 50;
+
+/** Dựng mệnh đề where dùng chung cho cả trang danh sách và phần đếm tổng. */
+function contractWhere(f: ContractFilter): { sql: string; params: unknown[] } {
+  const dieu: string[] = [];
+  const params: unknown[] = [];
+
+  if (f.q?.trim()) {
+    params.push(`%${f.q.trim()}%`);
+    dieu.push(`(contract_code ilike $${params.length} or dia_chi ilike $${params.length})`);
+  }
+  if (f.hopDong) {
+    params.push(f.hopDong);
+    dieu.push(`trang_thai_hop_dong = $${params.length}`);
+  }
+  if (f.lapDat) {
+    params.push(f.lapDat);
+    dieu.push(`trang_thai_lap_dat = $${params.length}`);
+  }
+  if (f.cuoc) {
+    params.push(f.cuoc);
+    dieu.push(`tinh_trang_cuoc = $${params.length}`);
+  }
+
+  return { sql: dieu.length > 0 ? `where ${dieu.join(" and ")}` : "", params };
+}
+
+export const getContracts = (f: ContractFilter) => {
+  const { sql, params } = contractWhere(f);
+  const offset = Math.max(0, ((f.trang ?? 1) - 1) * CONTRACTS_PER_PAGE);
+  return query<Contract>(
+    `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
+            trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
+            fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
+            so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
+            tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
+            ky_cho_duyet::text, ky_ghi_chu::text, tinh_trang_cuoc
+       from v_fixed_contract ${sql}
+      order by so_ky_no desc, contract_code
+      limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
+    params,
+  );
+};
+
+export const countContracts = async (f: ContractFilter) => {
+  const { sql, params } = contractWhere(f);
+  const [row] = await query<{ n: string }>(
+    `select count(*)::text as n from v_fixed_contract ${sql}`,
+    params,
+  );
+  return Number(row?.n ?? 0);
+};
+
+export const getContract = async (id: string) => {
+  const [row] = await query<Contract>(
+    `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
+            trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
+            fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
+            so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
+            tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
+            ky_cho_duyet::text, ky_ghi_chu::text, tinh_trang_cuoc
+       from v_fixed_contract where subscription_id = $1`,
+    [id],
+  );
+  return row ?? null;
+};
+
+export type ContractPeriod = {
+  ky: string;
+  phai_thu: string | null;
+  trang_thai: string;
+  ngoai_ky_tinh: boolean;
+  tien: string | null;
+  thu_luc: string | null;
+  kenh: string | null;
+  nguoi_nhap: string | null;
+};
+
+export const getContractPeriods = (id: string) =>
+  query<ContractPeriod>(
+    `select ky, phai_thu::text, trang_thai, ngoai_ky_tinh, tien::text,
+            thu_luc::text, kenh, nguoi_nhap
+       from v_fixed_contract_period where subscription_id = $1 order by ky`,
+    [id],
+  );
+
+/** Đường dẫn sang màn hình hợp đồng bên CMS wifi cố định. */
+export const getContractUrl = async (id: string) => {
+  const [row] = await query<{ url: string | null }>("select contract_url($1) as url", [id]);
+  return row?.url ?? null;
+};

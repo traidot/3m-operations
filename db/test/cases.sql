@@ -344,3 +344,40 @@ begin
 end $$;
 
 \echo 'TẤT CẢ TEST ĐỀU QUA'
+
+-- ── Tra cứu một hợp đồng và cước từng kỳ ──────────────────────────────
+-- C1 dựng ở khối nợ cước phía trên: thu 1 kỳ, miễn 1 kỳ, còn lại là nợ.
+do $$
+declare v_tt text; v_n int;
+begin
+  -- Dòng cho kỳ nằm ngoài khoảng sinh được, phải hiện chứ không rơi mất.
+  insert into fee_period_snapshot (source, source_id, subscription_source_id,
+    period, amount, is_free, status)
+  values ('FIXED','F9','C1', to_char(current_date + interval '18 months','YYYY-MM'),
+          2000, false, 'APPROVED');
+
+  -- Hợp đồng thiếu giá cước: không sinh được kỳ nào nhưng vẫn phải liệt kê.
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, fee_start_on, created_at_src)
+  values ('FIXED', 'C2', 'HD_TRONG', 'FIXED_INTERNET', 'ACTIVE', null,
+          current_date - interval '3 months', now());
+
+  select tinh_trang_cuoc into v_tt from v_fixed_contract where subscription_id = 'C1';
+  assert v_tt = 'NO', 'C1 còn nợ nên phải là NO — đang là ' || coalesce(v_tt,'null');
+
+  select tinh_trang_cuoc into v_tt from v_fixed_contract where subscription_id = 'C2';
+  assert v_tt = 'CHUA_TINH_DUOC',
+    'hợp đồng thiếu giá cước phải là CHUA_TINH_DUOC — đang là ' || coalesce(v_tt,'null');
+
+  select trang_thai into v_tt from v_fixed_contract_period
+   where subscription_id = 'C1' and ky = to_char(current_date - interval '5 months','YYYY-MM');
+  assert v_tt = 'MIEN_PHI', 'kỳ được miễn phải là MIEN_PHI — đang là ' || coalesce(v_tt,'null');
+
+  select trang_thai into v_tt from v_fixed_contract_period
+   where subscription_id = 'C1' and ky = to_char(current_date - interval '4 months','YYYY-MM');
+  assert v_tt = 'NO', 'kỳ không có dòng nào phải là NO — đang là ' || coalesce(v_tt,'null');
+
+  select count(*) into v_n from v_fixed_contract_period
+   where subscription_id = 'C1' and ngoai_ky_tinh;
+  assert v_n = 1, 'kỳ ngoài khoảng tính được phải hiện đúng một dòng — đang có ' || v_n;
+end $$;

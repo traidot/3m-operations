@@ -6,23 +6,12 @@ import {
   getPendingPeriods,
   type MonthlyByStatus,
 } from "@/lib/queries";
+import { HOP_DONG, LAP_DAT } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
-/** Trạng thái bên hệ thống nguồn viết bằng mã, dịch ra cho dễ đọc. */
-const HOP_DONG: Record<string, string> = {
-  ACTIVE: "đang chạy",
-  TERMINATED: "đã huỷ",
-  SUSPENDED: "tạm ngưng",
-  PENDING: "chưa rõ",
-};
-const LAP_DAT: Record<string, string> = {
-  DONE: "lắp xong",
-  SURVEY: "chưa lắp",
-  CANCELLED: "huỷ lắp",
-};
 
 export default async function Page() {
   const [total, byStatus, [coverage], arrears, pending] = await Promise.all([
