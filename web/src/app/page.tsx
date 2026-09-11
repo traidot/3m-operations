@@ -1,5 +1,6 @@
 import { setFindingStatus, unignoreFinding } from "@/lib/actions";
 import { getFindings, getFreshness, getIgnored, type Finding } from "@/lib/queries";
+import { Evidence } from "./evidence";
 
 export const dynamic = "force-dynamic";
 
@@ -102,7 +103,7 @@ function FindingCard({ finding }: { finding: Finding }) {
         <span className={`tag ${level}`}>{finding.severity}</span>
       </div>
 
-      <p className="mono">{JSON.stringify(finding.evidence)}</p>
+      <Evidence data={finding.evidence} />
 
       {finding.action && <p>{finding.action}</p>}
 

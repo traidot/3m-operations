@@ -119,3 +119,9 @@ summary:hover { color: var(--ok); }
 .pheu-so { fill: var(--paper); font-size: 14px; font-weight: 500; font-family: var(--mono); }
 .pheu-ty-le { fill: var(--muted); font-size: 12px; font-family: var(--mono); }
 .pheu-ty-le.phinh { fill: var(--bad); }
+
+.chung-cu { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 10px 0; }
+.chung-cu > div { display: flex; gap: 6px; align-items: baseline; }
+.chung-cu dt { color: var(--muted); font-size: 0.8rem; margin: 0; }
+.chung-cu dd { margin: 0; font-family: var(--mono); font-size: 0.84rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.card { overflow-wrap: anywhere; }
