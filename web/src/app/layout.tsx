@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Nav, type NhomMenu } from "./nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 /** Menu gom theo mảng kinh doanh, không phải theo thứ tự dựng trang. */
-const MENU: { nhom: string; muc: { ten: string; href: string }[] }[] = [
+const MENU: NhomMenu[] = [
   {
     nhom: "Wifi cầm tay",
     muc: [
@@ -49,23 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="vi">
       <body>
         <div className="wrap">
-          <nav>
-            <Link className="nav-chinh" href="/">
-              Bản tin
-            </Link>
-            {MENU.map((g) => (
-              <div key={g.nhom} className="nav-nhom">
-                <span className="nav-ten-nhom">{g.nhom}</span>
-                <span className="nav-muc">
-                  {g.muc.map((m) => (
-                    <Link key={m.href} href={m.href}>
-                      {m.ten}
-                    </Link>
-                  ))}
-                </span>
-              </div>
-            ))}
-          </nav>
+          <Nav menu={MENU} />
           {children}
         </div>
       </body>

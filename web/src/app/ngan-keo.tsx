@@ -27,6 +27,27 @@ export function NganKeo({
     setTimeout(() => router.push(dongLai, { scroll: false }), THOI_GIAN_DONG);
   };
 
+  // Khoá cuộn trang nền khi ngăn kéo đang mở: không khoá thì lăn chuột trong
+  // ngăn kéo sẽ đẩy danh sách phía sau chạy theo. Bù đúng bề rộng thanh cuộn
+  // để trang không giật ngang lúc khoá.
+  useEffect(() => {
+    // Thẻ cuộn của trang là html chứ không phải body, đặt overflow lên body
+    // không ăn thua.
+    const goc = document.documentElement;
+    const { body } = document;
+    const cuonCu = goc.style.overflow;
+    const demCu = body.style.paddingRight;
+    const beRong = window.innerWidth - goc.clientWidth;
+
+    goc.style.overflow = "hidden";
+    if (beRong > 0) body.style.paddingRight = `${beRong}px`;
+
+    return () => {
+      goc.style.overflow = cuonCu;
+      body.style.paddingRight = demCu;
+    };
+  }, []);
+
   // Nếu vì lý do gì đó chuyển trang không xong, vẫn phải gỡ ngăn kéo ra khỏi
   // đường đi của chuột thay vì để nó đè cả trang mãi.
   useEffect(() => {
