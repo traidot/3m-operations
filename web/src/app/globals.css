@@ -304,3 +304,6 @@ tr:has(.chip) > td { vertical-align: middle; }
 }
 .bang-nhom tbody > tr:first-child > td.muted,
 .bang-nhom tbody > tr:first-child > td .muted { font-weight: 400; }
+/* Thẻ số bấm được thì phải cho thấy nó bấm được. */
+a.the-so { display: block; text-decoration: none; transition: border-color 0.12s; }
+a.the-so:hover { border-color: var(--ok); }

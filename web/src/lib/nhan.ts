@@ -143,8 +143,24 @@ export const MAY: Record<string, string> = {
   RETURNED: "đã trả",
 };
 
+/**
+ * Trạng thái tiền cọc bên nguồn. "PENDING" nghĩa là 3M đang giữ tiền cọc, chưa
+ * hoàn cho khách cũng chưa quyết định giữ luôn — với máy đang thuê thì đó là
+ * bình thường, chỉ thành việc khi thuê bao đã ngừng.
+ */
 export const COC: Record<string, string> = {
-  PENDING: "chưa xử lý",
+  PENDING: "còn giữ",
   RETURNED: "đã hoàn",
   NOT_RETURNABLE: "không hoàn",
 };
+
+export const NHOM_COC: Record<string, string> = {
+  CHUA_TRA: "máy chưa trả",
+  NGUNG_CHUA_CHOT: "ngừng dịch vụ mà chưa chốt cọc",
+  KHONG_CO_PHIEU: "không có phiếu thuê",
+  DANG_THUE: "đang thuê bình thường",
+  XONG: "đã xử lý xong",
+};
+
+/** Ba nhóm đầu là việc phải làm, hai nhóm sau chỉ để đối chiếu. */
+export const NHOM_COC_VIEC = ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"];

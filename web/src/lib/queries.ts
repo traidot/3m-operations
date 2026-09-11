@@ -980,3 +980,59 @@ export const getDevicesForSubs = async (ids: string[]) => {
   );
   return new Map(rows.map((r) => [r.subscription_id, r]));
 };
+
+export type DepositRow = {
+  imei: string;
+  subscription_id: string;
+  party_id: string | null;
+  khach: string;
+  loai_khach: string | null;
+  service_type: string | null;
+  trang_thai_thue_bao: string | null;
+  ngay_ngung: string | null;
+  trang_thai_may: string | null;
+  coc: string | null;
+  trang_thai_coc: string | null;
+  ngay_thue: string | null;
+  gan_tu: string | null;
+  nhom: string;
+  so_ngay_treo: string | null;
+};
+
+export type DepositSummary = {
+  nhom: string;
+  so_may: string;
+  tien: string;
+  treo_lau_nhat: string | null;
+};
+
+export const getDepositSummary = () =>
+  query<DepositSummary>(
+    `select nhom, so_may::text, tien::text, treo_lau_nhat::text
+       from v_telecom_deposit_summary order by tien desc`,
+  );
+
+export const getDeposits = (nhom: string, trang: number) => {
+  const params: unknown[] = [];
+  let dieu = "where nhom = any($1)";
+  params.push(nhom ? [nhom] : ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"]);
+  const offset = Math.max(0, (trang - 1) * CONTRACTS_PER_PAGE);
+  return query<DepositRow>(
+    `select imei, subscription_id, party_id::text, khach, loai_khach, service_type,
+            trang_thai_thue_bao, ngay_ngung::text, trang_thai_may, coc::text,
+            trang_thai_coc, ngay_thue::text, gan_tu::text, nhom, so_ngay_treo::text
+       from v_telecom_deposit ${dieu}
+      order by coc desc nulls last, so_ngay_treo desc nulls last, imei
+      limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
+    params,
+  );
+};
+
+export const countDeposits = async (nhom: string) => {
+  const [row] = await query<{ n: string; tien: string }>(
+    `select count(*)::text as n, round(coalesce(sum(coc), 0))::text as tien
+       from v_telecom_deposit where nhom = any($1)`,
+    [nhom ? [nhom] : ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"]],
+  );
+  return { so: Number(row?.n ?? 0), tien: row?.tien ?? "0" };
+};
