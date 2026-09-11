@@ -19,12 +19,21 @@ export function NganKeo({
 }) {
   const router = useRouter();
   const [dangDong, setDangDong] = useState(false);
+  const [anHan, setAnHan] = useState(false);
 
   const dong = () => {
     if (dangDong) return;
     setDangDong(true);
     setTimeout(() => router.push(dongLai, { scroll: false }), THOI_GIAN_DONG);
   };
+
+  // Nếu vì lý do gì đó chuyển trang không xong, vẫn phải gỡ ngăn kéo ra khỏi
+  // đường đi của chuột thay vì để nó đè cả trang mãi.
+  useEffect(() => {
+    if (!dangDong) return;
+    const h = setTimeout(() => setAnHan(true), 4000);
+    return () => clearTimeout(h);
+  }, [dangDong]);
 
   useEffect(() => {
     const nghe = (e: KeyboardEvent) => {
@@ -35,6 +44,7 @@ export function NganKeo({
   });
 
   const lop = dangDong ? " dang-dong" : "";
+  if (anHan) return null;
 
   return (
     <>

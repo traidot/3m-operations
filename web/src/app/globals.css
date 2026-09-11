@@ -176,7 +176,12 @@ summary:hover { color: var(--ok); }
   padding: 24px 28px 48px; box-shadow: -12px 0 32px rgba(19, 28, 24, 0.18);
   animation: truot-vao 0.22s cubic-bezier(0.22, 0.8, 0.3, 1);
 }
-/* Lúc đóng chạy ngược lại rồi mới đổi URL — xem NganKeo. */
+/* Lúc đóng chạy ngược lại rồi mới đổi URL — xem NganKeo.
+   pointer-events: none ngay từ đầu nhịp đóng: màn mờ lúc đó đã trong suốt
+   nhưng vẫn nằm đè cả trang, mà đổi URL xong server còn phải dựng lại danh
+   sách — bấm gì trong khoảng đó cũng trượt vào nó, tưởng như trang bị đơ. */
+.man-che.dang-dong,
+.ngan-keo.dang-dong { pointer-events: none; }
 .man-che.dang-dong { animation: hien 0.18s ease-in reverse forwards; }
 .ngan-keo.dang-dong { animation: truot-vao 0.18s ease-in reverse forwards; }
 
