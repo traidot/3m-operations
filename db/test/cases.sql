@@ -409,7 +409,7 @@ end $$;
 
 -- ── Mốc bắt đầu, kết thúc và kỳ thu thiếu tiền ────────────────────────
 do $$
-declare v_bd int; v_kt int; v_cb text[];
+declare v_bd int; v_kt int; v_cb text[]; v_mo boolean; v_dong boolean;
 begin
   -- C4 bắt đầu tháng 3 năm nay, kết thúc tháng 9, thu kỳ đầu thiếu 500.
   insert into subscription_snapshot (source, source_id, source_customer_id,
@@ -423,10 +423,28 @@ begin
   values ('FIXED','F4','C4', to_char(make_date(extract(year from current_date)::int,3,1),'YYYY-MM'),
           1500, false, 'APPROVED');
 
-  select thang_bat_dau, thang_ket_thuc into v_bd, v_kt
+  select tu_thang, den_thang into v_bd, v_kt
     from v_fixed_year_status where subscription_id = 'C4';
-  assert v_bd = 3, 'mốc bắt đầu phải là tháng 3 — đang là ' || coalesce(v_bd::text,'null');
-  assert v_kt = 9, 'mốc kết thúc phải là tháng 9 — đang là ' || coalesce(v_kt::text,'null');
+  assert v_bd = 3, 'đoạn hợp đồng phải mở từ tháng 3 — đang là ' || coalesce(v_bd::text,'null');
+  assert v_kt = 9, 'đoạn hợp đồng phải đóng ở tháng 9 — đang là ' || coalesce(v_kt::text,'null');
+
+  select co_mo_dau, co_ket_thuc into v_mo, v_dong
+    from v_fixed_year_status where subscription_id = 'C4';
+  assert v_mo and v_dong, 'C4 mở và đóng ngay trong năm nay nên phải bo tròn cả hai đầu';
+
+  -- C5 bắt đầu từ năm ngoái và chưa kết thúc: phủ cả năm, không bo đầu cũng
+  -- không bo đuôi, vì cả hai mốc đều nằm ngoài năm nay.
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, fee_start_on, created_at_src)
+  values ('FIXED', 'C5', 'HD_NAM_TRUOC', 'FIXED_INTERNET', 'ACTIVE', 2000,
+          make_date(extract(year from current_date)::int - 1, 5, 1), now());
+
+  select tu_thang, den_thang, co_mo_dau, co_ket_thuc into v_bd, v_kt, v_mo, v_dong
+    from v_fixed_year_status where subscription_id = 'C5';
+  assert v_bd = 1 and v_kt = 12,
+    'hợp đồng từ năm ngoái, chưa kết thúc thì phủ cả năm — đang là ' || v_bd || '..' || v_kt;
+  assert not v_mo and not v_dong,
+    'cả hai mốc nằm ngoài năm nay nên không được bo tròn đầu nào';
 
   select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C4';
   assert 'THU_THIEU' = any(v_cb),

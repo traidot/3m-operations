@@ -191,13 +191,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       )}
 
       <p className="muted chu-giai">
-        Dải {nam}: mỗi ô một tháng, tháng 1 bên trái. Vạch đứng là tháng hợp đồng bắt
-        đầu hoặc kết thúc.
+        Dải {nam}: mỗi ô một tháng, tháng 1 bên trái. Khối đậm là thời hạn hợp đồng —
+        cạnh bo tròn là đầu hoặc đuôi thật, cạnh vuông là còn chạy sang năm khác.
         <span className="chu-thich"><i className="o-ky mau da-thu" /> đã thu</span>
         <span className="chu-thich"><i className="o-ky mau mien-phi" /> miễn phí</span>
         <span className="chu-thich"><i className="o-ky mau cho-duyet" /> chờ duyệt hoặc ghi chú</span>
         <span className="chu-thich"><i className="o-ky mau no" /> chưa thu</span>
-        <span className="chu-thich"><i className="o-ky mau na" /> ngoài khoảng đóng cước</span>
+        <span className="chu-thich"><i className="o-ky mau na" /> chưa tới hạn</span>
+        <span className="chu-thich"><i className="o-ky mau ngoai" /> ngoài thời hạn</span>
       </p>
 
       {soTrang > 1 && (

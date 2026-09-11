@@ -140,7 +140,8 @@ summary:hover { color: var(--ok); }
 tr.dang-mo { background: var(--surface-2); }
 
 /* Dải 12 kỳ cước của năm hiện tại trên mỗi dòng hợp đồng. */
-.dai-ky { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 6px; }
+/* width: max-content để dải không xuống dòng khi cột địa chỉ bị bóp. */
+.dai-ky { display: flex; gap: 2px; margin-top: 6px; width: max-content; }
 .o-ky {
   display: inline-block; min-width: 30px; padding: 2px 4px;
   font-family: var(--mono); font-size: 0.64rem; text-align: center;
@@ -152,7 +153,14 @@ tr.dang-mo { background: var(--surface-2); }
 .o-ky.mien-phi { background: var(--line-strong); color: var(--ink); }
 .o-ky.cho-duyet, .o-ky.ghi-chu { background: var(--warn); color: var(--paper); }
 .o-ky.no { background: var(--bad); color: var(--paper); }
-.o-ky.na { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+/* Trong hợp đồng nhưng chưa tới hạn đóng: viền đứt, chưa có gì để nói. */
+.o-ky.na { background: transparent; box-shadow: inset 0 0 0 1px var(--line); opacity: 0.75; }
+/* Ngoài thời hạn hợp đồng: mờ hẳn, không viền, để khối hợp đồng tự nổi lên. */
+.o-ky.ngoai { background: transparent; color: var(--line-strong); opacity: 0.5; }
+/* Đầu và đuôi thật của hợp đồng được bo tròn; cạnh vuông là còn chạy tiếp. */
+.o-ky.mo-dau { border-radius: 7px 0 0 7px; }
+.o-ky.ket-thuc { border-radius: 0 7px 7px 0; }
+.o-ky.mo-dau.ket-thuc { border-radius: 7px; }
 .chu-giai { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 12px; }
 td .tag + .tag { margin-left: 4px; }
 
@@ -160,8 +168,5 @@ td .tag + .tag { margin-left: 4px; }
 .bang-chon tbody tr { cursor: pointer; }
 .bang-chon tbody tr:hover { background: var(--surface); }
 .bang-chon tbody tr.dang-mo { background: var(--surface-2); }
-.o-ky.bat-dau { box-shadow: inset 2px 0 0 var(--ink); }
-.o-ky.ket-thuc { box-shadow: inset -2px 0 0 var(--ink); }
-.o-ky.bat-dau.ket-thuc { box-shadow: inset 2px 0 0 var(--ink), inset -2px 0 0 var(--ink); }
-.o-ky.na.bat-dau { box-shadow: inset 0 0 0 1px var(--line), inset 2px 0 0 var(--ink); }
-.o-ky.na.ket-thuc { box-shadow: inset 0 0 0 1px var(--line), inset -2px 0 0 var(--ink); }
+/* Ô ngoài hợp đồng trong suốt nên trong chú giải phải cho nó cái nền mờ. */
+.o-ky.mau.ngoai { background: var(--surface-2); }

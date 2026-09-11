@@ -436,8 +436,10 @@ export const getContractUrl = async (id: string) => {
 export type YearStatus = {
   subscription_id: string;
   nam: number;
-  thang_bat_dau: number | null;
-  thang_ket_thuc: number | null;
+  tu_thang: number | null;
+  den_thang: number | null;
+  co_mo_dau: boolean;
+  co_ket_thuc: boolean;
   cac_ky: string[];
 };
 
@@ -445,7 +447,7 @@ export type YearStatus = {
 export const getYearStatus = async (ids: string[]) => {
   if (ids.length === 0) return new Map<string, YearStatus>();
   const rows = await query<YearStatus>(
-    `select subscription_id, nam, thang_bat_dau, thang_ket_thuc, cac_ky
+    `select subscription_id, nam, tu_thang, den_thang, co_mo_dau, co_ket_thuc, cac_ky
        from v_fixed_year_status where subscription_id = any($1)`,
     [ids],
   );
