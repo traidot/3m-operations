@@ -289,3 +289,10 @@ tr.sub td:first-child { padding-left: 20px; }
 .khong-xuong-dong { white-space: nowrap; }
 /* Mã máy và chip trạng thái dính nhau thì đọc ra một cục. */
 .may-dong { display: inline-flex; align-items: baseline; gap: 8px; margin-left: 10px; }
+
+/* Ô có chip thì chữ ở ô bên cạnh phải dóng vào giữa chip, không thì chip trông
+   như tụt xuống một nửa dòng. Mặc định của bảng là dóng theo mép trên. */
+.ngan-keo td, .ngan-keo th { vertical-align: middle; }
+/* Ngăn kéo hẹp hơn trang, ngày tháng bị bẻ làm đôi trông như hai giá trị. */
+.ngan-keo td.mono { white-space: nowrap; }
+tr:has(.chip) > td { vertical-align: middle; }
