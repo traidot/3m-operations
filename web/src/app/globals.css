@@ -272,7 +272,8 @@ th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .bang-nhom tbody tr.sub { cursor: default; }
 /* Dòng khách mở đầu nhóm, kẻ đậm hơn để mắt bắt được ranh giới. */
 .bang-nhom tbody > tr:first-child > td { border-top: 1px solid var(--line-strong); }
-.bang-nhom tbody tr.sub td { border-bottom: 0; }
+/* Giữa các dịch vụ có đường ngăn, nhưng mờ hơn đường giữa các khách. */
+.bang-nhom tbody tr.sub td { border-bottom-color: color-mix(in srgb, var(--line) 45%, transparent); }
 .bang-nhom tbody > tr.sub:last-child > td { padding-bottom: 10px; }
 tr.sub td:first-child { padding-left: 20px; }
 /* Tháng bị đánh dấu không đòi được: đỏ đặc, khác với đỏ "chưa thu". */

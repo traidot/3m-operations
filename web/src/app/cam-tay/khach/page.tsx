@@ -63,9 +63,6 @@ function Chon({
 /** "NHÓM KHÁCH HÀNG LẺ" viết hoa hết thì chiếm gấp đôi chỗ mà chẳng rõ hơn. */
 const tenNhom = (s: string) => s.replace(/^NHÓM\s+/i, "").toLowerCase();
 
-/** Đại lý có tới 802 thuê bao, bày hết thì một khách chiếm cả trang. */
-const TOI_DA_DICH_VU = 6;
-
 /** Các dịch vụ của một khách, hiện thành dòng phụ ngay dưới dòng khách. */
 function dichVu(
   kh: { party_id: string; so_thue_bao: string },
@@ -73,64 +70,48 @@ function dichVu(
   link: (doi: Record<string, string | undefined>) => string,
   theoNam: Map<string, YearStatus>,
 ) {
-  const hien = tb.slice(0, TOI_DA_DICH_VU);
-  const con = tb.length - hien.length;
-
-  return [
-    ...hien.map((s) => (
-      <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
-        <td>
-          <Link href={link({ hd: s.subscription_id })} scroll={false}>
-            {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
-          </Link>
-          {s.goi && <span className="muted"> · {s.goi}</span>}
-          {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
-          <DaiKy
-            nam={theoNam.get(s.subscription_id)}
-            lop={LOP_KY_TELECOM}
-            nhan={KY_TELECOM}
-          />
-        </td>
-        <td>
-          <Chip ma={s.trang_thai} nhan={HOP_DONG} />
-        </td>
-        <td>
-          {s.canh_bao.map((cb) => (
-            <span
-              key={cb}
-              className={`tag ${CANH_BAO_TELECOM_NANG.has(cb) ? "critical" : "warn"}`}
-            >
-              {CANH_BAO_TELECOM[cb] ?? cb}
-            </span>
-          ))}
-        </td>
-        {/* Hai cột đếm thuê bao không có nghĩa ở dòng dịch vụ; để trống cho
+  return tb.map((s) => (
+    <tr key={`${kh.party_id}-${s.subscription_id}`} className="sub">
+      <td>
+        <Link href={link({ hd: s.subscription_id })} scroll={false}>
+          {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
+        </Link>
+        {s.goi && <span className="muted"> · {s.goi}</span>}
+        {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
+        <DaiKy
+          nam={theoNam.get(s.subscription_id)}
+          lop={LOP_KY_TELECOM}
+          nhan={KY_TELECOM}
+        />
+      </td>
+      <td>
+        <Chip ma={s.trang_thai} nhan={HOP_DONG} />
+      </td>
+      <td>
+        {s.canh_bao.map((cb) => (
+          <span
+            key={cb}
+            className={`tag ${CANH_BAO_TELECOM_NANG.has(cb) ? "critical" : "warn"}`}
+          >
+            {CANH_BAO_TELECOM[cb] ?? cb}
+          </span>
+        ))}
+      </td>
+      {/* Hai cột đếm thuê bao không có nghĩa ở dòng dịch vụ; để trống cho
             ba cột tiền bên phải vẫn dóng thẳng với dòng khách bên trên. */}
-        <td colSpan={2} className="num mono muted">
-          {n(s.gia_thang)}/tháng · kỳ {s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}
-        </td>
-        <td className="num mono muted">{n(s.da_thu)}</td>
-        <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>
-          {n(s.con_no)}
-        </td>
-        <td className={`num mono${Number(s.tien_mat) > 0 ? " bad" : ""}`}>
-          {n(s.tien_mat)}
-        </td>
-        <td />
-      </tr>
-    )),
-    ...(con > 0
-      ? [
-          <tr key={`${kh.party_id}-them`} className="sub">
-            <td colSpan={9}>
-              <Link href={link({ xem: kh.party_id })} scroll={false}>
-                còn {con} dịch vụ nữa →
-              </Link>
-            </td>
-          </tr>,
-        ]
-      : []),
-  ];
+      <td colSpan={2} className="num mono muted">
+        {n(s.gia_thang)}/tháng · kỳ {s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}
+      </td>
+      <td className="num mono muted">{n(s.da_thu)}</td>
+      <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>
+        {n(s.con_no)}
+      </td>
+      <td className={`num mono${Number(s.tien_mat) > 0 ? " bad" : ""}`}>
+        {n(s.tien_mat)}
+      </td>
+      <td />
+    </tr>
+  ));
 }
 
 export default async function Page({
@@ -254,7 +235,9 @@ export default async function Page({
                 <th className="num">Đã thu</th>
                 <th className="num">Còn nợ</th>
                 <th className="num">Mất trắng</th>
-                <th className="num">Máy chưa trả</th>
+                <th className="num" title="Thiết bị cho thuê bên nguồn đánh dấu NOT_RETURNED: hết hạn thuê mà chưa nhận lại máy, cọc vẫn treo">
+                  Máy chưa trả
+                </th>
               </tr>
             </thead>
             {rows.map((r) => (
