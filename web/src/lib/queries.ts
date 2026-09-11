@@ -511,6 +511,7 @@ export type MonthStat = {
   ky_cho_duyet: string | null;
   ky_ghi_chu: string | null;
   ky_chua_thu: string | null;
+  hop_dong_kho_doi: string | null;
   tien_phai_thu: string | null;
   tien_da_thu: string | null;
   tien_chua_thu: string | null;
@@ -522,7 +523,8 @@ export const getMonthStats = () =>
   query<MonthStat>(
     `select ky, ky_moi::text, lap_xong::text, huy::text, luy_ke_chua_huy::text,
             so_ky::text, ky_da_thu::text, ky_mien_phi::text, ky_cho_duyet::text,
-            ky_ghi_chu::text, ky_chua_thu::text, tien_phai_thu::text,
+            ky_ghi_chu::text, ky_chua_thu::text, hop_dong_kho_doi::text,
+            tien_phai_thu::text,
             tien_da_thu::text, tien_chua_thu::text, ty_le_ky_xong::text
        from v_fixed_month where ky >= ${TU} order by ky`,
   );

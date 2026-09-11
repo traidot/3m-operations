@@ -367,6 +367,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num">Chờ duyệt</th>
               <th className="num">Ghi chú</th>
               <th className="num">Chưa thu</th>
+              <th className="num">Khó đòi</th>
               <th className="num">Tiền đã thu</th>
               <th className="num">Tiền thiếu</th>
               <th>Kỳ xong</th>
@@ -389,6 +390,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className="num mono">{n(r.ky_ghi_chu)}</td>
                   <td className={`num mono${Number(r.ky_chua_thu ?? 0) > 0 ? " bad" : ""}`}>
                     <a href={loc({ ky: r.ky, ky_tt: "NO" })}>{n(r.ky_chua_thu)}</a>
+                  </td>
+                  <td className={`num mono${Number(r.hop_dong_kho_doi ?? 0) > 0 ? " bad" : ""}`}>
+                    {Number(r.hop_dong_kho_doi ?? 0) > 0 ? (
+                      <a href={loc({ ky: r.ky, cb: "KHO_DOI" })}>{n(r.hop_dong_kho_doi)}</a>
+                    ) : (
+                      n(r.hop_dong_kho_doi)
+                    )}
                   </td>
                   <td className="num mono">{n(r.tien_da_thu)}</td>
                   <td className={`num mono${Number(r.tien_chua_thu ?? 0) > 0 ? " bad" : ""}`}>
