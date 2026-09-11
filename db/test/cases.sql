@@ -381,3 +381,28 @@ begin
    where subscription_id = 'C1' and ngoai_ky_tinh;
   assert v_n = 1, 'kỳ ngoài khoảng tính được phải hiện đúng một dòng — đang có ' || v_n;
 end $$;
+
+-- ── Cảnh báo trên từng hợp đồng ───────────────────────────────────────
+-- C1 nợ 4 kỳ, C2 đang chạy mà thiếu giá cước — hai khối phía trên dựng.
+do $$
+declare v_cb text[];
+begin
+  select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C1';
+  assert 'NO_NANG' = any(v_cb), 'C1 nợ quá ngưỡng phải có NO_NANG — đang là ' || v_cb::text;
+  assert 'NGOAI_KY' = any(v_cb), 'C1 có kỳ ngoài khoảng phải có NGOAI_KY — đang là ' || v_cb::text;
+  assert not ('THIEU_CUOC' = any(v_cb)), 'C1 có giá cước, không được gắn THIEU_CUOC';
+
+  select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C2';
+  assert 'THIEU_CUOC' = any(v_cb),
+    'C2 đang chạy mà thiếu giá cước phải có THIEU_CUOC — đang là ' || v_cb::text;
+
+  -- Hợp đồng đã huỷ nhưng chưa đòi xong tiền.
+  insert into subscription_snapshot (source, source_id, source_customer_id,
+    service_type, status, monthly_price, fee_start_on, created_at_src)
+  values ('FIXED', 'C3', 'HD_HUY', 'FIXED_INTERNET', 'TERMINATED', 2000,
+          current_date - interval '2 months', now());
+
+  select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C3';
+  assert 'HUY_CON_NO' = any(v_cb),
+    'hợp đồng huỷ mà còn nợ phải có HUY_CON_NO — đang là ' || v_cb::text;
+end $$;

@@ -318,7 +318,9 @@ export type Contract = {
   ky_da_thu_gan_nhat: string | null;
   ky_cho_duyet: string;
   ky_ghi_chu: string;
+  ky_ngoai: string;
   tinh_trang_cuoc: string;
+  canh_bao: string[];
 };
 
 export type ContractFilter = {
@@ -326,6 +328,7 @@ export type ContractFilter = {
   hopDong?: string;
   lapDat?: string;
   cuoc?: string;
+  canhBao?: string;
   trang?: number;
 };
 
@@ -352,6 +355,13 @@ function contractWhere(f: ContractFilter): { sql: string; params: unknown[] } {
     params.push(f.cuoc);
     dieu.push(`tinh_trang_cuoc = $${params.length}`);
   }
+  // "CO" là có bất kỳ cảnh báo nào, còn lại là lọc đúng một loại.
+  if (f.canhBao === "CO") {
+    dieu.push("canh_bao <> '{}'");
+  } else if (f.canhBao) {
+    params.push(f.canhBao);
+    dieu.push(`$${params.length} = any(canh_bao)`);
+  }
 
   return { sql: dieu.length > 0 ? `where ${dieu.join(" and ")}` : "", params };
 }
@@ -365,7 +375,8 @@ export const getContracts = (f: ContractFilter) => {
             fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
             so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
             tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
-            ky_cho_duyet::text, ky_ghi_chu::text, tinh_trang_cuoc
+            ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
+            tinh_trang_cuoc, canh_bao
        from v_fixed_contract ${sql}
       order by so_ky_no desc, contract_code
       limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
@@ -389,7 +400,8 @@ export const getContract = async (id: string) => {
             fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
             so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
             tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
-            ky_cho_duyet::text, ky_ghi_chu::text, tinh_trang_cuoc
+            ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
+            tinh_trang_cuoc, canh_bao
        from v_fixed_contract where subscription_id = $1`,
     [id],
   );

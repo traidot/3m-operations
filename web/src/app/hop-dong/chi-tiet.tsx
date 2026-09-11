@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getContract, getContractPeriods, getContractUrl } from "@/lib/queries";
-import { HOP_DONG, KY_CUOC, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
+import { CANH_BAO, CANH_BAO_NANG, HOP_DONG, KY_CUOC, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
@@ -40,6 +40,19 @@ export async function ChiTiet({ id, dongLai }: { id: string; dongLai: string }) 
         ) : (
           <>
             <p className="muted">{hd.dia_chi ?? "chưa có địa chỉ lắp"}</p>
+
+            {hd.canh_bao.length > 0 && (
+              <p className="actions">
+                {hd.canh_bao.map((cb) => (
+                  <span
+                    key={cb}
+                    className={`tag ${CANH_BAO_NANG.has(cb) ? "critical" : "warn"}`}
+                  >
+                    {CANH_BAO[cb] ?? cb}
+                  </span>
+                ))}
+              </p>
+            )}
 
             <dl className="chung-cu">
               <O ten="hợp đồng" gia_tri={HOP_DONG[hd.trang_thai_hop_dong] ?? hd.trang_thai_hop_dong} />

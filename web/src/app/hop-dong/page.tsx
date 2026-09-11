@@ -8,7 +8,7 @@ import {
   getYearStatus,
   type ContractFilter,
 } from "@/lib/queries";
-import { HOP_DONG, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
+import { CANH_BAO, CANH_BAO_NANG, HOP_DONG, LAP_DAT, TINH_TRANG_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +50,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     hopDong: mot(sp.hd),
     lapDat: mot(sp.lap),
     cuoc: mot(sp.cuoc),
+    canhBao: mot(sp.cb),
     trang: Math.max(1, Number(mot(sp.trang)) || 1),
   };
 
@@ -66,6 +67,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     if (loc.hopDong) p.set("hd", loc.hopDong);
     if (loc.lapDat) p.set("lap", loc.lapDat);
     if (loc.cuoc) p.set("cuoc", loc.cuoc);
+    if (loc.canhBao) p.set("cb", loc.canhBao);
     if (trang > 1) p.set("trang", String(trang));
     for (const [k, v] of Object.entries(doi)) {
       if (v === undefined) p.delete(k);
@@ -94,6 +96,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <Chon ten="hd" nhan="Trạng thái hợp đồng" chon={loc.hopDong!} lua={HOP_DONG} />
           <Chon ten="lap" nhan="Lắp đặt" chon={loc.lapDat!} lua={LAP_DAT} />
           <Chon ten="cuoc" nhan="Tình trạng cước" chon={loc.cuoc!} lua={TINH_TRANG_CUOC} />
+          <Chon
+            ten="cb"
+            nhan="Cảnh báo"
+            chon={loc.canhBao!}
+            lua={{ CO: "có cảnh báo", ...CANH_BAO }}
+          />
           <div className="actions">
             <button className="primary" type="submit">
               Lọc
@@ -121,6 +129,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th>Địa chỉ lắp</th>
                 <th>Hợp đồng</th>
                 <th>Lắp đặt</th>
+                <th>Cảnh báo</th>
                 <th className="num">Cước/tháng</th>
                 <th className="num">Kỳ</th>
                 <th className="num">Miễn</th>
@@ -143,6 +152,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td>{HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong}</td>
                   <td>{r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "—"}</td>
+                  <td>
+                    {r.canh_bao.length === 0 ? (
+                      <span className="muted">—</span>
+                    ) : (
+                      r.canh_bao.map((cb) => (
+                        <span
+                          key={cb}
+                          className={`tag ${CANH_BAO_NANG.has(cb) ? "critical" : "warn"}`}
+                        >
+                          {CANH_BAO[cb] ?? cb}
+                        </span>
+                      ))
+                    )}
+                  </td>
                   <td className="num mono">{n(r.cuoc_thang)}</td>
                   <td className="num mono">
                     {r.tinh_trang_cuoc === "CHUA_TINH_DUOC" ? "—" : n(r.so_ky)}
