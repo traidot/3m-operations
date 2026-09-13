@@ -57,12 +57,13 @@ export const CANH_BAO_NANG = new Set([
 
 /**
  * Màu cho chip trạng thái. Cố tình nhạt hơn thẻ cảnh báo: đây là sự thật về
- * hợp đồng, không phải việc phải làm. "Đã huỷ" là trung tính, không phải lỗi.
+ * hợp đồng, không phải việc phải làm. Riêng hợp đồng đã huỷ tô đỏ — mất khách
+ * là chuyện phải thấy ngay, không phải trạng thái trung tính như máy đã trả.
  */
 export const MAU_TRANG_THAI: Record<string, string> = {
   // hợp đồng
   ACTIVE: "ok",
-  TERMINATED: "tat",
+  TERMINATED: "xau",
   SUSPENDED: "warn",
   PENDING: "cho",
   // lắp đặt
