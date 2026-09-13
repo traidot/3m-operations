@@ -92,6 +92,27 @@ export const LY_DO_HUY: Record<string, string> = {
   KHONG_GHI: "không ghi lý do",
 };
 
+/**
+ * Vai trò khách bên nguồn. Không phải trạng thái tốt/xấu nên chip dùng màu
+ * phân loại (lam, tím) chứ không mượn màu cảnh báo.
+ */
+export const LOAI_KHACH: Record<string, string> = {
+  CUSTOMER: "khách lẻ",
+  COLLABORATOR: "cộng tác viên",
+  AGENCY: "đại lý",
+};
+
+export const MAU_LOAI_KHACH: Record<string, string> = {
+  CUSTOMER: "cam",
+  COLLABORATOR: "ctv",
+  AGENCY: "dai-ly",
+};
+
+/** Wifi cầm tay là dịch vụ chính, tô cam để nhặt ra giữa các dòng sim. */
+export const MAU_DICH_VU: Record<string, string> = {
+  WIFI_DEVICE: "cam",
+};
+
 export const DICH_VU: Record<string, string> = {
   WIFI_DEVICE: "wifi cầm tay",
   SOFTBANK_SIM: "sim Softbank",

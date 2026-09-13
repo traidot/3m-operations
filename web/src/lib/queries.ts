@@ -797,7 +797,6 @@ export type TelecomCustomer = {
   khach: string;
   dien_thoai: string | null;
   loai_khach: string | null;
-  loai_khach_chu: string;
   nhom_khach: string | null;
   so_thue_bao: string;
   dang_chay: string;
@@ -820,7 +819,7 @@ export type CustomerFilter = {
   trang?: number;
 };
 
-const COT_KHACH = `party_id::text, khach, dien_thoai, loai_khach, loai_khach_chu,
+const COT_KHACH = `party_id::text, khach, dien_thoai, loai_khach,
        nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
        may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao`;

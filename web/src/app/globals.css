@@ -12,6 +12,10 @@
   --warn-soft: #f6eeda;
   --bad: #a8501c;
   --bad-soft: #f7e9de;
+  /* Hai màu phân loại, không mang nghĩa tốt/xấu — dùng cho vai trò khách. */
+  --lam: #1d5d86;
+  --tim: #6a4a99;
+  --cam: #b5560d;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --bo-nho: 5px;   /* ô nhỏ trong dải kỳ, ô màu chú giải */
   --bo: 8px;       /* ô nhập, nút, thẻ */
@@ -33,6 +37,9 @@
     --warn-soft: #2b2413;
     --bad: #e3a277;
     --bad-soft: #2d1e14;
+    --lam: #7ab8dd;
+    --tim: #b39ae0;
+    --cam: #f0a259;
   }
 }
 
@@ -252,6 +259,11 @@ td .tag + .tag { margin-left: 4px; }
 .chip.cho  { --mau-chip: var(--warn); }
 .chip.xau  { --mau-chip: var(--bad); }
 .chip.tat  { --mau-chip: var(--muted); }
+/* Vai trò khách: phân loại chứ không xếp hạng, nên tách khỏi dải màu cảnh báo.
+   Khách lẻ chiếm 3.706/3.747 nên để mức nền, hai vai trò hiếm thì nổi lên. */
+.chip.cam    { --mau-chip: var(--cam); }
+.chip.ctv    { --mau-chip: var(--lam); }
+.chip.dai-ly { --mau-chip: var(--tim); }
 
 /* Trong ngăn kéo có hơn chục cặp nhãn–giá trị, để chảy tự do thì mỗi dòng
    một kiểu, mắt không dóng được. Ép ba cột. */
@@ -323,7 +335,7 @@ a.the-so:hover { border-color: var(--ok); }
 /* Ghi chú dưới bảng đang dính sát mép bảng, đọc ra như một dòng của bảng.
    Bỏ luôn giới hạn 62ch của thẻ p: giới hạn đó để đoạn văn dài dễ đọc, còn
    câu chú thích một dòng thì nó bẻ đôi một cách vô cớ. */
-.ghi-chu { margin-top: 12px; line-height: 1.7; max-width: none; }
+.khoi-ghi-chu { margin-top: 12px; line-height: 1.7; max-width: none; }
 
 /* Mục menu đang mở: gạch chân và đậm lên, để biết mình đang đứng ở đâu. */
 nav a.dang-mo {

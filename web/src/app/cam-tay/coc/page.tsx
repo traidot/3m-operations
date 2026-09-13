@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Chip } from "../../chip";
+import { Chip, ChipLoaiKhach } from "../../chip";
 import {
   CONTRACTS_PER_PAGE,
   countDeposits,
@@ -102,7 +102,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     ) : (
                       r.khach
                     )}
-                    {r.loai_khach && <div className="muted">{r.loai_khach}</div>}
+                    <div><ChipLoaiKhach ma={r.loai_khach} /></div>
                   </td>
                   <td>{DICH_VU[r.service_type ?? ""] ?? r.service_type ?? "—"}</td>
                   <td>

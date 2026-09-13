@@ -24,8 +24,8 @@ import {
   LOP_KY_TELECOM,
   MAY,
 } from "@/lib/nhan";
-import { Chip } from "../../chip";
-import { MAU_TRANG_THAI } from "@/lib/nhan";
+import { Chip, ChipLoaiKhach } from "../../chip";
+import { LOAI_KHACH, MAU_DICH_VU, MAU_TRANG_THAI } from "@/lib/nhan";
 import { DaiKy } from "../../hop-dong/dai-ky";
 
 export const dynamic = "force-dynamic";
@@ -132,7 +132,7 @@ function dichVu(
       lop="sub"
     >
       <td>
-        <span className="chip tat">
+        <span className={`chip ${MAU_DICH_VU[s.service_type ?? ""] ?? "tat"}`}>
           {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "dịch vụ"}
         </span>
         {s.goi && <span className="muted"> · {s.goi}</span>}
@@ -262,11 +262,7 @@ export default async function Page({
             ten="loai"
             nhan="Loại khách"
             chon={loc.loai!}
-            lua={{
-              CUSTOMER: "khách lẻ",
-              COLLABORATOR: "cộng tác viên",
-              AGENCY: "đại lý",
-            }}
+            lua={LOAI_KHACH}
           />
           <Chon ten="dv" nhan="Dịch vụ" chon={loc.dichVu!} lua={DICH_VU} />
           <Chon
@@ -336,7 +332,7 @@ export default async function Page({
                     )}
                   </td>
                   <td>
-                    <span className="khong-xuong-dong">{r.loai_khach_chu}</span>
+                    <ChipLoaiKhach ma={r.loai_khach} />
                     {tenNhom(r.nhom_khach, r.loai_khach) && (
                       <div className="muted">
                         {tenNhom(r.nhom_khach, r.loai_khach)}
