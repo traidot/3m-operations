@@ -5,6 +5,7 @@ import {
   CANH_BAO,
   CANH_BAO_NANG,
   HOP_DONG,
+  KHONG_SINH_KY,
   KY_CUOC,
   LAP_DAT,
   LY_DO_HUY,
@@ -97,7 +98,7 @@ export async function ChiTiet({
             <O
               ten="tổng kỳ"
               gia_tri={
-                hd.tinh_trang_cuoc === "CHUA_TINH_DUOC" ? "—" : n(hd.so_ky)
+                KHONG_SINH_KY.has(hd.tinh_trang_cuoc) ? "—" : n(hd.so_ky)
               }
             />
             <O ten="đã thu" gia_tri={n(hd.tong_da_thu)} />
@@ -110,6 +111,14 @@ export async function ChiTiet({
               {hd.nhom_ly_do_huy &&
                 ` (${LY_DO_HUY[hd.nhom_ly_do_huy] ?? hd.nhom_ly_do_huy})`}
               : “{hd.ly_do_huy}”
+            </p>
+          )}
+
+          {hd.tinh_trang_cuoc === "CHUA_LAP" && (
+            <p className="stale">
+              Hợp đồng chưa lắp xong nên không phát sinh cước — 3M không thu gì
+              với đơn đã ký mà không lắp được. Kỳ nào hiện dưới đây là dòng đã
+              có sẵn trong sổ.
             </p>
           )}
 
@@ -174,8 +183,9 @@ export async function ChiTiet({
           )}
           <p className="muted">
             “Ngoài kỳ” là dòng trong sổ ứng với tháng nằm ngoài khoảng hệ thống
-            tính được — trả trước, hoặc nhập nhầm năm. “Chỉ ghi chú” và “chờ
-            duyệt” chưa tính là đã thu.
+            tính được — trả trước, nhập nhầm năm, hoặc hợp đồng chưa lắp nên
+            không có khoảng nào để tính. “Chỉ ghi chú” và “chờ duyệt” chưa tính
+            là đã thu.
           </p>
 
           {url && (

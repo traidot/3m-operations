@@ -14,6 +14,7 @@ import {
   CANH_BAO,
   CANH_BAO_NANG,
   HOP_DONG,
+  KHONG_SINH_KY,
   KY_CUOC,
   LAP_DAT,
   LY_DO_HUY,
@@ -223,11 +224,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td className="num mono">{n(r.cuoc_thang)}</td>
                   <td className="num mono">
-                    {r.tinh_trang_cuoc === "CHUA_TINH_DUOC" ? "—" : n(r.so_ky)}
+                    {KHONG_SINH_KY.has(r.tinh_trang_cuoc) ? "—" : n(r.so_ky)}
                   </td>
                   <td className="num mono">{n(r.so_ky_mien_phi)}</td>
                   <td className={`num mono${Number(r.so_ky_no) > 0 ? " bad" : ""}`}>
-                    {r.tinh_trang_cuoc === "CHUA_TINH_DUOC" ? "—" : n(r.so_ky_no)}
+                    {KHONG_SINH_KY.has(r.tinh_trang_cuoc) ? "—" : n(r.so_ky_no)}
                   </td>
                   <td className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}>
                     {n(r.con_no)}

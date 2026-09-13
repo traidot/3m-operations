@@ -16,7 +16,15 @@ export const TINH_TRANG_CUOC: Record<string, string> = {
   DU: "thu đủ",
   NO: "còn nợ",
   CHUA_TINH_DUOC: "chưa tính được",
+  CHUA_LAP: "chưa phát sinh",
 };
+
+/**
+ * Hai tình trạng này nghĩa là hệ thống không sinh được kỳ nào, nên cột "tổng
+ * kỳ" và "kỳ nợ" phải để gạch chứ không phải số 0 — 0 đọc ra là "đã kiểm, không
+ * nợ", trong khi sự thật là chưa tính.
+ */
+export const KHONG_SINH_KY = new Set(["CHUA_TINH_DUOC", "CHUA_LAP"]);
 
 export const KY_CUOC: Record<string, string> = {
   DA_THU: "đã thu",
@@ -75,6 +83,7 @@ export const MAU_TRANG_THAI: Record<string, string> = {
   DU: "ok",
   NO: "xau",
   CHUA_TINH_DUOC: "cho",
+  CHUA_LAP: "tat",
 };
 
 export const LY_DO_HUY: Record<string, string> = {
