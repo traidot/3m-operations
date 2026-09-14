@@ -117,7 +117,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <thead>
               <tr>
                 <th>Tháng · dịch vụ</th>
-                <th className="num" title="Số thuê bao của dịch vụ đó còn chạy trong tháng, suy từ ngày kích hoạt và ngày ngừng hiện tại; tháng đã qua chỉ là ước lượng vì nguồn không lưu lịch sử trạng thái">
+                <th className="num" title="Số thuê bao của dịch vụ đó còn chạy trong tháng, suy từ ngày kích hoạt và ngày ngừng. Dịch vụ đã huỷ thì ngừng ở ngày đến trước giữa ngày huỷ và ngày hết hạn — nguồn có đợt dọn dữ liệu ghi ngày huỷ là ngày dọn. Tháng đã qua vẫn là ước lượng vì nguồn không lưu lịch sử trạng thái.">
                   Dịch vụ đang chạy
                 </th>
                 <th className="num" title="Số thuê bao của dịch vụ đó có phát sinh cước trong tháng">

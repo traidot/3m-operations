@@ -50,6 +50,8 @@ export const SUBSCRIPTION = `
     null                                         as monthly_cost,
     s."activationDate"                           as activated_on,
     coalesce(s."cancelDate", s."expirationDate") as terminated_on,
+    s."cancelDate"                               as cancel_on,
+    s."expirationDate"                           as expire_on,
     extract(day from s."activationDate")::int    as anchor_day,
     s."activationDate"                           as fee_start_on,
     coalesce(s."cancelDate", s."expirationDate") as fee_end_on,

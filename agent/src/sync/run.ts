@@ -28,7 +28,7 @@ type Nguon = {
 
 const SUBSCRIPTION_COLS = [
   "source_id", "source_customer_id", "service_type", "plan_name", "status",
-  "monthly_price", "monthly_cost", "activated_on", "terminated_on", "anchor_day",
+  "monthly_price", "monthly_cost", "activated_on", "terminated_on", "cancel_on", "expire_on", "anchor_day",
   "fee_start_on", "fee_end_on",
   "order_ref", "device_ref", "sim_ref", "is_renewal", "cancel_timing", "cancel_reason",
   "is_difficult_debt",
