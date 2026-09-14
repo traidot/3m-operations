@@ -94,7 +94,10 @@ export async function ChiTietKhach({
               <tbody>
                 {tb.map((s) => (
                   <tr key={s.subscription_id}>
-                    <td>{DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "—"}</td>
+                    <td>
+                      {DICH_VU[s.service_type ?? ""] ?? s.service_type ?? "—"}
+                      <div className="mono muted">{s.subscription_id}</div>
+                    </td>
                     <td>{s.goi ?? "—"}</td>
                     <td>
                       <Chip ma={s.trang_thai} nhan={HOP_DONG} />
@@ -106,16 +109,37 @@ export async function ChiTietKhach({
                       {n(s.con_no)}
                     </td>
                     <td className="mono">{s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}</td>
-                    <td>
+                    <td className="khong-xuong-dong">
                       <Link href={linkHoaDon(s.subscription_id)} scroll={false}>
-                        hoá đơn →
+                        hoá đơn
                       </Link>
+                      {s.link_cms && (
+                        <>
+                          {" · "}
+                          <a href={s.link_cms} target="_blank" rel="noreferrer">
+                            CMS ↗
+                          </a>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {kh.link_cms && kh.link_cms.length > 0 && (
+            <div className="actions">
+              {kh.link_cms.map((u, i) => (
+                <a key={u} href={u} target="_blank" rel="noreferrer">
+                  <button type="button">
+                    {/* Một party gộp từ hai mã nguồn thì có hai hồ sơ bên CMS. */}
+                    Mở bên CMS{kh.link_cms!.length > 1 ? ` (${i + 1})` : ""} →
+                  </button>
+                </a>
+              ))}
+            </div>
+          )}
         </>
       )}
     </NganKeo>

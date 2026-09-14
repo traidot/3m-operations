@@ -38,7 +38,15 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
       ) : (
         <>
           <p className="muted">
-            Thuê bao {tb.subscription_id} · {DICH_VU[tb.service_type ?? ""] ?? tb.service_type}
+            Thuê bao{" "}
+            {tb.link_cms ? (
+              <a href={tb.link_cms} target="_blank" rel="noreferrer">
+                {tb.subscription_id} ↗
+              </a>
+            ) : (
+              tb.subscription_id
+            )}{" "}
+            · {DICH_VU[tb.service_type ?? ""] ?? tb.service_type}
             {tb.goi && ` · ${tb.goi}`}
           </p>
 
@@ -148,6 +156,7 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                     <th className="num">Đã trả</th>
                     <th className="num">Còn lại</th>
                     <th>Hạn · kênh</th>
+                    <th />
                   </tr>
                 </thead>
                 <tbody>
@@ -166,8 +175,17 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                         {n(h.con_lai)}
                       </td>
                       <td className="mono">
-                        {h.han_tra ?? "—"}
+                        <span className={h.qua_han && Number(h.con_lai) > 0 ? "bad" : undefined}>
+                          {h.han_tra ?? "—"}
+                        </span>
                         {h.kenh_thu && <div className="muted">{h.kenh_thu}</div>}
+                      </td>
+                      <td>
+                        {h.link_cms && (
+                          <a href={h.link_cms} target="_blank" rel="noreferrer">
+                            CMS ↗
+                          </a>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -177,7 +195,16 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
           )}
           <p className="muted khoi-ghi-chu">
             “Không đòi được” là hoá đơn bên hệ thống gốc đã đánh dấu bỏ, tiền coi như mất.
+            Hạn trả là ngày kỳ cước bắt đầu — phiếu thu xuất mùng 5 và 15 cho tháng sau,
+            qua mùng 1 của tháng dùng mà chưa thu được là quá hạn.
           </p>
+          {tb?.link_cms && (
+            <div className="actions">
+              <a href={tb.link_cms} target="_blank" rel="noreferrer">
+                <button type="button">Mở thuê bao bên CMS →</button>
+              </a>
+            </div>
+          )}
         </>
       )}
     </NganKeo>

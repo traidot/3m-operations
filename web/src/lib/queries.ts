@@ -648,6 +648,7 @@ export type TelecomSub = {
   may_chua_tra: string;
   ngay_khong_co_cuoc: string | null;
   canh_bao: string[];
+  link_cms: string | null;
 };
 
 export type TelecomFilter = {
@@ -662,7 +663,8 @@ const COT_TELECOM = `subscription_id, khach, service_type, goi, trang_thai,
        gia_thang::text, ngay_kich_hoat::text, ngay_ngung::text, ma_may,
        so_hoa_don::text, hoa_don_dang_doi::text, con_no::text, hoa_don_mat::text,
        tien_mat::text, da_thu::text, ky_gan_nhat_den::text, ngay_qua_han::text,
-       may_chua_tra::text, ngay_khong_co_cuoc::text, canh_bao`;
+       may_chua_tra::text, ngay_khong_co_cuoc::text, canh_bao,
+       telecom_url('thue_bao', subscription_id) as link_cms`;
 
 function telecomWhere(f: TelecomFilter): { sql: string; params: unknown[] } {
   const dieu: string[] = [];
@@ -731,12 +733,15 @@ export type TelecomInvoice = {
   con_lai: string;
   trang_thai: string;
   kenh_thu: string | null;
+  qua_han: boolean;
+  link_cms: string | null;
 };
 
 export const getTelecomInvoices = (id: string) =>
   query<TelecomInvoice>(
     `select invoice_id, so_hoa_don, ngay_lap::text, han_tra::text, ky_tu::text,
-            ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai, kenh_thu
+            ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai,
+            kenh_thu, qua_han, link_cms
        from v_telecom_invoice where subscription_id = $1
       order by coalesce(ky_tu, ngay_lap) desc`,
     [id],
@@ -814,6 +819,7 @@ export type TelecomCustomer = {
   ky_gan_nhat_den: string | null;
   canh_bao: string[];
   chua_toi_han: string;
+  link_cms: string[] | null;
 };
 
 export type CustomerFilter = {
@@ -829,7 +835,7 @@ const COT_KHACH = `party_id::text, khach, ma_khach, dien_thoai, loai_khach,
        nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
        may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao,
-       chua_toi_han::text`;
+       chua_toi_han::text, link_cms`;
 
 function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
   const dieu: string[] = [];
@@ -907,13 +913,15 @@ export type CustomerSub = {
   tien_mat: string;
   ky_gan_nhat_den: string | null;
   canh_bao: string[];
+  link_cms: string | null;
 };
 
 export const getCustomerSubs = (id: string) =>
   query<CustomerSub>(
     `select subscription_id, service_type, goi, trang_thai, gia_thang::text,
             ngay_kich_hoat::text, ngay_ngung::text, ma_may, so_hoa_don::text,
-            da_thu::text, con_no::text, tien_mat::text, ky_gan_nhat_den::text, canh_bao
+            da_thu::text, con_no::text, tien_mat::text, ky_gan_nhat_den::text,
+            canh_bao, link_cms
        from v_telecom_customer_sub where party_id = $1::uuid
       order by con_no desc, ngay_kich_hoat desc nulls last`,
     [id],
