@@ -1,6 +1,11 @@
 import { Chip } from "../chip";
 import { NganKeo } from "../ngan-keo";
-import { getContract, getContractPeriods, getContractUrl } from "@/lib/queries";
+import {
+  getContract,
+  getContractPeriods,
+  getContractUrl,
+  type ContractPeriod,
+} from "@/lib/queries";
 import {
   CANH_BAO,
   CANH_BAO_NANG,
@@ -17,6 +22,16 @@ const n = (v: string | null) =>
 
 /** Kỳ chưa thu và kỳ mới chỉ ghi chú đều là việc còn dang dở, tô đỏ. */
 const DO = new Set(["NO", "CHO_DUYET", "GHI_CHU"]);
+
+/** Cùng một trạng thái "NO" nhưng ba nghĩa khác nhau, tách ra ở đây. */
+function nhanKy(k: ContractPeriod): { chu: string; do: boolean } {
+  if (k.trang_thai !== "NO") {
+    return { chu: KY_CUOC[k.trang_thai] ?? k.trang_thai, do: DO.has(k.trang_thai) };
+  }
+  if (Number(k.coc_cho_duyet) > 0) return { chu: KY_CUOC.CHO_COC!, do: false };
+  if (!k.qua_han) return { chu: KY_CUOC.CHUA_DEN_HAN!, do: false };
+  return { chu: KY_CUOC.NO!, do: true };
+}
 
 function O({
   ten,
@@ -102,7 +117,21 @@ export async function ChiTiet({
               }
             />
             <O ten="đã thu" gia_tri={n(hd.tong_da_thu)} />
-            <O ten="còn nợ" gia_tri={n(hd.con_no)} do={Number(hd.con_no) > 0} />
+            <O ten="nợ quá hạn" gia_tri={n(hd.con_no)} />
+            {Number(hd.coc_cho_duyet) > 0 && (
+              <O ten="cọc chờ duyệt" gia_tri={n(hd.coc_cho_duyet)} />
+            )}
+            <O
+              ten="còn phải đòi"
+              gia_tri={n(hd.con_no_sau_coc)}
+              do={Number(hd.con_no_sau_coc) > 0}
+            />
+            {Number(hd.so_ky_chua_den_han) > 0 && (
+              <O
+                ten="chưa tới hạn"
+                gia_tri={`${n(hd.tien_chua_den_han)} · ${n(hd.so_ky_chua_den_han)} kỳ`}
+              />
+            )}
           </dl>
 
           {hd.ly_do_huy && (
@@ -143,6 +172,7 @@ export async function ChiTiet({
                     <th>Trạng thái</th>
                     <th className="num">Phải thu</th>
                     <th className="num">Đã thu</th>
+                    <th className="num">Cọc chờ</th>
                     <th>Kênh</th>
                     <th>Thu lúc</th>
                     <th>Người nhập</th>
@@ -157,8 +187,8 @@ export async function ChiTiet({
                           <span className="tag warn"> ngoài kỳ</span>
                         )}
                       </td>
-                      <td className={DO.has(k.trang_thai) ? "bad" : undefined}>
-                        {KY_CUOC[k.trang_thai] ?? k.trang_thai}
+                      <td className={nhanKy(k).do ? "bad" : undefined}>
+                        {nhanKy(k).chu}
                       </td>
                       <td className="num mono">{n(k.phai_thu)}</td>
                       <td
@@ -171,6 +201,9 @@ export async function ChiTiet({
                         }`}
                       >
                         {n(k.tien)}
+                      </td>
+                      <td className="num mono">
+                        {Number(k.coc_cho_duyet) > 0 ? n(k.coc_cho_duyet) : "—"}
                       </td>
                       <td>{k.kenh || "—"}</td>
                       <td className="mono">{k.thu_luc?.slice(0, 10) ?? "—"}</td>

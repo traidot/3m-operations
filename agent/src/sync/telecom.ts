@@ -21,7 +21,9 @@ export const CUSTOMER = `
       where cc."customerId" = c.id and cc."deletedAt" is null
         and cc."contactType" = 'EMAIL'
       order by cc.id limit 1)                    as email,
-    c.code                                       as id_document,
+    -- Mã nghiệp vụ cho người đọc (KH03901), không phải giấy tờ tuỳ thân.
+    c.code                                       as customer_code,
+    null                                         as id_document,
     c."customerType"::text                       as customer_type,
     g.name                                       as customer_group,
     c."createdAt"                                as created_at_src,

@@ -223,6 +223,11 @@ tr.dang-mo { background: var(--surface-2); }
 .o-ky.mien-phi { background: var(--line-strong); color: var(--ink); }
 .o-ky.cho-duyet, .o-ky.ghi-chu { background: var(--warn); color: var(--paper); }
 .o-ky.no { background: var(--bad); color: var(--paper); }
+/* Tháng chưa qua mốc đóng: có kỳ, có tiền phải thu, nhưng chưa phải việc. Nhạt
+   hơn "chưa thu" hẳn một bậc để mắt bỏ qua được. */
+.o-ky.chua-den-han { background: var(--surface-2); color: var(--muted); box-shadow: inset 0 0 0 1px var(--line-strong); }
+/* Khách đã nộp tiền, đang chờ bên mình duyệt — việc của mình, không phải của khách. */
+.o-ky.cho-coc { background: color-mix(in srgb, var(--lam) 22%, transparent); color: var(--lam); box-shadow: inset 0 0 0 1px var(--lam); }
 /* Trong hợp đồng nhưng chưa tới hạn đóng: viền đứt, chưa có gì để nói. */
 .o-ky.na { background: transparent; box-shadow: inset 0 0 0 1px var(--line); opacity: 0.75; }
 /* Ngoài thời hạn hợp đồng: mờ hẳn, không viền, để khối hợp đồng tự nổi lên. */

@@ -40,8 +40,13 @@ export async function ChiTietKhach({
       ) : (
         <>
           <p className="muted">
-            {kh.dien_thoai ?? "chưa có số điện thoại"} · {n(kh.so_thue_bao)} thuê bao,{" "}
-            {n(kh.dang_chay)} đang chạy
+            {[
+              kh.ma_khach,
+              kh.dien_thoai ?? "chưa có số điện thoại",
+              `${n(kh.so_thue_bao)} thuê bao, ${n(kh.dang_chay)} đang chạy`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
 
           {kh.canh_bao.length > 0 && (

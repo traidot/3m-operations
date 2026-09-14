@@ -32,6 +32,8 @@ export const KY_CUOC: Record<string, string> = {
   CHO_DUYET: "chờ duyệt",
   GHI_CHU: "chỉ ghi chú",
   NO: "chưa thu",
+  CHUA_DEN_HAN: "chưa tới hạn",
+  CHO_COC: "đã nộp, chờ duyệt",
 };
 
 export const CANH_BAO: Record<string, string> = {
@@ -44,6 +46,7 @@ export const CANH_BAO: Record<string, string> = {
   THU_THIEU: "thu thiếu tiền",
   KHO_DOI: "khách khó đòi",
   CHO_LAP_LAU: "chờ lắp lâu",
+  CO_COC: "có cọc chờ duyệt",
 };
 
 /** Ba cái này là mất tiền hoặc không tính được tiền, tô đỏ; còn lại là nhắc việc. */

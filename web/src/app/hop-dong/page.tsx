@@ -113,8 +113,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Hợp đồng wifi cố định</h1>
       <p className="muted">
         Toàn bộ hợp đồng trong hệ thống wifi cố định. Bấm mã hợp đồng để xem cước từng
-        tháng. “Chưa tính được” là hợp đồng thiếu giá cước hoặc thiếu ngày bắt đầu thu
-        nên không sinh được kỳ nào — không phải đã thu đủ.
+        tháng. Kỳ tháng M phải đóng xong trước mùng 10 tháng M+1, qua ngày đó mới tính
+        là nợ — nên tháng đang chạy chưa bao giờ nằm trong cột “còn nợ”. “Cọc chờ duyệt”
+        là tiền khách đã nộp qua combini mà bên mình chưa duyệt; “sau cọc” là phần thật
+        sự còn phải đòi. “Chưa tính được” là hợp đồng thiếu giá cước hoặc thiếu ngày bắt
+        đầu thu nên không sinh được kỳ nào — không phải đã thu đủ.
       </p>
 
       <form method="get">
@@ -183,6 +186,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th className="num">Miễn</th>
                 <th className="num">Nợ</th>
                 <th className="num">Còn nợ</th>
+                <th className="num">Cọc chờ duyệt</th>
+                <th className="num">Sau cọc</th>
                 <th>Thu tới</th>
               </tr>
             </thead>
@@ -230,8 +235,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className={`num mono${Number(r.so_ky_no) > 0 ? " bad" : ""}`}>
                     {KHONG_SINH_KY.has(r.tinh_trang_cuoc) ? "—" : n(r.so_ky_no)}
                   </td>
-                  <td className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}>
-                    {n(r.con_no)}
+                  <td className="num mono">{n(r.con_no)}</td>
+                  <td className="num mono">
+                    {Number(r.coc_cho_duyet) > 0 ? n(r.coc_cho_duyet) : "—"}
+                  </td>
+                  <td className={`num mono${Number(r.con_no_sau_coc) > 0 ? " bad" : ""}`}>
+                    {n(r.con_no_sau_coc)}
                   </td>
                   <td className="mono">{r.ky_da_thu_gan_nhat ?? "—"}</td>
                 </Dong>
@@ -247,8 +256,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <span className="chu-thich"><i className="o-ky mau da-thu" /> đã thu</span>
         <span className="chu-thich"><i className="o-ky mau mien-phi" /> miễn phí</span>
         <span className="chu-thich"><i className="o-ky mau cho-duyet" /> chờ duyệt hoặc ghi chú</span>
-        <span className="chu-thich"><i className="o-ky mau no" /> chưa thu</span>
-        <span className="chu-thich"><i className="o-ky mau na" /> chưa tới hạn</span>
+        <span className="chu-thich"><i className="o-ky mau no" /> quá hạn chưa thu</span>
+        <span className="chu-thich"><i className="o-ky mau cho-coc" /> đã nộp, chờ duyệt</span>
+        <span className="chu-thich"><i className="o-ky mau chua-den-han" /> chưa tới hạn</span>
+        <span className="chu-thich"><i className="o-ky mau na" /> chưa sinh kỳ</span>
         <span className="chu-thich"><i className="o-ky mau ngoai" /> ngoài thời hạn</span>
       </p>
 

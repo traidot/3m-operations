@@ -325,6 +325,11 @@ export type Contract = {
   ky_ngoai: string;
   tinh_trang_cuoc: string;
   canh_bao: string[];
+  so_ky_chua_den_han: string;
+  tien_chua_den_han: string;
+  coc_cho_duyet: string;
+  so_phieu_coc_cho: string;
+  con_no_sau_coc: string;
 };
 
 export type ContractFilter = {
@@ -340,6 +345,17 @@ export type ContractFilter = {
   lyDoHuy?: string;
   trang?: number;
 };
+
+const COT_HOP_DONG = `subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
+       trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
+       fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
+       ngay_huy::text, ly_do_huy, nhom_ly_do_huy, kho_doi,
+       so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
+       tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
+       ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
+       tinh_trang_cuoc, canh_bao,
+       so_ky_chua_den_han::text, tien_chua_den_han::text,
+       coc_cho_duyet::text, so_phieu_coc_cho::text, con_no_sau_coc::text`;
 
 export const CONTRACTS_PER_PAGE = 50;
 
@@ -413,14 +429,7 @@ export const getContracts = (f: ContractFilter) => {
   const { sql, params } = contractWhere(f);
   const offset = Math.max(0, ((f.trang ?? 1) - 1) * CONTRACTS_PER_PAGE);
   return query<Contract>(
-    `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
-            trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
-            fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
-            ngay_huy::text, ly_do_huy, nhom_ly_do_huy, kho_doi,
-            so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
-            tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
-            ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
-            tinh_trang_cuoc, canh_bao
+    `select ${COT_HOP_DONG}
        from v_fixed_contract ${sql}
       order by so_ky_no desc, contract_code
       limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
@@ -439,14 +448,7 @@ export const countContracts = async (f: ContractFilter) => {
 
 export const getContract = async (id: string) => {
   const [row] = await query<Contract>(
-    `select subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
-            trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
-            fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
-            ngay_huy::text, ly_do_huy, nhom_ly_do_huy, kho_doi,
-            so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
-            tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
-            ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
-            tinh_trang_cuoc, canh_bao
+    `select ${COT_HOP_DONG}
        from v_fixed_contract where subscription_id = $1`,
     [id],
   );
@@ -462,12 +464,14 @@ export type ContractPeriod = {
   thu_luc: string | null;
   kenh: string | null;
   nguoi_nhap: string | null;
+  qua_han: boolean;
+  coc_cho_duyet: string;
 };
 
 export const getContractPeriods = (id: string) =>
   query<ContractPeriod>(
     `select ky, phai_thu::text, trang_thai, ngoai_ky_tinh, tien::text,
-            thu_luc::text, kenh, nguoi_nhap
+            thu_luc::text, kenh, nguoi_nhap, qua_han, coc_cho_duyet::text
        from v_fixed_contract_period where subscription_id = $1 order by ky desc`,
     [id],
   );
@@ -795,6 +799,7 @@ export const getTelecomTotals = async () => {
 export type TelecomCustomer = {
   party_id: string;
   khach: string;
+  ma_khach: string | null;
   dien_thoai: string | null;
   loai_khach: string | null;
   nhom_khach: string | null;
@@ -819,7 +824,7 @@ export type CustomerFilter = {
   trang?: number;
 };
 
-const COT_KHACH = `party_id::text, khach, dien_thoai, loai_khach,
+const COT_KHACH = `party_id::text, khach, ma_khach, dien_thoai, loai_khach,
        nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
        may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao`;
@@ -833,7 +838,7 @@ function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
     const t = `$${params.length}`;
     // Tìm cả theo mã máy của thuê bao, nếu không thì bỏ bảng phẳng đi là mất
     // đường tra theo IMEI.
-    dieu.push(`(khach ilike ${t} or dien_thoai ilike ${t}
+    dieu.push(`(khach ilike ${t} or dien_thoai ilike ${t} or ma_khach ilike ${t}
                 or exists (select 1 from v_telecom_customer_sub s
                             where s.party_id = v_telecom_customer.party_id
                               and s.ma_may ilike ${t}))`);

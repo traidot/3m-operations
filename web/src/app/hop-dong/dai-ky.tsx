@@ -7,6 +7,8 @@ const LOP_CO_DINH: Record<string, string> = {
   CHO_DUYET: "cho-duyet",
   GHI_CHU: "ghi-chu",
   NO: "no",
+  CHUA_DEN_HAN: "chua-den-han",
+  CHO_COC: "cho-coc",
   NA: "na",
 };
 

@@ -250,12 +250,12 @@ export default async function Page({
       <form method="get">
         <div className="formgrid">
           <label>
-            Tên, điện thoại hoặc mã máy
+            Tên, mã khách, điện thoại hoặc mã máy
             <input
               type="search"
               name="q"
               defaultValue={loc.q}
-              placeholder="tên khách, IMEI…"
+              placeholder="tên, mã KH, IMEI…"
             />
           </label>
           <Chon
@@ -327,9 +327,9 @@ export default async function Page({
                     <Link href={link({ xem: r.party_id })} scroll={false}>
                       {r.khach}
                     </Link>
-                    {r.dien_thoai && (
-                      <div className="mono muted">{r.dien_thoai}</div>
-                    )}
+                    <div className="mono muted">
+                      {[r.ma_khach, r.dien_thoai].filter(Boolean).join(" · ") || "—"}
+                    </div>
                   </td>
                   <td>
                     <ChipLoaiKhach ma={r.loai_khach} />

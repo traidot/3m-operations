@@ -127,11 +127,35 @@ export const STAFF = `
   from user u
 `;
 
+/**
+ * Tiền khách nộp trước qua GMO (combini), kèm cách phân bổ vào từng tháng cước.
+ * Phiếu đã duyệt sinh dòng trong contract_fee_payments nên đừng cộng thêm lần
+ * nữa — kho chỉ dùng bảng này để biết phiếu nào còn chờ duyệt.
+ */
+export const DEPOSIT_ALLOCATION = `
+  select
+    da.id                as source_id,
+    da.contractId        as subscription_source_id,
+    da.contractCode      as contract_code,
+    da.depositAmount     as amount,
+    da.allocationsJson   as allocations,
+    da.status            as status,
+    da.sourceType        as channel,
+    da.collectionAccount as collection_account,
+    da.gmoPaymentDate    as paid_at,
+    da.approvedAt        as approved_at,
+    da.notes             as note,
+    da.createdAt         as created_at_src,
+    da.createBy          as created_by_src
+  from deposit_allocations da
+`;
+
 export const QUERIES = {
   subscription: SUBSCRIPTION,
   fee_period: FEE_PERIOD,
   install_order: INSTALL_ORDER,
   payment: PAYMENT,
   device: DEVICE,
+  deposit_allocation: DEPOSIT_ALLOCATION,
   staff: STAFF,
 } as const;
