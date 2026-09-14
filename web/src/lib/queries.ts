@@ -1187,3 +1187,39 @@ export const getNamCoSoLieu = () =>
   query<{ nam: string }>(
     `select distinct left(ky, 4) as nam from v_telecom_month_service order by 1 desc`,
   );
+
+export type ThueBaoThang = {
+  subscription_id: string;
+  party_id: string | null;
+  khach: string | null;
+  ma_khach: string | null;
+  dich_vu: string | null;
+  goi: string | null;
+  trang_thai: string;
+  kich_hoat: string | null;
+  ngung: string | null;
+  cuoc_cuoi: string | null;
+  dang_chay: boolean;
+  co_cuoc: boolean;
+  phai_thu: string | null;
+  da_thu: string | null;
+  chua_thu: string | null;
+  khong_doi_duoc: string | null;
+  link_cms: string | null;
+};
+
+/**
+ * Từng thuê bao của một tháng, kèm cờ đang chạy / có cước. Cộng lại khớp đúng
+ * dòng tháng trên trang cước theo dịch vụ. Lệch lên đầu, rồi cước cuối cũ nhất
+ * trước — thuê bao ngừng ra cước lâu nhất là cái cần soi trước.
+ */
+export const getThueBaoThang = (ky: string, dichVu?: string) =>
+  query<ThueBaoThang>(
+    `select subscription_id, party_id::text, khach, ma_khach, dich_vu, goi, trang_thai,
+            kich_hoat::text, ngung::text, cuoc_cuoi, dang_chay, co_cuoc,
+            phai_thu::text, da_thu::text, chua_thu::text, khong_doi_duoc::text, link_cms
+       from telecom_month_subs($1)
+      ${dichVu ? "where dich_vu = $2" : ""}
+      order by (dang_chay <> co_cuoc) desc, cuoc_cuoi nulls first, khach`,
+    dichVu ? [ky, dichVu] : [ky],
+  );

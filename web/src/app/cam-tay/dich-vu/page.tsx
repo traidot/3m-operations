@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getNamCoSoLieu, getThangDichVu, type ThangDichVu } from "@/lib/queries";
 import { DICH_VU } from "@/lib/nhan";
+import { Dong } from "../../hop-dong/dong";
+import { ChiTietThang, NHOM, type Nhom } from "./chi-tiet";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +47,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     return duoi ? `/cam-tay/dich-vu?${duoi}` : "/cam-tay/dich-vu";
   };
 
+  // Ngăn kéo: bấm dòng tháng thì mở danh sách thuê bao của tháng đó, bấm dòng
+  // dịch vụ thì lọc sẵn theo dịch vụ.
+  const moThang = /^\d{4}-\d{2}$/.test(mot(sp.thang)) ? mot(sp.thang) : "";
+  const moTdv = dichVu.includes(mot(sp.tdv)) ? mot(sp.tdv) : "";
+  const moNhom: Nhom = Object.hasOwn(NHOM, mot(sp.nhom)) ? (mot(sp.nhom) as Nhom) : "thieu";
+
   const tyLe = (r: ThangDichVu[]) => {
     const pt = cong(r, "phai_thu");
     return pt === 0 ? null : Math.round((1000 * cong(r, "da_thu")) / pt) / 10;
@@ -58,6 +66,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         theo dịch vụ thay vì theo khách. Kỳ lấy từ <b>dòng cước</b> chứ không phải ngày
         trên hoá đơn — một hoá đơn năm rải đều ra 12 tháng. Tiền đã thu chia theo tỉ lệ
         từng dòng trên tổng hoá đơn. Hoá đơn đã huỷ và phiếu hoàn tiền không tính.
+        Bấm một tháng hoặc một dịch vụ để xem từng thuê bao.
       </p>
 
       <p className="actions">
@@ -138,7 +147,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               const ty = tyLe(cua);
               return (
                 <tbody key={ky}>
-                  <tr>
+                  <Dong
+                    href={link({ nam, dv: locDv || undefined, thang: ky })}
+                    dangMo={moThang === ky && !moTdv}
+                  >
                     <td className="mono">{ky}</td>
                     <td className="num mono">{cong(cua, "thue_bao_chay").toLocaleString("vi-VN")}</td>
                     <td className="num mono">{cong(cua, "thue_bao_co_cuoc").toLocaleString("vi-VN")}</td>
@@ -164,9 +176,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                         </span>
                       )}
                     </td>
-                  </tr>
+                  </Dong>
                   {cua.map((r) => (
-                    <tr key={`${r.ky}-${r.dich_vu}`} className="sub">
+                    <Dong
+                      key={`${r.ky}-${r.dich_vu}`}
+                      href={link({ nam, dv: locDv || undefined, thang: ky, tdv: r.dich_vu })}
+                      dangMo={moThang === ky && moTdv === r.dich_vu}
+                      lop="sub"
+                    >
                       <td>
                         <span className="chip tat">{TEN_DICH_VU[r.dich_vu] ?? r.dich_vu}</span>
                       </td>
@@ -186,7 +203,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       <td className="mono muted">
                         {r.ty_le_thu === null ? "—" : `${r.ty_le_thu}%`}
                       </td>
-                    </tr>
+                    </Dong>
                   ))}
                 </tbody>
               );
@@ -200,6 +217,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         theo dịch vụ, và đếm cả thuê bao chứ không chỉ đếm khách — một khách dùng ba dịch
         vụ sẽ được đếm một lần ở cột khách, ba lần ở cột thuê bao.
       </p>
+      {moThang && (
+        <ChiTietThang
+          ky={moThang}
+          dichVu={moTdv || undefined}
+          nhom={moNhom}
+          dongLai={link({ nam, dv: locDv || undefined })}
+          linkNhom={(k) =>
+            link({ nam, dv: locDv || undefined, thang: moThang, tdv: moTdv || undefined, nhom: k })
+          }
+        />
+      )}
     </main>
   );
 }
