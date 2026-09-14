@@ -91,6 +91,23 @@ button.primary { background: var(--ok); color: var(--paper); border-color: var(-
 table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 th, td { text-align: left; vertical-align: top; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); }
 thead th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+/* Bảng dài cuộn mấy màn hình thì mất tiêu đề cột, không biết con số ở cột nào.
+   Nền đặc để dòng bên dưới không lộ qua; ngăn kéo cũng nền --paper nên dùng
+   chung một luật, nó sẽ dính vào mép trên của ngăn kéo thay vì của trang. */
+thead th {
+  position: sticky; top: 0; z-index: 2;
+  /* Dính lại thì nó thành ranh giới giữa tiêu đề và dữ liệu, phải nhìn ra ngay
+     là một dải liền chứ không lẫn vào dòng đầu: chữ đậm hơn, nền đặc hơn nền
+     trang một bậc, và một đường kẻ dày ở đáy. */
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 600;
+  border-bottom: 2px solid var(--line-strong);
+  padding-top: 11px; padding-bottom: 11px;
+}
+/* Đệm hai mép của bảng cũng phải nằm trong dải nền, không thì hở hai đầu. */
+thead th:first-child { border-top-left-radius: var(--bo-nho); }
+thead th:last-child { border-top-right-radius: var(--bo-nho); }
 
 form.inline { display: inline; }
 .formgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); align-items: end; }
@@ -183,7 +200,10 @@ summary:hover { color: var(--ok); }
   width: min(100%, max(420px, 50vw)); overflow-y: auto;
   background: var(--paper); border-left: 1px solid var(--line-strong);
   border-radius: var(--bo-to) 0 0 var(--bo-to);
-  padding: 24px 28px 48px; box-shadow: -12px 0 32px rgba(19, 28, 24, 0.18);
+  /* Không có đệm trên: mốc dính của tiêu đề bảng là mép TRONG của đệm, nên để
+     24px ở đây thì dòng dữ liệu trôi qua khoảng trống bên trên tiêu đề, trông
+     như tiêu đề bị thủng. Đẩy 24px ấy vào phần tử đầu tiên thay vì vào ngăn. */
+  padding: 0 28px 48px; box-shadow: -12px 0 32px rgba(19, 28, 24, 0.18);
   /* Cuộn tới đáy ngăn kéo thì dừng, không đẩy tiếp trang nền. */
   overscroll-behavior: contain;
   animation: truot-vao 0.22s cubic-bezier(0.22, 0.8, 0.3, 1);
@@ -204,8 +224,8 @@ summary:hover { color: var(--ok); }
   .man-che, .ngan-keo, .man-che.dang-dong, .ngan-keo.dang-dong { animation-duration: 0.01ms; }
 }
 
-.nut-dong { float: right; margin-left: 16px; }
-.ngan-keo h1 { margin-top: 0; }
+.nut-dong { float: right; margin-left: 16px; margin-top: 24px; }
+.ngan-keo h1 { margin-top: 24px; }
 .ngan-keo h2:first-of-type { margin-top: 20px; }
 tr.dang-mo { background: var(--surface-2); }
 
