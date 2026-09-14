@@ -1155,8 +1155,10 @@ export const getThuCuocTomTat = () =>
 export type ThangDichVu = {
   ky: string;
   dich_vu: string;
+  thue_bao_chay: string;
+  thue_bao_co_cuoc: string;
+  chenh: string | null;
   so_dong: string;
-  so_thue_bao: string;
   so_khach: string;
   phai_thu: string | null;
   da_thu: string | null;
@@ -1170,7 +1172,8 @@ export type ThangDichVu = {
 /** Cước cầm tay theo tháng × dịch vụ, một năm một lượt. */
 export const getThangDichVu = (nam: string) =>
   query<ThangDichVu>(
-    `select ky, dich_vu, so_dong::text, so_thue_bao::text, so_khach::text,
+    `select ky, dich_vu, thue_bao_chay::text, thue_bao_co_cuoc::text,
+            chenh::text, so_dong::text, so_khach::text,
             phai_thu::text, da_thu::text, chua_thu::text, khong_doi_duoc::text,
             khach_da_thu::text, khach_chua_thu::text, ty_le_thu::text
        from v_telecom_month_service

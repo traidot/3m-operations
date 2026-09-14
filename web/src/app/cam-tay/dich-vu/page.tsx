@@ -95,6 +95,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-phu">{tyLe(hien) ?? "—"}%</div>
         </div>
         <div className="the-so">
+          <div className="the-ten">Chạy mà không ra cước</div>
+          <div className="the-gia-tri">{cong(hien, "chenh").toLocaleString("vi-VN")}</div>
+          <div className="the-phu">lượt thuê bao · tháng</div>
+        </div>
+        <div className="the-so">
           <div className="the-ten">Chưa thu</div>
           <div className="the-gia-tri">{cong(hien, "chua_thu").toLocaleString("vi-VN")}</div>
         </div>
@@ -112,8 +117,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <thead>
               <tr>
                 <th>Tháng · dịch vụ</th>
-                <th className="num">Thuê bao</th>
-                <th className="num">Dòng cước</th>
+                <th className="num" title="Suy từ ngày kích hoạt và ngày ngừng hiện tại; tháng đã qua chỉ là ước lượng vì nguồn không lưu lịch sử trạng thái">
+                  Đang chạy
+                </th>
+                <th className="num">Có cước</th>
+                <th className="num" title="Đang chạy trừ có cước. Dương là chạy mà không ra cước; âm là ra cước cho thuê bao đã ngừng. Tháng chưa tới thì để trống.">
+                  Chênh
+                </th>
                 <th className="num">Phải thu</th>
                 <th className="num">Đã thu</th>
                 <th className="num">Chưa thu</th>
@@ -128,8 +138,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <tbody key={ky}>
                   <tr>
                     <td className="mono">{ky}</td>
-                    <td className="num mono">{cong(cua, "so_thue_bao").toLocaleString("vi-VN")}</td>
-                    <td className="num mono">{cong(cua, "so_dong").toLocaleString("vi-VN")}</td>
+                    <td className="num mono">{cong(cua, "thue_bao_chay").toLocaleString("vi-VN")}</td>
+                    <td className="num mono">{cong(cua, "thue_bao_co_cuoc").toLocaleString("vi-VN")}</td>
+                    <td className={`num mono${cong(cua, "chenh") > 0 ? " bad" : ""}`}>
+                      {cua.every((r) => r.chenh === null)
+                        ? "—"
+                        : cong(cua, "chenh").toLocaleString("vi-VN")}
+                    </td>
                     <td className="num mono">{cong(cua, "phai_thu").toLocaleString("vi-VN")}</td>
                     <td className="num mono">{cong(cua, "da_thu").toLocaleString("vi-VN")}</td>
                     <td className="num mono">{cong(cua, "chua_thu").toLocaleString("vi-VN")}</td>
@@ -153,8 +168,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       <td>
                         <span className="chip tat">{TEN_DICH_VU[r.dich_vu] ?? r.dich_vu}</span>
                       </td>
-                      <td className="num mono muted">{n(r.so_thue_bao)}</td>
-                      <td className="num mono muted">{n(r.so_dong)}</td>
+                      <td className="num mono muted">{n(r.thue_bao_chay)}</td>
+                      <td className="num mono muted">{n(r.thue_bao_co_cuoc)}</td>
+                      <td className={`num mono${Number(r.chenh) > 0 ? " bad" : " muted"}`}>
+                        {n(r.chenh)}
+                      </td>
                       <td className="num mono muted">{n(r.phai_thu)}</td>
                       <td className="num mono muted">{n(r.da_thu)}</td>
                       <td className={`num mono${Number(r.chua_thu) > 0 ? " bad" : " muted"}`}>
