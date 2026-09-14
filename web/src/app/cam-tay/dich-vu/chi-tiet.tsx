@@ -11,8 +11,8 @@ const n = (v: string | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
 
 export const NHOM = {
-  thieu: "Chạy mà không có cước",
-  thua: "Có cước mà không chạy",
+  thieu: "Đang dùng, chưa có phiếu thu",
+  thua: "Có phiếu thu, đã ngừng",
   tat_ca: "Tất cả",
 } as const;
 export type Nhom = keyof typeof NHOM;
@@ -41,7 +41,7 @@ export async function ChiTietThang({
 
   // Tháng chưa tới thì "đang chạy" chỉ là trạng thái hôm nay, so với cước đã xuất
   // trước là vô nghĩa — chỉ bày thuê bao có cước, không chia nhóm lệch.
-  const thangNay = new Date().toISOString().slice(0, 7);
+  const thangNay = new Date().toLocaleDateString("sv-SE").slice(0, 7);
   const tuongLai = ky > thangNay;
   const nguon = tuongLai ? tatCa.filter((r) => r.co_cuoc) : tatCa;
   const dang = tuongLai ? "tat_ca" : nhom;
@@ -59,21 +59,27 @@ export async function ChiTietThang({
       </h1>
       <p className="muted">
         {tuongLai
-          ? `${coCuoc.toLocaleString("vi-VN")} thuê bao có cước. Tháng chưa tới nên chưa so được với số đang chạy.`
-          : `${dangChay.toLocaleString("vi-VN")} đang chạy · ${coCuoc.toLocaleString("vi-VN")} có cước`}
+          ? `${coCuoc.toLocaleString("vi-VN")} thuê bao có phiếu thu. Tháng chưa tới nên chưa so được với số đang dùng.`
+          : `${dangChay.toLocaleString("vi-VN")} thuê bao đang dùng · ${coCuoc.toLocaleString("vi-VN")} có phiếu thu`}
       </p>
 
-      {!tuongLai && (
-        <p className="actions">
-          {(Object.keys(NHOM) as Nhom[]).map((k) => (
+      <p className="actions">
+        {!tuongLai &&
+          (Object.keys(NHOM) as Nhom[]).map((k) => (
             <Link key={k} href={linkNhom(k)} scroll={false}>
               <button type="button" className={dang === k ? "primary" : undefined}>
                 {NHOM[k]} · {dem(k).toLocaleString("vi-VN")}
               </button>
             </Link>
           ))}
-        </p>
-      )}
+        {/* Thẻ a thường chứ không phải Link: trả về tệp tải xuống, không phải trang. */}
+        <a
+          href={`/cam-tay/dich-vu/xuat?thang=${ky}${dichVu ? `&tdv=${dichVu}` : ""}`}
+          download
+        >
+          <button type="button">Xuất Excel</button>
+        </a>
+      </p>
 
       {rows.length === 0 ? (
         <p className="empty">Không có thuê bao nào trong nhóm này.</p>
@@ -146,9 +152,8 @@ export async function ChiTietThang({
         </p>
       )}
       <p className="muted khoi-ghi-chu">
-        “Đang chạy” suy từ ngày kích hoạt và ngày ngừng thật: dịch vụ đã huỷ thì ngừng ở ngày
-        đến trước giữa ngày huỷ và ngày hết hạn. “Cước cuối” là tháng gần nhất có dòng cước —
-        thuê bao đang chạy mà cước cuối đã lâu là chỗ cần chốt huỷ hoặc xuất phiếu thu.
+        Thuê bao đang dùng mà chưa có phiếu thu: cần xuất phiếu thu, hoặc chốt huỷ nếu khách
+        đã ngừng. “Cước cuối” là tháng gần nhất có phiếu thu.
       </p>
     </NganKeo>
   );

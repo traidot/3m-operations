@@ -49,6 +49,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
   // Ngăn kéo: bấm dòng tháng thì mở danh sách thuê bao của tháng đó, bấm dòng
   // dịch vụ thì lọc sẵn theo dịch vụ.
+  // Tháng chưa tới thì "đang chạy" chỉ là trạng thái hôm nay, không so được.
+  const thangNay = new Date().toLocaleDateString("sv-SE").slice(0, 7);
   const moThang = /^\d{4}-\d{2}$/.test(mot(sp.thang)) ? mot(sp.thang) : "";
   const moTdv = dichVu.includes(mot(sp.tdv)) ? mot(sp.tdv) : "";
   const moNhom: Nhom = Object.hasOwn(NHOM, mot(sp.nhom)) ? (mot(sp.nhom) as Nhom) : "thieu";
@@ -62,11 +64,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Cước theo dịch vụ</h1>
       <p className="muted">
-        Cùng cách tính với bảng “Thống kê cước dịch vụ theo tháng” bên CMS, nhưng gom
-        theo dịch vụ thay vì theo khách. Kỳ lấy từ <b>dòng cước</b> chứ không phải ngày
-        trên hoá đơn — một hoá đơn năm rải đều ra 12 tháng. Tiền đã thu chia theo tỉ lệ
-        từng dòng trên tổng hoá đơn. Hoá đơn đã huỷ và phiếu hoàn tiền không tính.
-        Bấm một tháng hoặc một dịch vụ để xem từng thuê bao.
+        Cước wifi cầm tay theo tháng, chia theo dịch vụ. Tiền khớp báo cáo cước theo tháng
+        bên CMS. Bấm vào một tháng hoặc một dịch vụ để xem danh sách thuê bao.
       </p>
 
       <p className="actions">
@@ -104,7 +103,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-phu">{tyLe(hien) ?? "—"}%</div>
         </div>
         <div className="the-so">
-          <div className="the-ten">Dịch vụ chạy mà không ra cước</div>
+          <div className="the-ten">Đang dùng mà chưa có phiếu thu</div>
           <div className="the-gia-tri">{cong(hien, "chenh").toLocaleString("vi-VN")}</div>
           <div className="the-phu">lượt thuê bao · tháng</div>
         </div>
@@ -126,13 +125,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <thead>
               <tr>
                 <th>Tháng · dịch vụ</th>
-                <th className="num" title="Số thuê bao của dịch vụ đó còn chạy trong tháng, suy từ ngày kích hoạt và ngày ngừng. Dịch vụ đã huỷ thì ngừng ở ngày đến trước giữa ngày huỷ và ngày hết hạn — nguồn có đợt dọn dữ liệu ghi ngày huỷ là ngày dọn. Tháng đã qua vẫn là ước lượng vì nguồn không lưu lịch sử trạng thái.">
+                <th className="num" title="Số thuê bao còn dùng dịch vụ trong tháng. Tháng chưa tới thì để trống.">
                   Dịch vụ đang chạy
                 </th>
-                <th className="num" title="Số thuê bao của dịch vụ đó có phát sinh cước trong tháng">
+                <th className="num" title="Số thuê bao có phiếu thu cho tháng đó.">
                   Dịch vụ có cước
                 </th>
-                <th className="num" title="Đang chạy trừ có cước. Dương là chạy mà không ra cước; âm là ra cước cho thuê bao đã ngừng. Tháng chưa tới thì để trống.">
+                <th className="num" title="Đang chạy trừ có cước. Số dương: có thuê bao đang dùng mà chưa có phiếu thu. Số âm: có phiếu thu cho thuê bao đã ngừng.">
                   Chênh
                 </th>
                 <th className="num">Phải thu</th>
@@ -152,7 +151,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     dangMo={moThang === ky && !moTdv}
                   >
                     <td className="mono">{ky}</td>
-                    <td className="num mono">{cong(cua, "thue_bao_chay").toLocaleString("vi-VN")}</td>
+                    <td className="num mono">
+                      {ky > thangNay ? "—" : cong(cua, "thue_bao_chay").toLocaleString("vi-VN")}
+                    </td>
                     <td className="num mono">{cong(cua, "thue_bao_co_cuoc").toLocaleString("vi-VN")}</td>
                     <td className={`num mono${cong(cua, "chenh") > 0 ? " bad" : ""}`}>
                       {cua.every((r) => r.chenh === null)
@@ -187,7 +188,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       <td>
                         <span className="chip tat">{TEN_DICH_VU[r.dich_vu] ?? r.dich_vu}</span>
                       </td>
-                      <td className="num mono muted">{n(r.thue_bao_chay)}</td>
+                      <td className="num mono muted">
+                        {ky > thangNay ? "—" : n(r.thue_bao_chay)}
+                      </td>
                       <td className="num mono muted">{n(r.thue_bao_co_cuoc)}</td>
                       <td className={`num mono${Number(r.chenh) > 0 ? " bad" : " muted"}`}>
                         {n(r.chenh)}
@@ -213,9 +216,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       )}
 
       <p className="muted khoi-ghi-chu">
-        Tổng từng tháng khớp với báo cáo bên CMS. Khác biệt duy nhất: bảng này tách thêm
-        theo dịch vụ, và đếm cả thuê bao chứ không chỉ đếm khách — một khách dùng ba dịch
-        vụ sẽ được đếm một lần ở cột khách, ba lần ở cột thuê bao.
+        Phải thu, đã thu, chưa thu và không đòi được khớp từng tháng với báo cáo cước theo
+        tháng bên CMS. Hoá đơn đã huỷ và phiếu hoàn tiền không tính.
       </p>
       {moThang && (
         <ChiTietThang
