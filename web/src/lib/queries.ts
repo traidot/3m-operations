@@ -1151,3 +1151,34 @@ export const getThuCuocTomTat = () =>
             round(sum(tien))::text as tien
        from v_thu_cuoc group by 1, 2`,
   );
+
+export type ThangDichVu = {
+  ky: string;
+  dich_vu: string;
+  so_hoa_don: string;
+  so_thue_bao: string;
+  so_khach: string;
+  phai_thu: string | null;
+  da_thu: string | null;
+  con_doi: string | null;
+  mat_trang: string | null;
+  ty_le_thu: string | null;
+};
+
+/** Cước cầm tay theo tháng × dịch vụ, một năm một lượt. */
+export const getThangDichVu = (nam: string) =>
+  query<ThangDichVu>(
+    `select ky, dich_vu, so_hoa_don::text, so_thue_bao::text, so_khach::text,
+            phai_thu::text, da_thu::text, con_doi::text, mat_trang::text,
+            ty_le_thu::text
+       from v_telecom_month_service
+      where ky like $1 || '-%'
+      order by ky desc, phai_thu desc nulls last`,
+    [nam],
+  );
+
+/** Các năm có số liệu, để dựng ô chọn năm. */
+export const getNamCoSoLieu = () =>
+  query<{ nam: string }>(
+    `select distinct left(ky, 4) as nam from v_telecom_month_service order by 1 desc`,
+  );

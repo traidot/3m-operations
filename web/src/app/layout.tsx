@@ -24,6 +24,7 @@ const MENU: NhomMenu[] = [
     muc: [
       { ten: "Tổng quan", href: "/cam-tay" },
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
+      { ten: "Cước theo dịch vụ", href: "/cam-tay/dich-vu" },
       { ten: "Máy cho mượn", href: "/may-muon" },
     ],
   },
