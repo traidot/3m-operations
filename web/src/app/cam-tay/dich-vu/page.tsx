@@ -95,7 +95,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-phu">{tyLe(hien) ?? "—"}%</div>
         </div>
         <div className="the-so">
-          <div className="the-ten">Chạy mà không ra cước</div>
+          <div className="the-ten">Dịch vụ chạy mà không ra cước</div>
           <div className="the-gia-tri">{cong(hien, "chenh").toLocaleString("vi-VN")}</div>
           <div className="the-phu">lượt thuê bao · tháng</div>
         </div>
@@ -117,10 +117,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <thead>
               <tr>
                 <th>Tháng · dịch vụ</th>
-                <th className="num" title="Suy từ ngày kích hoạt và ngày ngừng hiện tại; tháng đã qua chỉ là ước lượng vì nguồn không lưu lịch sử trạng thái">
-                  Đang chạy
+                <th className="num" title="Số thuê bao của dịch vụ đó còn chạy trong tháng, suy từ ngày kích hoạt và ngày ngừng hiện tại; tháng đã qua chỉ là ước lượng vì nguồn không lưu lịch sử trạng thái">
+                  Dịch vụ đang chạy
                 </th>
-                <th className="num">Có cước</th>
+                <th className="num" title="Số thuê bao của dịch vụ đó có phát sinh cước trong tháng">
+                  Dịch vụ có cước
+                </th>
                 <th className="num" title="Đang chạy trừ có cước. Dương là chạy mà không ra cước; âm là ra cước cho thuê bao đã ngừng. Tháng chưa tới thì để trống.">
                   Chênh
                 </th>
