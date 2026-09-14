@@ -1,11 +1,12 @@
 import { NganKeo } from "../../ngan-keo";
 import Link from "next/link";
 import { Chip } from "../../chip";
-import { getCustomerSubs, getTelecomCustomer } from "@/lib/queries";
+import { getCustomerSubs, getLooseInvoices, getTelecomCustomer } from "@/lib/queries";
 import {
   CANH_BAO_TELECOM,
   CANH_BAO_TELECOM_NANG,
   DICH_VU,
+  HOA_DON,
   HOP_DONG,
 } from "@/lib/nhan";
 
@@ -29,7 +30,11 @@ export async function ChiTietKhach({
   dongLai: string;
   linkHoaDon: (subscriptionId: string) => string;
 }) {
-  const [kh, tb] = await Promise.all([getTelecomCustomer(id), getCustomerSubs(id)]);
+  const [kh, tb, le] = await Promise.all([
+    getTelecomCustomer(id),
+    getCustomerSubs(id),
+    getLooseInvoices(id),
+  ]);
 
   return (
     <NganKeo dongLai={dongLai}>
@@ -127,6 +132,66 @@ export async function ChiTietKhach({
               </tbody>
             </table>
           </div>
+
+          {le.length > 0 && (
+            <>
+              <h2>Hoá đơn không gắn thuê bao</h2>
+              <div className="scroller">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Kỳ</th>
+                      <th>Trạng thái</th>
+                      <th className="num">Tiền</th>
+                      <th className="num">Đã trả</th>
+                      <th className="num">Còn lại</th>
+                      <th>Hạn</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {le.map((h) => {
+                      const huy = h.trang_thai === "VOID";
+                      return (
+                        <tr key={h.invoice_id}>
+                          <td className="mono">
+                            {h.ky_tu?.slice(0, 7) ?? h.ngay_lap?.slice(0, 7) ?? "—"}
+                            {h.so_hoa_don && <div className="muted">{h.so_hoa_don}</div>}
+                          </td>
+                          <td>
+                            <Chip ma={h.trang_thai} nhan={HOA_DON} />
+                          </td>
+                          <td className="num mono">{n(h.tien)}</td>
+                          <td className="num mono">{n(h.da_tra)}</td>
+                          <td
+                            className={`num mono${!huy && Number(h.con_lai) > 0 ? " bad" : ""}`}
+                          >
+                            {huy ? "—" : n(h.con_lai)}
+                          </td>
+                          <td className="mono">
+                            <span className={h.qua_han && !huy ? "bad" : undefined}>
+                              {huy ? "—" : (h.han_tra ?? "—")}
+                            </span>
+                          </td>
+                          <td>
+                            {h.link_cms && (
+                              <a href={h.link_cms} target="_blank" rel="noreferrer">
+                                CMS ↗
+                              </a>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="muted khoi-ghi-chu">
+                Bên nguồn có hoá đơn chỉ ghi mã khách, không gắn thuê bao nào —
+                thường là khoản thu lẻ. Tiền vẫn cộng vào nợ của khách.
+              </p>
+            </>
+          )}
 
           {kh.link_cms && kh.link_cms.length > 0 && (
             <div className="actions">
