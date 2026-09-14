@@ -30,7 +30,7 @@ const SUBSCRIPTION_COLS = [
   "source_id", "source_customer_id", "service_type", "plan_name", "status",
   "monthly_price", "monthly_cost", "activated_on", "terminated_on", "anchor_day",
   "fee_start_on", "fee_end_on",
-  "device_ref", "sim_ref", "is_renewal", "cancel_timing", "cancel_reason",
+  "order_ref", "device_ref", "sim_ref", "is_renewal", "cancel_timing", "cancel_reason",
   "is_difficult_debt",
   "created_at_src", "updated_at_src", "created_by_src",
 ];
@@ -92,7 +92,7 @@ const NGUON: Nguon[] = [
       invoice: {
         table: "invoice_snapshot",
         cols: ["source_id", "source_customer_id", "subscription_source_id", "number",
-               "invoice_type", "issued_on", "due_on", "period_start", "period_end",
+               "invoice_type", "order_id", "issued_on", "due_on", "period_start", "period_end",
                "total_amount", "paid_amount", "status", "created_at_src",
                "created_by_src"],
       },

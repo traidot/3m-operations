@@ -649,6 +649,7 @@ export type TelecomSub = {
   ngay_khong_co_cuoc: string | null;
   canh_bao: string[];
   link_cms: string | null;
+  hoa_don_don_hang: string;
 };
 
 export type TelecomFilter = {
@@ -664,6 +665,7 @@ const COT_TELECOM = `subscription_id, khach, service_type, goi, trang_thai,
        so_hoa_don::text, hoa_don_dang_doi::text, con_no::text, hoa_don_mat::text,
        tien_mat::text, da_thu::text, ky_gan_nhat_den::text, ngay_qua_han::text,
        may_chua_tra::text, ngay_khong_co_cuoc::text, canh_bao,
+       hoa_don_don_hang::text,
        telecom_url('thue_bao', subscription_id) as link_cms`;
 
 function telecomWhere(f: TelecomFilter): { sql: string; params: unknown[] } {

@@ -72,7 +72,14 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
             <O ten="ngừng" gia_tri={tb.ngay_ngung ?? "—"} />
             <O ten="mã máy" gia_tri={tb.ma_may ?? "—"} />
             <O ten="kỳ gần nhất" gia_tri={tb.ky_gan_nhat_den ?? "—"} />
-            <O ten="hoá đơn" gia_tri={n(tb.so_hoa_don)} />
+            <O
+              ten="hoá đơn"
+              gia_tri={
+                Number(tb.hoa_don_don_hang) > 0
+                  ? `${n(tb.so_hoa_don)} · ${n(tb.hoa_don_don_hang)} qua đơn hàng`
+                  : n(tb.so_hoa_don)
+              }
+            />
             <O ten="đã thu" gia_tri={n(tb.da_thu)} />
             <O ten="còn nợ">
               <span className={Number(tb.con_no) > 0 ? "bad" : undefined}>{n(tb.con_no)}</span>
@@ -202,6 +209,9 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
           )}
           <p className="muted khoi-ghi-chu">
             “Không đòi được” là hoá đơn bên hệ thống gốc đã đánh dấu bỏ, tiền coi như mất.
+            Gói trả trước như SIM năm thu một lần qua đơn hàng — hoá đơn đó gắn vào đơn
+            chứ không vào thuê bao nên không nằm trong bảng dưới, nhưng vẫn được tính là
+            đã có chứng cứ thu tiền.
             Hạn trả là ngày kỳ cước bắt đầu — phiếu thu xuất mùng 5 và 15 cho tháng sau,
             qua mùng 1 của tháng dùng mà chưa thu được là quá hạn.
           </p>

@@ -137,7 +137,7 @@ export const DICH_VU: Record<string, string> = {
 export const CANH_BAO_TELECOM: Record<string, string> = {
   NO_QUA_HAN: "nợ quá hạn",
   KHONG_DOI_DUOC: "có hoá đơn mất trắng",
-  THIEU_HOA_DON: "đang chạy mà không có hoá đơn",
+  THIEU_HOA_DON: "lâu không có hoá đơn",
   THIEU_GIA: "thiếu giá gói",
   MAY_CHUA_TRA: "máy chưa thu hồi",
 };
