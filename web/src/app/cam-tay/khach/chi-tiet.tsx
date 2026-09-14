@@ -8,6 +8,7 @@ import {
   DICH_VU,
   HOA_DON,
   HOP_DONG,
+  LOAI_HOA_DON,
 } from "@/lib/nhan";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
@@ -75,6 +76,9 @@ export async function ChiTietKhach({
             <O ten="mất trắng">
               <span className={Number(kh.tien_mat) > 0 ? "bad" : undefined}>{n(kh.tien_mat)}</span>
             </O>
+            {Number(kh.phai_hoan) > 0 && (
+              <O ten="phải hoàn khách" gia_tri={n(kh.phai_hoan)} />
+            )}
             <O ten="quá hạn" gia_tri={`${n(kh.ngay_qua_han)} ngày`} />
             <O ten="máy chưa trả" gia_tri={n(kh.may_chua_tra)} />
             <O ten="kỳ gần nhất" gia_tri={kh.ky_gan_nhat_den?.slice(0, 7) ?? "—"} />
@@ -141,6 +145,7 @@ export async function ChiTietKhach({
                   <thead>
                     <tr>
                       <th>Kỳ</th>
+                      <th>Loại</th>
                       <th>Trạng thái</th>
                       <th className="num">Tiền</th>
                       <th className="num">Đã trả</th>
@@ -157,6 +162,9 @@ export async function ChiTietKhach({
                           <td className="mono">
                             {h.ky_tu?.slice(0, 7) ?? h.ngay_lap?.slice(0, 7) ?? "—"}
                             {h.so_hoa_don && <div className="muted">{h.so_hoa_don}</div>}
+                          </td>
+                          <td className="muted">
+                            {LOAI_HOA_DON[h.loai ?? ""] ?? h.loai ?? "—"}
                           </td>
                           <td>
                             <Chip ma={h.trang_thai} nhan={HOA_DON} />

@@ -149,6 +149,14 @@ export const CANH_BAO_TELECOM_NANG = new Set([
   "THIEU_HOA_DON",
 ]);
 
+/** Loại hoá đơn bên nguồn cầm tay. REFUND mang số âm: 3M nợ khách. */
+export const LOAI_HOA_DON: Record<string, string> = {
+  SUBSCRIPTION: "cước tháng",
+  ORDER: "đơn hàng",
+  OTHER: "thu khác",
+  REFUND: "hoàn tiền",
+};
+
 export const HOA_DON: Record<string, string> = {
   PAID: "đã thu",
   ISSUED: "đang đòi",

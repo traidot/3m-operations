@@ -735,6 +735,7 @@ export type TelecomInvoice = {
   kenh_thu: string | null;
   qua_han: boolean;
   link_cms: string | null;
+  loai: string | null;
 };
 
 /**
@@ -745,7 +746,7 @@ export const getLooseInvoices = (partyId: string) =>
   query<TelecomInvoice>(
     `select invoice_id, so_hoa_don, ngay_lap::text, han_tra::text, ky_tu::text,
             ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai,
-            kenh_thu, qua_han, link_cms
+            kenh_thu, qua_han, link_cms, loai
        from v_telecom_invoice
       where party_id = $1::uuid and subscription_id is null
       order by han_tra desc nulls last`,
@@ -756,7 +757,7 @@ export const getTelecomInvoices = (id: string) =>
   query<TelecomInvoice>(
     `select invoice_id, so_hoa_don, ngay_lap::text, han_tra::text, ky_tu::text,
             ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai,
-            kenh_thu, qua_han, link_cms
+            kenh_thu, qua_han, link_cms, loai
        from v_telecom_invoice where subscription_id = $1
       order by coalesce(ky_tu, ngay_lap) desc`,
     [id],
@@ -835,6 +836,7 @@ export type TelecomCustomer = {
   canh_bao: string[];
   chua_toi_han: string;
   link_cms: string[] | null;
+  phai_hoan: string;
 };
 
 export type CustomerFilter = {
@@ -850,7 +852,7 @@ const COT_KHACH = `party_id::text, khach, ma_khach, dien_thoai, loai_khach,
        nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
        may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao,
-       chua_toi_han::text, link_cms`;
+       chua_toi_han::text, link_cms, phai_hoan::text`;
 
 function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
   const dieu: string[] = [];
@@ -1065,3 +1067,85 @@ export const countDeposits = async (nhom: string) => {
   );
   return { so: Number(row?.n ?? 0), tien: row?.tien ?? "0" };
 };
+
+export type CanHuy = {
+  nguon: string;
+  id: string;
+  ma: string | null;
+  khach: string | null;
+  dich_vu: string | null;
+  goi: string | null;
+  gia_thang: string | null;
+  con_no: string;
+  coc_cho_duyet: string;
+  so_ky_no: string | null;
+  ky_no_cu_nhat: string | null;
+  ngay_qua_han: string | null;
+  kho_doi: boolean;
+  link_cms: string | null;
+};
+
+/**
+ * Dịch vụ đang chạy đã quá hạn thu cước, xếp cái treo lâu nhất lên đầu — đó là
+ * thứ tự cần cân nhắc cắt.
+ */
+export const getCanHuy = (nguon?: string) =>
+  query<CanHuy>(
+    `select nguon::text, id, ma, khach, dich_vu, goi, gia_thang::text,
+            con_no::text, coc_cho_duyet::text, so_ky_no::text, ky_no_cu_nhat,
+            ngay_qua_han::text, kho_doi, link_cms
+       from v_xem_xet_huy
+      ${nguon ? "where nguon = $1::source_system" : ""}
+      order by ngay_qua_han desc nulls last, con_no desc`,
+    nguon ? [nguon] : [],
+  );
+
+export type KhoanThu = {
+  nguon: string;
+  id: string;
+  ma: string | null;
+  khach: string | null;
+  dich_vu: string | null;
+  ky: string | null;
+  tien: string | null;
+  coc_cho_duyet: string;
+  han_tra: string | null;
+  qua_han: boolean;
+  ngay_le: string | null;
+  so_hoa_don: string | null;
+  tinh_trang: string | null;
+  loai_hoa_don: string | null;
+  kho_doi: boolean;
+  link_cms: string | null;
+};
+
+/**
+ * Từng khoản còn phải thu. Xếp theo hạn tăng dần — quá hạn lâu nhất lên đầu,
+ * rồi mới tới cái sắp đến hạn. Đó là thứ tự đi thu.
+ */
+export const getKhoanThu = (nguon?: string, chi_qua_han?: boolean) => {
+  const dieu: string[] = [];
+  const params: unknown[] = [];
+  if (nguon) {
+    params.push(nguon);
+    dieu.push(`nguon = $${params.length}::source_system`);
+  }
+  if (chi_qua_han) dieu.push("qua_han");
+  return query<KhoanThu>(
+    `select nguon::text, id, ma, khach, dich_vu, ky, tien::text,
+            coc_cho_duyet::text, han_tra::text, qua_han, ngay_le::text,
+            so_hoa_don, tinh_trang, loai_hoa_don, kho_doi, link_cms
+       from v_thu_cuoc
+      ${dieu.length ? `where ${dieu.join(" and ")}` : ""}
+      order by han_tra, tien desc
+      limit 500`,
+    params,
+  );
+};
+
+export const getThuCuocTomTat = () =>
+  query<{ nguon: string; qua_han: boolean; so_khoan: string; tien: string }>(
+    `select nguon::text, qua_han, count(*)::text as so_khoan,
+            round(sum(tien))::text as tien
+       from v_thu_cuoc group by 1, 2`,
+  );

@@ -10,11 +10,20 @@ export const metadata: Metadata = {
 /** Menu gom theo mảng kinh doanh, không phải theo thứ tự dựng trang. */
 const MENU: NhomMenu[] = [
   {
+    // Hai danh sách việc phải làm, gom riêng: chúng cắt ngang cả hai mảng chứ
+    // không thuộc mảng nào.
+    nhom: "Cần xử lý",
+    muc: [
+      { ten: "Thu cước", href: "/thu-cuoc" },
+      { ten: "Dự kiến huỷ", href: "/xem-xet-huy" },
+      { ten: "Cọc", href: "/cam-tay/coc" },
+    ],
+  },
+  {
     nhom: "Wifi cầm tay",
     muc: [
       { ten: "Tổng quan", href: "/cam-tay" },
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
-      { ten: "Cọc cần xử lý", href: "/cam-tay/coc" },
       { ten: "Máy cho mượn", href: "/may-muon" },
     ],
   },

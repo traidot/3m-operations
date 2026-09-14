@@ -78,6 +78,7 @@ export const INVOICE = `
     i."customerId"::text                         as source_customer_id,
     i."subscriptionId"::text                     as subscription_source_id,
     i.code                                       as number,
+    i."invoiceType"::text                        as invoice_type,
     coalesce(i."invoiceDate", i."createdAt"::date) as issued_on,
     coalesce(i."expiredDate", i."invoiceDate", i."createdAt"::date) as due_on,
     b.tu                                         as period_start,

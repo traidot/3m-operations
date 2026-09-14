@@ -1,0 +1,169 @@
+import Link from "next/link";
+import { getKhoanThu, getThuCuocTomTat } from "@/lib/queries";
+import { DICH_VU, KY_CUOC } from "@/lib/nhan";
+
+export const dynamic = "force-dynamic";
+
+const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
+
+type Tham = Record<string, string | string[] | undefined>;
+const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+
+const NGUON: Record<string, string> = {
+  FIXED: "wifi cố định",
+  TELECOM: "wifi cầm tay",
+};
+
+const LOAI_HOA_DON: Record<string, string> = {
+  SUBSCRIPTION: "cước tháng",
+  ORDER: "đơn hàng",
+  OTHER: "thu khác",
+};
+
+function duongDan(nguon: string, id: string): string {
+  return nguon === "FIXED"
+    ? `/hop-dong?xem=${encodeURIComponent(id)}`
+    : `/cam-tay/thue-bao?xem=${encodeURIComponent(id)}`;
+}
+
+export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+  const sp = await searchParams;
+  const nguon = mot(sp.nguon) in NGUON ? mot(sp.nguon) : "";
+  const chiQuaHan = mot(sp.qh) === "1";
+
+  const [rows, tomTat] = await Promise.all([
+    getKhoanThu(nguon || undefined, chiQuaHan),
+    getThuCuocTomTat(),
+  ]);
+
+  const cong = (loc: (t: (typeof tomTat)[number]) => boolean) =>
+    tomTat.filter(loc).reduce(
+      (s, t) => ({ khoan: s.khoan + Number(t.so_khoan), tien: s.tien + Number(t.tien) }),
+      { khoan: 0, tien: 0 },
+    );
+  const hop = (v: { khoan: number; tien: number }) =>
+    `${v.khoan.toLocaleString("vi-VN")} khoản · ${v.tien.toLocaleString("vi-VN")} yên`;
+
+  const link = (t: Record<string, string | undefined>) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(t)) if (v) p.set(k, v);
+    const duoi = p.toString();
+    return duoi ? `/thu-cuoc?${duoi}` : "/thu-cuoc";
+  };
+
+  return (
+    <main>
+      <h1>Thu cước hàng tháng</h1>
+      <p className="muted">
+        Từng khoản còn phải thu của cả hai mảng, xếp theo hạn — cái quá hạn lâu nhất lên
+        đầu, rồi tới cái sắp tới hạn. Hạn của wifi cầm tay là mùng 1 của tháng dùng, của
+        wifi cố định là mùng 10 của tháng kế tiếp kỳ. Hoàn tiền cho khách không nằm ở đây
+        vì đó là khoản 3M phải trả, không phải khoản đi thu.
+      </p>
+
+      <div className="the-hang">
+        <div className="the-so">
+          <div className="the-ten">Quá hạn</div>
+          <div className="the-gia-tri">{cong((t) => t.qua_han).tien.toLocaleString("vi-VN")}</div>
+          <div className="the-phu">{hop(cong((t) => t.qua_han))}</div>
+        </div>
+        <div className="the-so">
+          <div className="the-ten">Chưa tới hạn</div>
+          <div className="the-gia-tri">{cong((t) => !t.qua_han).tien.toLocaleString("vi-VN")}</div>
+          <div className="the-phu">{hop(cong((t) => !t.qua_han))}</div>
+        </div>
+        <div className="the-so">
+          <div className="the-ten">Wifi cố định</div>
+          <div className="the-gia-tri">{cong((t) => t.nguon === "FIXED").tien.toLocaleString("vi-VN")}</div>
+          <div className="the-phu">{hop(cong((t) => t.nguon === "FIXED"))}</div>
+        </div>
+        <div className="the-so">
+          <div className="the-ten">Wifi cầm tay</div>
+          <div className="the-gia-tri">{cong((t) => t.nguon === "TELECOM").tien.toLocaleString("vi-VN")}</div>
+          <div className="the-phu">{hop(cong((t) => t.nguon === "TELECOM"))}</div>
+        </div>
+      </div>
+
+      <p className="actions">
+        <Link href={link({ qh: chiQuaHan ? "1" : undefined })}>
+          <button type="button" className={nguon === "" ? "primary" : undefined}>Cả hai mảng</button>
+        </Link>
+        {Object.entries(NGUON).map(([ma, ten]) => (
+          <Link key={ma} href={link({ nguon: ma, qh: chiQuaHan ? "1" : undefined })}>
+            <button type="button" className={nguon === ma ? "primary" : undefined}>{ten}</button>
+          </Link>
+        ))}
+        <Link href={link({ nguon: nguon || undefined, qh: chiQuaHan ? undefined : "1" })}>
+          <button type="button" className={chiQuaHan ? "primary" : undefined}>
+            {chiQuaHan ? "✓ chỉ quá hạn" : "chỉ quá hạn"}
+          </button>
+        </Link>
+      </p>
+
+      {rows.length === 0 ? (
+        <p className="empty">Không có khoản nào phải thu.</p>
+      ) : (
+        <div className="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>Mảng</th>
+                <th>Mã</th>
+                <th>Khách · địa chỉ</th>
+                <th>Kỳ</th>
+                <th>Loại</th>
+                <th className="num">Tiền</th>
+                <th>Hạn</th>
+                <th className="num">Trễ</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={`${r.nguon}-${r.so_hoa_don ?? r.id}-${r.ky}`}>
+                  <td>
+                    <span className={`chip ${r.nguon === "FIXED" ? "cam" : "ctv"}`}>
+                      {NGUON[r.nguon] ?? r.nguon}
+                    </span>
+                  </td>
+                  <td className="mono">
+                    <Link href={duongDan(r.nguon, r.id)}>{r.ma ?? r.id}</Link>
+                    {r.so_hoa_don && <div className="muted">{r.so_hoa_don}</div>}
+                  </td>
+                  <td>
+                    {r.khach ?? "—"}
+                    {r.kho_doi && <span className="tag critical"> khó đòi</span>}
+                  </td>
+                  <td className="mono">{r.ky ?? "—"}</td>
+                  <td className="muted">
+                    {r.loai_hoa_don
+                      ? (LOAI_HOA_DON[r.loai_hoa_don] ?? r.loai_hoa_don)
+                      : r.tinh_trang && r.tinh_trang !== "NO"
+                        ? (KY_CUOC[r.tinh_trang] ?? r.tinh_trang)
+                        : (DICH_VU[r.dich_vu ?? ""] ?? "—")}
+                  </td>
+                  <td className={`num mono${r.qua_han ? " bad" : ""}`}>{n(r.tien)}</td>
+                  <td className="mono">{r.han_tra ?? "—"}</td>
+                  <td className={`num mono${r.qua_han ? " bad" : ""}`}>
+                    {r.qua_han ? `${n(r.ngay_le)} ngày` : "—"}
+                  </td>
+                  <td>
+                    {r.link_cms && (
+                      <a href={r.link_cms} target="_blank" rel="noreferrer">CMS ↗</a>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <p className="muted khoi-ghi-chu">
+        “Chờ duyệt” và “chỉ ghi chú” bên wifi cố định là kỳ chưa ai chốt là thu hay miễn —
+        vẫn nằm trong danh sách vì tiền chưa vào. Bảng cắt ở 500 dòng; lọc theo mảng hoặc
+        “chỉ quá hạn” để thu hẹp.
+      </p>
+    </main>
+  );
+}

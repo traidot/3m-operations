@@ -92,8 +92,9 @@ const NGUON: Nguon[] = [
       invoice: {
         table: "invoice_snapshot",
         cols: ["source_id", "source_customer_id", "subscription_source_id", "number",
-               "issued_on", "due_on", "period_start", "period_end", "total_amount",
-               "paid_amount", "status", "created_at_src", "created_by_src"],
+               "invoice_type", "issued_on", "due_on", "period_start", "period_end",
+               "total_amount", "paid_amount", "status", "created_at_src",
+               "created_by_src"],
       },
       payment: {
         table: "payment_snapshot",
