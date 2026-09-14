@@ -111,10 +111,15 @@ const NGUON: Nguon[] = [
         cols: ["source_id", "subscription_source_id", "imei", "started_on", "ended_on",
                "created_at_src"],
       },
+      fee_line: {
+        table: "fee_line_snapshot",
+        cols: ["source_id", "kind", "invoice_source_id", "subscription_source_id",
+               "nam", "thang", "amount", "start_on", "end_on"],
+      },
       staff: { table: "staff_snapshot", cols: STAFF_COLS },
     },
     thu_tu: ["staff", "customer", "subscription", "invoice", "payment", "device",
-             "subscription_device"],
+             "subscription_device", "fee_line"],
   },
 ];
 

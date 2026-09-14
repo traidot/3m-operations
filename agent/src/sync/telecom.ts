@@ -177,6 +177,50 @@ export const STAFF = `
   where u."deletedAt" is null
 `;
 
+/**
+ * Dòng cước từng tháng. Một hoá đơn năm được tách thành 12 dòng, và nguồn giữ
+ * hai loại ở hai bảng: invoice_item cho hoá đơn cước, subscription_billing cho
+ * hoá đơn đơn hàng. Báo cáo "Thống kê cước dịch vụ theo tháng" của CMS gộp
+ * đúng hai bảng này — gom theo ngày trên hoá đơn sẽ ra số khác.
+ *
+ * Tiền tố II:/SB: để khoá chính không đụng nhau giữa hai bảng nguồn.
+ */
+export const FEE_LINE = `
+  select
+    'II:' || ii.id                                          as source_id,
+    'SUBSCRIPTION'                                          as kind,
+    ii."invoiceId"::text                                    as invoice_source_id,
+    coalesce(ii."subscriptionId", i."subscriptionId")::text  as subscription_source_id,
+    ii.year                                                 as nam,
+    ii.month                                                as thang,
+    ii.amount                                               as amount,
+    ii."startDate"                                          as start_on,
+    ii."endDate"                                            as end_on
+  from invoice_item ii
+  join invoice i on i.id = ii."invoiceId" and i."deletedAt" is null
+  where ii."deletedAt" is null
+    and ii."invoiceItemType" = 'SUBSCRIPTION'
+    and i."invoiceType" = 'SUBSCRIPTION'
+    and ii.year is not null and ii.month between 1 and 12
+  union all
+  select
+    'SB:' || sb.id,
+    'ORDER',
+    sb."invoiceId"::text,
+    sb."subscriptionId"::text,
+    sb.year,
+    sb.month,
+    sb.amount,
+    sb."startDate",
+    sb."endDate"
+  from subscription_billing sb
+  join invoice i on i.id = sb."invoiceId" and i."deletedAt" is null
+  where sb."deletedAt" is null
+    and coalesce(sb."isRefund", false) = false
+    and i."invoiceType" = 'ORDER'
+    and sb.year is not null and sb.month between 1 and 12
+`;
+
 export const QUERIES = {
   staff: STAFF,
   customer: CUSTOMER,
@@ -185,4 +229,5 @@ export const QUERIES = {
   payment: PAYMENT,
   device: DEVICE,
   subscription_device: SUBSCRIPTION_DEVICE,
+  fee_line: FEE_LINE,
 } as const;

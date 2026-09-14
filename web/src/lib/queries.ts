@@ -1155,22 +1155,24 @@ export const getThuCuocTomTat = () =>
 export type ThangDichVu = {
   ky: string;
   dich_vu: string;
-  so_hoa_don: string;
+  so_dong: string;
   so_thue_bao: string;
   so_khach: string;
   phai_thu: string | null;
   da_thu: string | null;
-  con_doi: string | null;
-  mat_trang: string | null;
+  chua_thu: string | null;
+  khong_doi_duoc: string | null;
+  khach_da_thu: string;
+  khach_chua_thu: string;
   ty_le_thu: string | null;
 };
 
 /** Cước cầm tay theo tháng × dịch vụ, một năm một lượt. */
 export const getThangDichVu = (nam: string) =>
   query<ThangDichVu>(
-    `select ky, dich_vu, so_hoa_don::text, so_thue_bao::text, so_khach::text,
-            phai_thu::text, da_thu::text, con_doi::text, mat_trang::text,
-            ty_le_thu::text
+    `select ky, dich_vu, so_dong::text, so_thue_bao::text, so_khach::text,
+            phai_thu::text, da_thu::text, chua_thu::text, khong_doi_duoc::text,
+            khach_da_thu::text, khach_chua_thu::text, ty_le_thu::text
        from v_telecom_month_service
       where ky like $1 || '-%'
       order by ky desc, phai_thu desc nulls last`,

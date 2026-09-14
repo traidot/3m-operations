@@ -22,9 +22,14 @@ const cong = (rows: ThangDichVu[], cot: keyof ThangDichVu) =>
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const cacNam = await getNamCoSoLieu();
+  // Mặc định là năm nay chứ không phải năm mới nhất có số liệu: nguồn đã sinh
+  // sẵn dòng cước cho 2027, mở trang ra thấy một bảng gần như trống.
+  const namNay = String(new Date().getFullYear());
   const nam = cacNam.some((x) => x.nam === mot(sp.nam))
     ? mot(sp.nam)
-    : (cacNam[0]?.nam ?? String(new Date().getFullYear()));
+    : cacNam.some((x) => x.nam === namNay)
+      ? namNay
+      : (cacNam[0]?.nam ?? namNay);
   const rows = await getThangDichVu(nam);
 
   const dichVu = [...new Set(rows.map((r) => r.dich_vu))];
@@ -49,10 +54,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Cước theo dịch vụ</h1>
       <p className="muted">
-        Cước wifi cầm tay gom theo tháng và theo dịch vụ. Kỳ lấy theo tháng bắt đầu của
-        kỳ cước, hoá đơn không có kỳ thì lấy ngày lập. Hoá đơn không gắn thuê bao xếp
-        riêng thành “đơn hàng” và “thu khác” chứ không trộn vào gói nào. Hoá đơn đã huỷ
-        và phiếu hoàn tiền không tính.
+        Cùng cách tính với bảng “Thống kê cước dịch vụ theo tháng” bên CMS, nhưng gom
+        theo dịch vụ thay vì theo khách. Kỳ lấy từ <b>dòng cước</b> chứ không phải ngày
+        trên hoá đơn — một hoá đơn năm rải đều ra 12 tháng. Tiền đã thu chia theo tỉ lệ
+        từng dòng trên tổng hoá đơn. Hoá đơn đã huỷ và phiếu hoàn tiền không tính.
       </p>
 
       <p className="actions">
@@ -90,12 +95,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-phu">{tyLe(hien) ?? "—"}%</div>
         </div>
         <div className="the-so">
-          <div className="the-ten">Còn đòi</div>
-          <div className="the-gia-tri">{cong(hien, "con_doi").toLocaleString("vi-VN")}</div>
+          <div className="the-ten">Chưa thu</div>
+          <div className="the-gia-tri">{cong(hien, "chua_thu").toLocaleString("vi-VN")}</div>
         </div>
         <div className="the-so">
-          <div className="the-ten">Mất trắng</div>
-          <div className="the-gia-tri">{cong(hien, "mat_trang").toLocaleString("vi-VN")}</div>
+          <div className="the-ten">Không đòi được</div>
+          <div className="the-gia-tri">{cong(hien, "khong_doi_duoc").toLocaleString("vi-VN")}</div>
         </div>
       </div>
 
@@ -108,11 +113,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <tr>
                 <th>Tháng · dịch vụ</th>
                 <th className="num">Thuê bao</th>
-                <th className="num">Hoá đơn</th>
+                <th className="num">Dòng cước</th>
                 <th className="num">Phải thu</th>
                 <th className="num">Đã thu</th>
-                <th className="num">Còn đòi</th>
-                <th className="num">Mất trắng</th>
+                <th className="num">Chưa thu</th>
+                <th className="num">Không đòi được</th>
                 <th>Tỉ lệ thu</th>
               </tr>
             </thead>
@@ -124,11 +129,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <tr>
                     <td className="mono">{ky}</td>
                     <td className="num mono">{cong(cua, "so_thue_bao").toLocaleString("vi-VN")}</td>
-                    <td className="num mono">{cong(cua, "so_hoa_don").toLocaleString("vi-VN")}</td>
+                    <td className="num mono">{cong(cua, "so_dong").toLocaleString("vi-VN")}</td>
                     <td className="num mono">{cong(cua, "phai_thu").toLocaleString("vi-VN")}</td>
                     <td className="num mono">{cong(cua, "da_thu").toLocaleString("vi-VN")}</td>
-                    <td className="num mono">{cong(cua, "con_doi").toLocaleString("vi-VN")}</td>
-                    <td className="num mono">{cong(cua, "mat_trang").toLocaleString("vi-VN")}</td>
+                    <td className="num mono">{cong(cua, "chua_thu").toLocaleString("vi-VN")}</td>
+                    <td className="num mono">{cong(cua, "khong_doi_duoc").toLocaleString("vi-VN")}</td>
                     <td>
                       {ty === null ? (
                         <span className="muted">—</span>
@@ -149,14 +154,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                         <span className="chip tat">{TEN_DICH_VU[r.dich_vu] ?? r.dich_vu}</span>
                       </td>
                       <td className="num mono muted">{n(r.so_thue_bao)}</td>
-                      <td className="num mono muted">{n(r.so_hoa_don)}</td>
+                      <td className="num mono muted">{n(r.so_dong)}</td>
                       <td className="num mono muted">{n(r.phai_thu)}</td>
                       <td className="num mono muted">{n(r.da_thu)}</td>
-                      <td className={`num mono${Number(r.con_doi) > 0 ? " bad" : " muted"}`}>
-                        {n(r.con_doi)}
+                      <td className={`num mono${Number(r.chua_thu) > 0 ? " bad" : " muted"}`}>
+                        {n(r.chua_thu)}
                       </td>
-                      <td className={`num mono${Number(r.mat_trang) > 0 ? " bad" : " muted"}`}>
-                        {n(r.mat_trang)}
+                      <td className={`num mono${Number(r.khong_doi_duoc) > 0 ? " bad" : " muted"}`}>
+                        {n(r.khong_doi_duoc)}
                       </td>
                       <td className="mono muted">
                         {r.ty_le_thu === null ? "—" : `${r.ty_le_thu}%`}
@@ -171,10 +176,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       )}
 
       <p className="muted khoi-ghi-chu">
-        Số liệu không khớp bảng “Thống kê cước dịch vụ theo tháng” bên CMS: cột “không
-        thanh toán” khớp từng tháng, nhưng “tổng phải thu” bên CMS thấp hơn vì nó lọc bớt
-        một số loại hoá đơn theo cách chưa rõ. Bảng này tính hết, chỉ trừ hoá đơn đã huỷ
-        và phiếu hoàn tiền.
+        Tổng từng tháng khớp với báo cáo bên CMS. Khác biệt duy nhất: bảng này tách thêm
+        theo dịch vụ, và đếm cả thuê bao chứ không chỉ đếm khách — một khách dùng ba dịch
+        vụ sẽ được đếm một lần ở cột khách, ba lần ở cột thuê bao.
       </p>
     </main>
   );
