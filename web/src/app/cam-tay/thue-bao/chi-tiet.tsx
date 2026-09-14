@@ -160,7 +160,10 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                   </tr>
                 </thead>
                 <tbody>
-                  {hd.map((h) => (
+                  {hd.map((h) => {
+                    const huy = h.trang_thai === "VOID";
+                    const con_lai_that = huy ? 0 : Number(h.con_lai);
+                    return (
                     <tr key={h.invoice_id}>
                       <td className="mono">
                         {h.ky_tu ? `${h.ky_tu.slice(0, 7)}` : (h.ngay_lap?.slice(0, 7) ?? "—")}
@@ -171,12 +174,15 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                       </td>
                       <td className="num mono">{n(h.tien)}</td>
                       <td className="num mono">{n(h.da_tra)}</td>
-                      <td className={`num mono${Number(h.con_lai) > 0 ? " bad" : ""}`}>
-                        {n(h.con_lai)}
+                      {/* Hoá đơn đã thu hồi thì "tiền − đã trả" không còn là
+                          khoản phải đòi; mọi con số tổng đã loại nó rồi, để số
+                          ở đây là tự mâu thuẫn với dòng "còn nợ" bên trên. */}
+                      <td className={`num mono${con_lai_that > 0 ? " bad" : ""}`}>
+                        {huy ? "—" : n(h.con_lai)}
                       </td>
                       <td className="mono">
-                        <span className={h.qua_han && Number(h.con_lai) > 0 ? "bad" : undefined}>
-                          {h.han_tra ?? "—"}
+                        <span className={h.qua_han && con_lai_that > 0 ? "bad" : undefined}>
+                          {huy ? "—" : (h.han_tra ?? "—")}
                         </span>
                         {h.kenh_thu && <div className="muted">{h.kenh_thu}</div>}
                       </td>
@@ -188,7 +194,8 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                         )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
