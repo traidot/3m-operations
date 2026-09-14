@@ -813,6 +813,7 @@ export type TelecomCustomer = {
   ngay_qua_han: string;
   ky_gan_nhat_den: string | null;
   canh_bao: string[];
+  chua_toi_han: string;
 };
 
 export type CustomerFilter = {
@@ -827,7 +828,8 @@ export type CustomerFilter = {
 const COT_KHACH = `party_id::text, khach, ma_khach, dien_thoai, loai_khach,
        nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
-       may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao`;
+       may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao,
+       chua_toi_han::text`;
 
 function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
   const dieu: string[] = [];

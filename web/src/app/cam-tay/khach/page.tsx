@@ -166,6 +166,7 @@ function dichVu(
       <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>
         {n(s.con_no)}
       </td>
+      <td />
       <td className={`num mono${Number(s.tien_mat) > 0 ? " bad" : ""}`}>
         {n(s.tien_mat)}
       </td>
@@ -178,7 +179,7 @@ function dichVu(
   return [
     ...dong,
     <tr key={`${kh.party_id}-them`} className="sub">
-      <td colSpan={9}>
+      <td colSpan={10}>
         <Link href={link({ xem: kh.party_id })} scroll={false}>
           còn {con.toLocaleString("vi-VN")} dịch vụ nữa — xem tất cả →
         </Link>
@@ -243,8 +244,11 @@ export default async function Page({
       <p className="muted">
         Mỗi khách một dòng, các dịch vụ của khách nằm ngay dưới kèm trạng thái.
         Một khách có thể dùng nhiều dịch vụ cùng lúc nên nợ cộng theo người,
-        không theo thuê bao. Tìm được cả theo mã máy. Có party là tài khoản CTV
-        hoặc đại lý giữ hàng trăm thuê bao — lọc “từ 2 thuê bao” để thấy.
+        không theo thuê bao — kể cả hoá đơn không gắn thuê bao nào. Tìm được cả
+        theo mã khách và mã máy. Có party là tài khoản CTV hoặc đại lý giữ hàng
+        trăm thuê bao — lọc “từ 2 thuê bao” để thấy. Phiếu thu xuất mùng 5 và 15
+        cho tháng sau; qua mùng 1 của tháng dùng mà chưa thu được thì vào cột
+        “nợ quá hạn” và tới mức xem xét huỷ dịch vụ.
       </p>
 
       <form method="get">
@@ -306,7 +310,8 @@ export default async function Page({
                 <th className="num">Thuê bao</th>
                 <th className="num">Đang chạy</th>
                 <th className="num">Đã thu</th>
-                <th className="num">Còn nợ</th>
+                <th className="num">Nợ quá hạn</th>
+                <th className="num">Chưa tới hạn</th>
                 <th className="num">Mất trắng</th>
                 <th
                   className="num"
@@ -360,6 +365,9 @@ export default async function Page({
                     className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}
                   >
                     {n(r.con_no)}
+                  </td>
+                  <td className="num mono">
+                    {Number(r.chua_toi_han) > 0 ? n(r.chua_toi_han) : "—"}
                   </td>
                   <td
                     className={`num mono${Number(r.tien_mat) > 0 ? " bad" : ""}`}
