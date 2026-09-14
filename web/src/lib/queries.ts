@@ -75,7 +75,7 @@ export const getLoans = () =>
             l.note, l.entered_by,
             greatest(current_date - l.due_on, 0) as ngay_qua_han
        from loan_record l
-      order by (l.returned_on is not null), l.due_on`,
+      order by (l.returned_on is not null), l.issued_on desc`,
   );
 
 export type MonthlyBilling = {
@@ -468,7 +468,7 @@ export const getContractPeriods = (id: string) =>
   query<ContractPeriod>(
     `select ky, phai_thu::text, trang_thai, ngoai_ky_tinh, tien::text,
             thu_luc::text, kenh, nguoi_nhap
-       from v_fixed_contract_period where subscription_id = $1 order by ky`,
+       from v_fixed_contract_period where subscription_id = $1 order by ky desc`,
     [id],
   );
 
