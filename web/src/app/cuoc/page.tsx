@@ -8,6 +8,7 @@ import {
   getMonthlyTotal,
   getPendingPeriods,
   type FixedThangChay,
+  type MonthlyBilling,
   type MonthlyByStatus,
 } from "@/lib/queries";
 import { HOP_DONG, LAP_DAT } from "@/lib/nhan";
@@ -71,30 +72,41 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         Ghép theo kỳ cước, không theo ngày thu — tiền một kỳ có thể được thu ở tháng khác.
         Cột “công ty” là hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng —
         chênh với “có kỳ cước” là phần không ra được kỳ nào. Hợp đồng của đại lý để riêng vì
-        đại lý tự thu. Bấm vào một tháng để xem danh sách hợp đồng.
+        đại lý tự thu. Cột “đã huỷ” là hợp đồng đã huỷ nhưng kỳ cước tháng đó vẫn còn hiệu lực,
+        nên tiền còn thiếu ở cột đó khó đòi hơn. Bấm vào một tháng để xem danh sách hợp đồng.
       </p>
       <div className="scroller">
         <table className="bang-thang">
           <thead>
             <tr>
-              <th>Kỳ</th>
-              <th className="num" title="Hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng đó">
+              <th rowSpan={2}>Kỳ</th>
+              <th className="num" rowSpan={2} title="Hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng đó">
                 Công ty
               </th>
-              <th className="num" title="Hợp đồng do đại lý mở — đại lý tự thu nên không đặt giá cước bên nguồn">
+              <th className="num" rowSpan={2} title="Hợp đồng do đại lý mở — đại lý tự thu nên không đặt giá cước bên nguồn">
                 Đại lý
               </th>
-              <th className="num" title="Hợp đồng có dòng trong sổ cước của tháng đó">
-                Có kỳ cước
-              </th>
-              <th className="num" title="Trong nhóm công ty, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
+              <th className="num" rowSpan={2} title="Trong nhóm công ty, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
                 Thiếu giá
               </th>
-              <th className="num">Phải thu</th>
-              <th className="num">Miễn phí</th>
-              <th className="num">Đã thu</th>
-              <th className="num">Còn thiếu</th>
-              <th>Tỉ lệ thu</th>
+              <th colSpan={2} className="nhom" title="Hợp đồng có dòng trong sổ cước của tháng đó">
+                Có kỳ cước
+              </th>
+              <th className="num" rowSpan={2}>Phải thu</th>
+              <th className="num" rowSpan={2}>Miễn phí</th>
+              <th className="num" rowSpan={2}>Đã thu</th>
+              <th colSpan={2} className="nhom">Còn thiếu</th>
+              <th rowSpan={2}>Tỉ lệ thu</th>
+            </tr>
+            <tr>
+              <th className="num">Đang chạy</th>
+              <th className="num" title="Hợp đồng đã huỷ nhưng kỳ cước tháng đó vẫn còn hiệu lực">
+                Đã huỷ
+              </th>
+              <th className="num">Đang chạy</th>
+              <th className="num" title="Tiền còn thiếu nằm trên hợp đồng đã huỷ — khó đòi hơn">
+                Đã huỷ
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -203,55 +215,45 @@ function TableRows({
   href,
   dangMo,
 }: {
-  row: MonthlyByStatus | any;
+  row: MonthlyBilling;
   chiTiet: MonthlyByStatus[];
   chay: FixedThangChay | undefined;
   href: string;
   dangMo: boolean;
 }) {
   const ty = row.ty_le_thu === null ? null : Number(row.ty_le_thu);
+  // Sổ cước chỉ có đúng hai trạng thái, nên tách thành cột chứ không đẻ dòng con.
+  const theo = (ma: string) => chiTiet.find((c) => c.trang_thai === ma) ?? null;
+  const chay_ = theo("ACTIVE");
+  const huy = theo("TERMINATED");
 
   return (
-    <>
-      <Dong href={href} dangMo={dangMo}>
-        <td className="mono">{row.ky}</td>
-        <td className="num mono">{chay ? n(chay.cong_ty) : "—"}</td>
-        <td className="num mono muted">{chay ? n(chay.dai_ly) : "—"}</td>
-        <td className="num mono">{n(row.so_hop_dong)}</td>
-        <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
-          {chay ? n(chay.thieu_gia_cuoc) : "—"}
-        </td>
-        <td className="num mono">{n(row.phai_thu)}</td>
-        <td className="num mono muted">{n(row.tien_mien_phi)}</td>
-        <td className="num mono">{n(row.da_thu)}</td>
-        <td className="num mono">{n(row.con_thieu)}</td>
-        <td>
-          {ty === null ? (
-            <span className="muted">—</span>
-          ) : (
-            <span className="bar">
-              <span className="bar-fill" style={{ width: `${Math.min(ty, 100)}%` }} />
-              <span className="bar-label mono">{ty}%</span>
-            </span>
-          )}
-        </td>
-      </Dong>
-      {chiTiet.length > 1 &&
-        chiTiet.map((c) => (
-          <tr key={`${c.ky}-${c.trang_thai}`} className="sub">
-            {/* Trạng thái bên nguồn viết bằng mã, dịch ra cho dễ đọc. */}
-            <td className="mono muted">{HOP_DONG[c.trang_thai] ?? c.trang_thai}</td>
-            <td />
-            <td />
-            <td className="num mono muted">{n(c.so_hop_dong)}</td>
-            <td />
-            <td className="num mono muted">{n(c.phai_thu)}</td>
-            <td className="num mono muted">{n(c.tien_mien_phi)}</td>
-            <td className="num mono muted">{n(c.da_thu)}</td>
-            <td className="num mono muted">{n(c.con_thieu)}</td>
-            <td className="mono muted">{c.ty_le_thu === null ? "—" : `${c.ty_le_thu}%`}</td>
-          </tr>
-        ))}
-    </>
+    <Dong href={href} dangMo={dangMo}>
+      <td className="mono">{row.ky}</td>
+      <td className="num mono">{chay ? n(chay.cong_ty) : "—"}</td>
+      <td className="num mono muted">{chay ? n(chay.dai_ly) : "—"}</td>
+      <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
+        {chay ? n(chay.thieu_gia_cuoc) : "—"}
+      </td>
+      <td className="num mono">{chay_ ? n(chay_.so_hop_dong) : "—"}</td>
+      <td className="num mono muted">{huy ? n(huy.so_hop_dong) : "—"}</td>
+      <td className="num mono">{n(row.phai_thu)}</td>
+      <td className="num mono muted">{n(row.tien_mien_phi)}</td>
+      <td className="num mono">{n(row.da_thu)}</td>
+      <td className="num mono">{chay_ ? n(chay_.con_thieu) : "—"}</td>
+      <td className={`num mono${Number(huy?.con_thieu ?? 0) > 0 ? " bad" : " muted"}`}>
+        {huy ? n(huy.con_thieu) : "—"}
+      </td>
+      <td>
+        {ty === null ? (
+          <span className="muted">—</span>
+        ) : (
+          <span className="bar">
+            <span className="bar-fill" style={{ width: `${Math.min(ty, 100)}%` }} />
+            <span className="bar-label mono">{ty}%</span>
+          </span>
+        )}
+      </td>
+    </Dong>
   );
 }
