@@ -332,6 +332,7 @@ export type Contract = {
   coc_cho_duyet: string;
   so_phieu_coc_cho: string;
   con_no_sau_coc: string;
+  do_cong_ty: boolean;
 };
 
 export type ContractFilter = {
@@ -345,6 +346,7 @@ export type ContractFilter = {
   thangKy?: string;
   thangHuy?: string;
   lyDoHuy?: string;
+  phuTrach?: string;
   trang?: number;
 };
 
@@ -357,7 +359,8 @@ const COT_HOP_DONG = `subscription_id, contract_code, dia_chi, trang_thai_hop_do
        ky_cho_duyet::text, ky_ghi_chu::text, ky_ngoai::text,
        tinh_trang_cuoc, canh_bao,
        so_ky_chua_den_han::text, tien_chua_den_han::text,
-       coc_cho_duyet::text, so_phieu_coc_cho::text, con_no_sau_coc::text`;
+       coc_cho_duyet::text, so_phieu_coc_cho::text, con_no_sau_coc::text,
+       do_cong_ty`;
 
 export const CONTRACTS_PER_PAGE = 50;
 
@@ -381,6 +384,10 @@ function contractWhere(f: ContractFilter): { sql: string; params: unknown[] } {
   if (f.cuoc) {
     params.push(f.cuoc);
     dieu.push(`tinh_trang_cuoc = $${params.length}`);
+  }
+  // Công ty phụ trách hay đại lý tự thu — suy từ người tạo, xem fixed_company_staff.
+  if (f.phuTrach === "CONG_TY" || f.phuTrach === "DAI_LY") {
+    dieu.push(f.phuTrach === "CONG_TY" ? "do_cong_ty" : "not do_cong_ty");
   }
   // "CO" là có bất kỳ cảnh báo nào, còn lại là lọc đúng một loại.
   if (f.canhBao === "CO") {

@@ -18,6 +18,7 @@ import {
   KY_CUOC,
   LAP_DAT,
   LY_DO_HUY,
+  PHU_TRACH,
   TINH_TRANG_CUOC,
 } from "@/lib/nhan";
 
@@ -69,6 +70,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     thangKy: mot(sp.thang_ky),
     thangHuy: mot(sp.thang_huy),
     lyDoHuy: mot(sp.ly_do),
+    phuTrach: mot(sp.pt),
     trang: Math.max(1, Number(mot(sp.trang)) || 1),
   };
 
@@ -91,6 +93,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     if (loc.thangKy) p.set("thang_ky", loc.thangKy);
     if (loc.thangHuy) p.set("thang_huy", loc.thangHuy);
     if (loc.lyDoHuy) p.set("ly_do", loc.lyDoHuy);
+    if (loc.phuTrach) p.set("pt", loc.phuTrach);
     if (trang > 1) p.set("trang", String(trang));
     for (const [k, v] of Object.entries(doi)) {
       if (v === undefined) p.delete(k);
@@ -128,6 +131,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </label>
           <Chon ten="hd" nhan="Trạng thái hợp đồng" chon={loc.hopDong!} lua={HOP_DONG} />
           <Chon ten="lap" nhan="Lắp đặt" chon={loc.lapDat!} lua={LAP_DAT} />
+          <Chon ten="pt" nhan="Phụ trách" chon={loc.phuTrach!} lua={PHU_TRACH} />
           <Chon ten="cuoc" nhan="Tình trạng cước" chon={loc.cuoc!} lua={TINH_TRANG_CUOC} />
           <Chon ten="ly_do" nhan="Lý do huỷ" chon={loc.lyDoHuy!} lua={LY_DO_HUY} />
           <Chon
@@ -202,6 +206,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     <Link href={link({ xem: r.subscription_id })} scroll={false}>
                       {r.contract_code ?? "—"}
                     </Link>
+                    <div>
+                      <span className={`chip ${r.do_cong_ty ? "ctv" : "tat"}`}>
+                        {r.do_cong_ty ? "công ty" : "đại lý"}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     {r.dia_chi ?? "—"}

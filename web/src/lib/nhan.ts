@@ -90,6 +90,12 @@ export const MAU_TRANG_THAI: Record<string, string> = {
   CHUA_LAP: "tat",
 };
 
+/** Hợp đồng wifi cố định: công ty thu cước, hay đại lý tự thu. */
+export const PHU_TRACH: Record<string, string> = {
+  CONG_TY: "công ty",
+  DAI_LY: "đại lý",
+};
+
 export const LY_DO_HUY: Record<string, string> = {
   KHONG_LIEN_LAC: "không liên lạc được",
   NHA_MANG_TU_CHOI: "nhà mạng không cung cấp",

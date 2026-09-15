@@ -116,6 +116,11 @@ export async function ChiTiet({
                 KHONG_SINH_KY.has(hd.tinh_trang_cuoc) ? "—" : n(hd.so_ky)
               }
             />
+            <O ten="phụ trách">
+              <span className={`chip ${hd.do_cong_ty ? "ctv" : "tat"}`}>
+                {hd.do_cong_ty ? "công ty" : "đại lý"}
+              </span>
+            </O>
             <O ten="đã thu" gia_tri={n(hd.tong_da_thu)} />
             <O ten="nợ quá hạn" gia_tri={n(hd.con_no)} />
             {Number(hd.coc_cho_duyet) > 0 && (
