@@ -228,6 +228,9 @@ summary:hover { color: var(--ok); }
 .ngan-keo h1 { margin-top: 24px; }
 .ngan-keo h2:first-of-type { margin-top: 20px; }
 tr.dang-mo { background: var(--surface-2); }
+/* Bảng tháng ở trang Cước: dòng tháng bấm được, dòng trạng thái bên dưới thì không. */
+.bang-thang tbody > tr:not(.sub) { cursor: pointer; }
+.bang-thang tbody > tr:not(.sub):hover { background: var(--surface); }
 
 /* Dải 12 kỳ cước của năm hiện tại trên mỗi dòng hợp đồng. */
 /* width: max-content để dải không xuống dòng khi cột địa chỉ bị bóp. */

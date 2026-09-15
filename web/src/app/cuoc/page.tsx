@@ -1,9 +1,13 @@
+import { Dong } from "../hop-dong/dong";
+import { ChiTietThangCoDinh, NHOM_CD, type NhomCd } from "./chi-tiet";
 import {
   getArrears,
+  getFixedThangChay,
   getCoverage,
   getMonthlyByStatus,
   getMonthlyTotal,
   getPendingPeriods,
+  type FixedThangChay,
   type MonthlyByStatus,
 } from "@/lib/queries";
 import { HOP_DONG, LAP_DAT } from "@/lib/nhan";
@@ -13,14 +17,31 @@ export const dynamic = "force-dynamic";
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
 
-export default async function Page() {
-  const [total, byStatus, [coverage], arrears, pending] = await Promise.all([
+type Tham = Record<string, string | string[] | undefined>;
+const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+
+export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+  const sp = await searchParams;
+  const [total, byStatus, [coverage], arrears, pending, chay] = await Promise.all([
     getMonthlyTotal(),
     getMonthlyByStatus(),
     getCoverage(),
     getArrears(),
     getPendingPeriods(),
+    getFixedThangChay(),
   ]);
+
+  const theoThang = new Map(chay.map((c) => [c.ky, c]));
+  const moThang = /^\d{4}-\d{2}$/.test(mot(sp.thang)) ? mot(sp.thang) : "";
+  const moNhom: NhomCd = Object.hasOwn(NHOM_CD, mot(sp.nhom))
+    ? (mot(sp.nhom) as NhomCd)
+    : "chua_ky";
+  const link = (t: Record<string, string | undefined>) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(t)) if (v) p.set(k, v);
+    const duoi = p.toString();
+    return duoi ? `/cuoc?${duoi}` : "/cuoc";
+  };
 
   const theoKy = new Map<string, MonthlyByStatus[]>();
   for (const r of byStatus) {
@@ -46,13 +67,23 @@ export default async function Page() {
       <h2>Theo tháng</h2>
       <p className="muted">
         Ghép theo kỳ cước, không theo ngày thu — tiền một kỳ có thể được thu ở tháng khác.
+        “Đang chạy” là hợp đồng đã lắp xong và chưa huỷ trong tháng đó; chênh với “có kỳ cước”
+        là phần không ra được kỳ nào. Bấm vào một tháng để xem danh sách hợp đồng.
       </p>
       <div className="scroller">
-        <table>
+        <table className="bang-thang">
           <thead>
             <tr>
               <th>Kỳ</th>
-              <th className="num">Hợp đồng</th>
+              <th className="num" title="Hợp đồng đã lắp xong trước hết tháng và chưa huỷ trước đầu tháng">
+                Đang chạy
+              </th>
+              <th className="num" title="Hợp đồng có dòng trong sổ cước của tháng đó">
+                Có kỳ cước
+              </th>
+              <th className="num" title="Trong số đang chạy, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
+                Thiếu giá
+              </th>
               <th className="num">Phải thu</th>
               <th className="num">Miễn phí</th>
               <th className="num">Đã thu</th>
@@ -62,7 +93,14 @@ export default async function Page() {
           </thead>
           <tbody>
             {total.map((r) => (
-              <TableRows key={r.ky} row={r} chiTiet={theoKy.get(r.ky) ?? []} />
+              <TableRows
+                key={r.ky}
+                row={r}
+                chiTiet={theoKy.get(r.ky) ?? []}
+                chay={theoThang.get(r.ky)}
+                href={link({ thang: r.ky })}
+                dangMo={moThang === r.ky}
+              />
             ))}
           </tbody>
         </table>
@@ -140,18 +178,42 @@ export default async function Page() {
           </table>
         </div>
       )}
+      {moThang && (
+        <ChiTietThangCoDinh
+          ky={moThang}
+          nhom={moNhom}
+          dongLai={link({})}
+          linkNhom={(k) => link({ thang: moThang, nhom: k })}
+        />
+      )}
     </main>
   );
 }
 
-function TableRows({ row, chiTiet }: { row: MonthlyByStatus | any; chiTiet: MonthlyByStatus[] }) {
+function TableRows({
+  row,
+  chiTiet,
+  chay,
+  href,
+  dangMo,
+}: {
+  row: MonthlyByStatus | any;
+  chiTiet: MonthlyByStatus[];
+  chay: FixedThangChay | undefined;
+  href: string;
+  dangMo: boolean;
+}) {
   const ty = row.ty_le_thu === null ? null : Number(row.ty_le_thu);
 
   return (
     <>
-      <tr>
+      <Dong href={href} dangMo={dangMo}>
         <td className="mono">{row.ky}</td>
+        <td className="num mono">{chay ? n(chay.da_lap_chua_huy) : "—"}</td>
         <td className="num mono">{n(row.so_hop_dong)}</td>
+        <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
+          {chay ? n(chay.thieu_gia_cuoc) : "—"}
+        </td>
         <td className="num mono">{n(row.phai_thu)}</td>
         <td className="num mono muted">{n(row.tien_mien_phi)}</td>
         <td className="num mono">{n(row.da_thu)}</td>
@@ -166,12 +228,14 @@ function TableRows({ row, chiTiet }: { row: MonthlyByStatus | any; chiTiet: Mont
             </span>
           )}
         </td>
-      </tr>
+      </Dong>
       {chiTiet.length > 1 &&
         chiTiet.map((c) => (
           <tr key={`${c.ky}-${c.trang_thai}`} className="sub">
             <td className="mono muted">{c.trang_thai}</td>
+            <td />
             <td className="num mono muted">{n(c.so_hop_dong)}</td>
+            <td />
             <td className="num mono muted">{n(c.phai_thu)}</td>
             <td className="num mono muted">{n(c.tien_mien_phi)}</td>
             <td className="num mono muted">{n(c.da_thu)}</td>

@@ -1223,3 +1223,49 @@ export const getThueBaoThang = (ky: string, dichVu?: string) =>
       order by (dang_chay <> co_cuoc) desc, cuoc_cuoi nulls first, khach`,
     dichVu ? [ky, dichVu] : [ky],
   );
+
+export type FixedThangChay = {
+  ky: string;
+  da_lap_chua_huy: string;
+  thieu_gia_cuoc: string;
+  co_ky_cuoc: string;
+  chenh: string;
+};
+
+/** Hợp đồng wifi cố định đang chạy từng tháng, so với số có kỳ cước trong sổ. */
+export const getFixedThangChay = () =>
+  query<FixedThangChay>(
+    `select ky, da_lap_chua_huy::text, thieu_gia_cuoc::text, co_ky_cuoc::text, chenh::text
+       from v_fixed_month_chay order by ky desc`,
+  );
+
+export type HopDongThang = {
+  subscription_id: string;
+  ma_hop_dong: string | null;
+  dia_chi: string | null;
+  trang_thai_hop_dong: string;
+  ngay_lap_xong: string | null;
+  ngay_huy: string | null;
+  cuoc_thang: string | null;
+  bat_dau_thu: string | null;
+  dang_chay: boolean;
+  co_ky_cuoc: boolean;
+  thieu_gia: boolean;
+  trang_thai_ky: string | null;
+  phai_thu: string | null;
+  da_thu: string | null;
+  kho_doi: boolean;
+  link_cms: string | null;
+};
+
+/** Hợp đồng của một tháng: đang chạy, có kỳ cước, hoặc cả hai. Lệch lên đầu. */
+export const getHopDongThang = (ky: string) =>
+  query<HopDongThang>(
+    `select subscription_id, ma_hop_dong, dia_chi, trang_thai_hop_dong,
+            ngay_lap_xong::text, ngay_huy::text, cuoc_thang::text, bat_dau_thu::text,
+            dang_chay, co_ky_cuoc, thieu_gia, trang_thai_ky, phai_thu::text,
+            da_thu::text, kho_doi, link_cms
+       from fixed_month_contracts($1)
+      order by (dang_chay <> co_ky_cuoc) desc, thieu_gia desc, ma_hop_dong`,
+    [ky],
+  );
