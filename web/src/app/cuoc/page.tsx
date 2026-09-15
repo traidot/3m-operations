@@ -148,7 +148,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num" title="Hợp đồng đã huỷ nhưng kỳ cước tháng đó vẫn còn hiệu lực">
                 Đã huỷ
               </th>
-              <th className="num" title="Hợp đồng công ty có dòng THU TIỀN THẬT trong sổ cước bên CMS (đã duyệt, không miễn phí). Đây là bên độc lập duy nhất — dấu ⚠ nghĩa là sổ thu tiền ở kỳ mà luật tính của mình bảo lẽ ra không có.">
+              <th className="num" title="Hợp đồng công ty có dòng THU TIỀN THẬT trong sổ cước bên CMS (đã duyệt, không miễn phí). Đây là bên độc lập duy nhất. Số sau dấu ⚠ là số kỳ đã thu nằm ngoài khoảng thu của hợp đồng, đếm thẳng từ danh sách Thu ngoài hợp đồng.">
                 Sổ CMS
               </th>
               <th className="num" title="Đã có phiếu thu, chưa ai duyệt — tiền cầm rồi, thiếu chữ ký">
@@ -302,8 +302,8 @@ function TableRows({
         className={`num mono${ngoai > 0 ? " bad" : ""}`}
         title={
           ngoai > 0
-            ? `${ngoai} hợp đồng có kỳ trong sổ CMS mà luật tính của mình bảo lẽ ra không có`
-            : "Không có kỳ nào nằm ngoài luật tính"
+            ? `${ngoai} kỳ đã thu nằm ngoài khoảng thu của hợp đồng — xem danh sách Thu ngoài hợp đồng`
+            : "Không có kỳ nào thu ngoài khoảng hợp đồng"
         }
       >
         {chay ? n(chay.so_cms) : "—"}
