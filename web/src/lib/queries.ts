@@ -1402,3 +1402,32 @@ export const getInstallPendingList = (nhom: string) =>
       order by so_ngay_cho desc, ma_hop_dong`,
     [nhom],
   );
+
+export type ThuNgoaiHopDong = {
+  subscription_id: string;
+  ma_hop_dong: string | null;
+  dia_chi: string | null;
+  do_cong_ty: boolean;
+  ky: string;
+  tien: string;
+  ngay_thu: string | null;
+  kenh: string | null;
+  nguoi_nhap: string | null;
+  fee_start_on: string | null;
+  fee_end_on: string | null;
+  ngay_lap_xong: string | null;
+  ngay_huy: string | null;
+  trang_thai_hop_dong: string;
+  tinh_huong: string | null;
+  link_cms: string | null;
+};
+
+/** Kỳ đã thu tiền mà nằm ngoài khoảng thu của hợp đồng — xem db/103. */
+export const getThuNgoaiHopDong = () =>
+  query<ThuNgoaiHopDong>(
+    `select subscription_id, ma_hop_dong, dia_chi, do_cong_ty, ky, tien::text,
+            ngay_thu::text, kenh, nguoi_nhap, fee_start_on::text, fee_end_on::text,
+            ngay_lap_xong::text, ngay_huy::text, trang_thai_hop_dong, tinh_huong, link_cms
+       from v_fixed_thu_ngoai_hop_dong
+      order by tien desc, ma_hop_dong, ky`,
+  );

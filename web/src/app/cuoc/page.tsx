@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Dong } from "../hop-dong/dong";
 import { ChiTietThangCoDinh, NHOM_CD, type NhomCd } from "./chi-tiet";
 import {
@@ -83,8 +84,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <p className="stale">
           ⚠ Sổ cước bên CMS thu tiền ở kỳ mà luật của mình bảo lẽ ra không có, ở{" "}
           {ngoaiKy.length} tháng: {ngoaiKy.map((l) => `${l.ky} (${l.so})`).join(", ")}. Hầu
-          hết là hợp đồng đã qua ngày kết thúc thu ghi trên hợp đồng mà vẫn thu tiếp — bấm
-          vào tháng để xem từng cái.
+          hết là hợp đồng đã qua ngày kết thúc thu mà vẫn thu tiếp —{" "}
+          <Link href="/thu-ngoai">xem danh sách từng kỳ</Link>.
         </p>
       ) : (
         <p className="khop">
