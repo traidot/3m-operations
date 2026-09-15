@@ -245,7 +245,6 @@ export const THU_NGOAI: Record<string, string> = {
   THU_TRUOC_LAP: "thu trước khi lắp xong",
   THU_TRUOC_KY: "thu trước ngày bắt đầu thu",
   CHUA_DAT_COC: "hợp đồng chưa đặt cước",
-  DAI_LY: "hợp đồng của đại lý",
 };
 
 /** Hai cái này là tiền sai chỗ phải xử lý, còn lại là dữ liệu cần dọn. */
@@ -257,5 +256,4 @@ export const THU_NGOAI_CACH_XU_LY: Record<string, string> = {
   THU_TRUOC_LAP: "Thu cho tháng máy chưa về nhà khách.",
   THU_TRUOC_KY: "Thu trước ngày bắt đầu thu ghi trên hợp đồng.",
   CHUA_DAT_COC: "Hợp đồng chưa điền giá hoặc ngày bắt đầu thu nên không có khoảng nào để đối chiếu.",
-  DAI_LY: "Đại lý tự thu, mình không quản cước của họ.",
 };

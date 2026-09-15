@@ -48,7 +48,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         Kỳ đã thu tiền thật nhưng rơi ra ngoài khoảng thu ghi trên hợp đồng — đối chiếu giữa sổ
         cước bên CMS và ngày bắt đầu thu, ngày kết thúc thu, ngày lắp xong, ngày huỷ của chính
         hợp đồng đó. Khách trả trước cho tháng tương lai <b>không</b> nằm ở đây: kỳ đó vẫn trong
-        khoảng hợp đồng, chỉ là xa hơn mốc sinh kỳ của mình.
+        khoảng hợp đồng, chỉ là xa hơn mốc sinh kỳ của mình. Hợp đồng của đại lý cũng không:
+        đại lý tự thu nên mình không quản cước của họ.
       </p>
 
       {ky && (
