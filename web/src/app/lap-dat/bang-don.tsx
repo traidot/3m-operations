@@ -6,9 +6,13 @@ import { LY_DO_HUY, TINH_HUONG_LAP } from "@/lib/nhan";
 export const TOI_DA_DON = 500;
 
 const MAU: Record<string, string> = {
-  DA_LAP: "ok",
-  CHO_LAP: "cho",
+  LAP_XONG: "ok",
+  CO_LICH: "cho",
+  CHUA_CO_LICH: "cam",
 };
+
+/** Đơn chưa lắp mới cần đếm ngày chờ; đơn đã xong hay đã huỷ thì số ngày là lịch sử. */
+const CHUA_LAP = new Set(["CO_LICH", "CHUA_CO_LICH"]);
 
 /** Bảng đơn lắp, dùng chung cho ngăn kéo theo tháng ký và ngăn kéo đang chờ lắp. */
 export function BangDon({ rows }: { rows: InstallOrder[] }) {
@@ -24,6 +28,7 @@ export function BangDon({ rows }: { rows: InstallOrder[] }) {
               <th>Địa chỉ</th>
               <th>Tình huống</th>
               <th>Ngày ký</th>
+              <th>Lịch lắp</th>
               <th>Lắp xong</th>
               <th className="num">Số ngày</th>
               <th>Lý do huỷ</th>
@@ -55,10 +60,11 @@ export function BangDon({ rows }: { rows: InstallOrder[] }) {
                   </div>
                 </td>
                 <td className="mono">{r.ngay_ky ?? "—"}</td>
+                <td className="mono muted">{r.ngay_hen ?? "—"}</td>
                 <td className="mono">{r.ngay_lap_xong ?? "—"}</td>
                 <td
                   className={`num mono${
-                    r.tinh_huong === "CHO_LAP" && Number(r.so_ngay_cho) > 60 ? " bad" : ""
+                    CHUA_LAP.has(r.tinh_huong) && Number(r.so_ngay_cho) > 60 ? " bad" : ""
                   }`}
                 >
                   {r.so_ngay_cho ?? "—"}

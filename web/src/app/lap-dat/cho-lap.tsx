@@ -2,19 +2,14 @@ import { NganKeo } from "../ngan-keo";
 import { BangDon } from "./bang-don";
 import { getInstallPendingList } from "@/lib/queries";
 
-export const NHAN_CHO: Record<string, string> = {
-  "1": "dưới 1 tuần",
-  "2": "1–4 tuần",
-  "3": "1–2 tháng",
-  "4": "quá 2 tháng",
-};
-
 export async function ChiTietChoLap({
   nhom,
+  tenNhom,
   phuTrach,
   dongLai,
 }: {
   nhom: string;
+  tenNhom: string;
   /** "CONG_TY" | "DAI_LY" | "" — lọc của cả trang, áp luôn cho danh sách. */
   phuTrach: string;
   dongLai: string;
@@ -22,13 +17,15 @@ export async function ChiTietChoLap({
   const tatCa = await getInstallPendingList(nhom);
   const rows =
     phuTrach === "" ? tatCa : tatCa.filter((r) => r.do_cong_ty === (phuTrach === "CONG_TY"));
+  const chuaLich = rows.filter((r) => r.tinh_huong === "CHUA_CO_LICH").length;
 
   return (
     <NganKeo dongLai={dongLai}>
-      <h1>Đang chờ lắp · {NHAN_CHO[nhom] ?? nhom}</h1>
+      <h1>Đang chờ lắp · {tenNhom}</h1>
       <p className="muted">
-        {rows.length.toLocaleString("vi-VN")} đơn đã ký, đã qua khảo sát, chưa lắp xong và chưa
-        huỷ. Xếp đơn chờ lâu nhất lên đầu.
+        {rows.length.toLocaleString("vi-VN")} đơn đã ký, chưa lắp xong và chưa huỷ, trong đó{" "}
+        {chuaLich.toLocaleString("vi-VN")} đơn chưa hẹn được ngày lắp. Xếp đơn chờ lâu nhất lên
+        đầu.
       </p>
 
       <p className="actions">

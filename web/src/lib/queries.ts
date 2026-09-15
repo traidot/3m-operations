@@ -1298,36 +1298,47 @@ export const getHopDongThang = (ky: string) =>
 export type InstallMonth = {
   ky_ky: string;
   do_cong_ty: boolean;
+  dang_ky_lan_dau: string;
+  dang_ky_lai: string;
   so_don: string;
+  huy_truoc_lich: string;
+  huy_sau_lich: string;
+  huy_sau_lap: string;
+  huy: string;
+  con_lai: string;
+  co_lich: string;
+  chua_co_lich: string;
   lap_xong: string;
-  cho_lap: string;
-  huy_truoc_lap: string;
   lap_hong: string;
-  lap_roi_huy: string;
-  ty_le_lap: string | null;
   ngay_trung_vi: string | null;
 };
 
 /** Đơn wifi cố định gom theo tháng ký — xem v_fixed_install_month. */
 export const getInstallMonths = () =>
   query<InstallMonth>(
-    `select ky_ky, do_cong_ty, so_don::text, lap_xong::text, cho_lap::text,
-            huy_truoc_lap::text, lap_hong::text, lap_roi_huy::text,
-            ty_le_lap::text, round(ngay_trung_vi)::text as ngay_trung_vi
+    `select ky_ky, do_cong_ty, dang_ky_lan_dau::text, dang_ky_lai::text, so_don::text,
+            huy_truoc_lich::text, huy_sau_lich::text, huy_sau_lap::text, huy::text,
+            con_lai::text, co_lich::text, chua_co_lich::text,
+            lap_xong::text, lap_hong::text,
+            round(ngay_trung_vi)::text as ngay_trung_vi
        from v_fixed_install_month order by ky_ky desc`,
   );
 
 export type InstallPending = {
   do_cong_ty: boolean;
-  nhom_cho: string;
+  co_lich: boolean;
+  ma_nhom: string;
+  ten_nhom: string;
   so_don: string;
   ky_som_nhat: string | null;
 };
 
 export const getInstallPending = () =>
   query<InstallPending>(
-    `select do_cong_ty, nhom_cho, so_don::text, ky_som_nhat::text
-       from v_fixed_install_pending order by nhom_cho`,
+    `select do_cong_ty, co_lich, ma_nhom,
+            fixed_install_ten_nhom(ma_nhom) as ten_nhom,
+            so_don::text, ky_som_nhat::text
+       from v_fixed_install_pending order by ma_nhom`,
   );
 
 export type InstallOrder = {
@@ -1339,6 +1350,7 @@ export type InstallOrder = {
   trang_thai_lap_dat: string | null;
   trang_thai_hop_dong: string;
   ngay_ky: string | null;
+  ngay_hen: string | null;
   ngay_lap_xong: string | null;
   ngay_huy: string | null;
   so_ngay_cho: string | null;
@@ -1352,11 +1364,12 @@ export type InstallOrder = {
 export const getInstallCohort = (ky: string) =>
   query<InstallOrder>(
     `select subscription_id, ma_hop_dong, dia_chi, do_cong_ty, nguoi_tao,
-            trang_thai_lap_dat, trang_thai_hop_dong, ngay_ky::text,
+            trang_thai_lap_dat, trang_thai_hop_dong, ngay_ky::text, ngay_hen::text,
             ngay_lap_xong::text, ngay_huy::text, so_ngay_cho::text,
             ly_do_huy, nhom_ly_do_huy, tinh_huong, link_cms
        from fixed_install_cohort($1)
-      order by (tinh_huong = 'CHO_LAP') desc, so_ngay_cho desc, ma_hop_dong`,
+      order by (tinh_huong in ('CO_LICH', 'CHUA_CO_LICH')) desc,
+               so_ngay_cho desc, ma_hop_dong`,
     [ky],
   );
 
@@ -1364,7 +1377,7 @@ export const getInstallCohort = (ky: string) =>
 export const getInstallPendingList = (nhom: string) =>
   query<InstallOrder>(
     `select subscription_id, ma_hop_dong, dia_chi, do_cong_ty, nguoi_tao,
-            trang_thai_lap_dat, trang_thai_hop_dong, ngay_ky::text,
+            trang_thai_lap_dat, trang_thai_hop_dong, ngay_ky::text, ngay_hen::text,
             ngay_lap_xong::text, ngay_huy::text, so_ngay_cho::text,
             ly_do_huy, nhom_ly_do_huy, tinh_huong, link_cms
        from fixed_install_pending_list($1)

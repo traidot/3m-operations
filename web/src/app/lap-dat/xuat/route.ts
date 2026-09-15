@@ -8,8 +8,8 @@ export async function GET(request: NextRequest) {
   const thang = request.nextUrl.searchParams.get("thang") ?? "";
   const cho = request.nextUrl.searchParams.get("cho") ?? "";
   // Hai kiểu danh sách: theo tháng ký, hoặc theo nhóm thời gian đang chờ.
-  if (!thang && !["1", "2", "3", "4"].includes(cho)) {
-    return new Response("Cần tham số thang=YYYY-MM hoặc cho=1..4", { status: 400 });
+  if (!thang && !/^\d{2}$/.test(cho)) {
+    return new Response("Cần tham số thang=YYYY-MM hoặc cho=NN", { status: 400 });
   }
   if (thang && !/^\d{4}-\d{2}$/.test(thang)) {
     return new Response("Tháng phải có dạng YYYY-MM", { status: 400 });
@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     { header: "Phụ trách", key: "phu_trach", width: 10 },
     { header: "Người tạo", key: "nguoi_tao", width: 18 },
     { header: "Ngày ký", key: "ngay_ky", width: 12 },
+    { header: "Lịch lắp", key: "ngay_hen", width: 12 },
     { header: "Lắp xong", key: "lap_xong", width: 12 },
     { header: "Số ngày", key: "so_ngay", width: 9, style: { numFmt: "#,##0" } },
     { header: "Trạng thái lắp", key: "lap_dat", width: 12 },
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
       phu_trach: r.do_cong_ty ? "công ty" : "đại lý",
       nguoi_tao: r.nguoi_tao,
       ngay_ky: r.ngay_ky,
+      ngay_hen: r.ngay_hen,
       lap_xong: r.ngay_lap_xong,
       so_ngay: r.so_ngay_cho === null ? null : Number(r.so_ngay_cho),
       lap_dat: r.trang_thai_lap_dat ? (LAP_DAT[r.trang_thai_lap_dat] ?? r.trang_thai_lap_dat) : "",

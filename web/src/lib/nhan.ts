@@ -135,12 +135,15 @@ export const MAU_DICH_VU: Record<string, string> = {
 };
 
 /** Tình huống của một đơn lắp, xét cả trạng thái lắp lẫn trạng thái hợp đồng. */
+/** Bảy tình huống của một đơn lắp, chia như báo cáo tổng hợp bên CMS. */
 export const TINH_HUONG_LAP: Record<string, string> = {
-  CHO_LAP: "còn chờ lắp",
-  DA_LAP: "đã lắp xong",
-  HUY_TRUOC_LAP: "huỷ trước khi lắp",
-  LAP_ROI_HUY: "lắp xong rồi huỷ",
-  LAP_HONG: "lắp hỏng",
+  CHUA_CO_LICH: "chưa có lịch lắp",
+  CO_LICH: "có lịch, chưa lắp",
+  LAP_XONG: "lắp đặt thành công",
+  LAP_HONG: "lắp đặt thất bại",
+  HUY_TRUOC_LICH: "huỷ trước khi có lịch",
+  HUY_SAU_LICH: "huỷ sau khi có lịch",
+  HUY_SAU_LAP: "huỷ sau khi lắp xong",
 };
 
 export const DICH_VU: Record<string, string> = {
