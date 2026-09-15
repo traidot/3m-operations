@@ -275,7 +275,12 @@ function TableRows({
         }
       >
         {chay ? n(chay.phai_ra_ky) : "—"}
-        {lech !== 0 && <span className="dau-lech"> ⚠</span>}
+        {chay &&
+          (lech === 0 ? (
+            <span className="dau-khop" title="Khớp với sổ cước"> ✓</span>
+          ) : (
+            <span className="dau-lech"> ⚠</span>
+          ))}
       </td>
       <td className="num mono">{chay_ ? n(chay_.so_hop_dong) : "—"}</td>
       <td className="num mono muted">{huy ? n(huy.so_hop_dong) : "—"}</td>
