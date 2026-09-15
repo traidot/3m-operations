@@ -17,8 +17,12 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 const cong = (rows: ThuNgoaiHopDong[]) => rows.reduce((t, r) => t + Number(r.tien), 0);
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
-  const tatCa = await getThuNgoaiHopDong();
-  const loc = mot((await searchParams).th);
+  const sp = await searchParams;
+  const moiThu = await getThuNgoaiHopDong();
+  // Lọc theo kỳ trước, để mấy nút tình huống bên dưới đếm trong phạm vi đang xem.
+  const ky = /^\d{4}-\d{2}$/.test(mot(sp.ky)) ? mot(sp.ky) : "";
+  const tatCa = ky ? moiThu.filter((r) => r.ky === ky) : moiThu;
+  const loc = mot(sp.th);
   const rows = loc ? tatCa.filter((r) => r.tinh_huong === loc) : tatCa;
 
   // Nhóm nặng lên trước: đó là tiền phải trả lại hoặc đòi lại, không phải dọn dữ liệu.
@@ -29,11 +33,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   });
   const dem = (t: string) => tatCa.filter((r) => r.tinh_huong === t);
 
-  const link = (t?: string) => (t ? `/thu-ngoai?th=${t}` : "/thu-ngoai");
+  const link = (t?: string) => {
+    const p = new URLSearchParams();
+    if (ky) p.set("ky", ky);
+    if (t) p.set("th", t);
+    const duoi = p.toString();
+    return duoi ? `/thu-ngoai?${duoi}` : "/thu-ngoai";
+  };
 
   return (
     <main>
-      <h1>Kỳ thu ngoài hợp đồng</h1>
+      <h1>Kỳ thu ngoài hợp đồng{ky && ` · kỳ ${ky}`}</h1>
       <p className="muted">
         Kỳ đã thu tiền thật nhưng rơi ra ngoài khoảng thu ghi trên hợp đồng — đối chiếu giữa sổ
         cước bên CMS và ngày bắt đầu thu, ngày kết thúc thu, ngày lắp xong, ngày huỷ của chính
@@ -41,8 +51,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         khoảng hợp đồng, chỉ là xa hơn mốc sinh kỳ của mình.
       </p>
 
+      {ky && (
+        <p className="actions">
+          <Link href="/thu-ngoai">
+            <button type="button">← Xem tất cả các kỳ ({moiThu.length})</button>
+          </Link>
+        </p>
+      )}
+
       {tatCa.length === 0 ? (
-        <p className="khop">✓ Không có kỳ nào thu ngoài khoảng hợp đồng.</p>
+        <p className="khop">
+          ✓ Không có kỳ nào thu ngoài khoảng hợp đồng{ky && ` trong kỳ ${ky}`}.
+        </p>
       ) : (
         <>
           <div className="the-hang">

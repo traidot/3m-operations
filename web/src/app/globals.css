@@ -173,7 +173,7 @@ tr.sub td:first-child { padding-left: 16px; }
 .bar::before { content: ""; position: absolute; left: 0; right: 48px; top: 50%; transform: translateY(-50%); height: 6px; border-radius: 3px; background: var(--line); }
 .bar-fill { position: relative; display: block; height: 6px; border-radius: 3px; background: var(--ok); min-width: 3px; }
 .bar-fill.xau { background: var(--bad); }
-.dau-lech { color: var(--bad); }
+.dau-lech, a.dau-lech { color: var(--bad); white-space: nowrap; }
 .dau-khop { color: var(--ok); opacity: 0.75; }
 /* Đối chiếu khớp: cùng khuôn với .stale để hai trạng thái đổi chỗ cho nhau. */
 .khop { margin: 12px 0; padding: 10px 14px; font-size: 0.85rem; color: var(--muted); background: var(--surface-2); border-left: 3px solid var(--ok); border-radius: 0 var(--bo) var(--bo) 0; }

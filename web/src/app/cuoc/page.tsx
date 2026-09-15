@@ -309,7 +309,11 @@ function TableRows({
         {chay ? n(chay.so_cms) : "—"}
         {chay &&
           (ngoai > 0 ? (
-            <span className="dau-lech"> ⚠{ngoai}</span>
+            // Link thật để bấm được vào đúng dấu; Dong bỏ qua click rơi vào <a>.
+            <Link href={`/thu-ngoai?ky=${row.ky}`} className="dau-lech">
+              {" "}
+              ⚠{ngoai}
+            </Link>
           ) : (
             <span className="dau-khop"> ✓</span>
           ))}
