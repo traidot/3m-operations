@@ -1,18 +1,26 @@
 import type { NextRequest } from "next/server";
 import ExcelJS from "exceljs";
-import { getInstallCohort } from "@/lib/queries";
+import { getInstallCohort, getInstallPendingList } from "@/lib/queries";
 import { HOP_DONG, LAP_DAT, LY_DO_HUY, TINH_HUONG_LAP } from "@/lib/nhan";
 
 /** Đơn lắp của một tháng ký. */
 export async function GET(request: NextRequest) {
   const thang = request.nextUrl.searchParams.get("thang") ?? "";
-  if (!/^\d{4}-\d{2}$/.test(thang)) {
+  const cho = request.nextUrl.searchParams.get("cho") ?? "";
+  // Hai kiểu danh sách: theo tháng ký, hoặc theo nhóm thời gian đang chờ.
+  if (!thang && !["1", "2", "3", "4"].includes(cho)) {
+    return new Response("Cần tham số thang=YYYY-MM hoặc cho=1..4", { status: 400 });
+  }
+  if (thang && !/^\d{4}-\d{2}$/.test(thang)) {
     return new Response("Tháng phải có dạng YYYY-MM", { status: 400 });
   }
-  const rows = await getInstallCohort(thang);
+  const rows = thang ? await getInstallCohort(thang) : await getInstallPendingList(cho);
+  const ten = thang ? `don-lap-${thang}` : `dang-cho-lap-nhom-${cho}`;
 
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet(`Đơn ký ${thang}`, { views: [{ state: "frozen", ySplit: 1 }] });
+  const ws = wb.addWorksheet(thang ? `Đơn ký ${thang}` : `Đang chờ lắp`, {
+    views: [{ state: "frozen", ySplit: 1 }],
+  });
   ws.columns = [
     { header: "Tình huống", key: "tinh_huong", width: 20 },
     { header: "Hợp đồng", key: "ma", width: 12 },
@@ -55,7 +63,7 @@ export async function GET(request: NextRequest) {
   return new Response(new Uint8Array(buf as ArrayBuffer), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="don-lap-${thang}.xlsx"`,
+      "Content-Disposition": `attachment; filename="${ten}.xlsx"`,
     },
   });
 }

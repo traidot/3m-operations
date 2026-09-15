@@ -1359,3 +1359,15 @@ export const getInstallCohort = (ky: string) =>
       order by (tinh_huong = 'CHO_LAP') desc, so_ngay_cho desc, ma_hop_dong`,
     [ky],
   );
+
+/** Đơn đang chờ lắp trong một nhóm thời gian chờ; chuỗi rỗng là lấy tất cả. */
+export const getInstallPendingList = (nhom: string) =>
+  query<InstallOrder>(
+    `select subscription_id, ma_hop_dong, dia_chi, do_cong_ty, nguoi_tao,
+            trang_thai_lap_dat, trang_thai_hop_dong, ngay_ky::text,
+            ngay_lap_xong::text, ngay_huy::text, so_ngay_cho::text,
+            ly_do_huy, nhom_ly_do_huy, tinh_huong, link_cms
+       from fixed_install_pending_list($1)
+      order by so_ngay_cho desc, ma_hop_dong`,
+    [nhom],
+  );

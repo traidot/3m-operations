@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Dong } from "../hop-dong/dong";
 import { ChiTietThangKy, NHOM_LAP, type NhomLap } from "./chi-tiet";
+import { ChiTietChoLap, NHAN_CHO } from "./cho-lap";
 import {
   getInstallMonths,
   getInstallPending,
@@ -34,6 +35,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const cho = hop(choAll);
 
   const moThang = /^\d{4}-\d{2}$/.test(mot(sp.thang)) ? mot(sp.thang) : "";
+  const moCho = Object.hasOwn(NHAN_CHO, mot(sp.cho)) ? mot(sp.cho) : "";
   const moNhom: NhomLap = Object.hasOwn(NHOM_LAP, mot(sp.nhom))
     ? (mot(sp.nhom) as NhomLap)
     : "cho_lap";
@@ -113,8 +115,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </div>
 
       <h2>Đơn đang chờ lắp</h2>
+      <p className="muted">Bấm vào một nhóm để xem danh sách đơn.</p>
       <div className="scroller">
-        <table>
+        <table className="bang-thang">
           <thead>
             <tr>
               <th>Đã chờ</th>
@@ -126,8 +129,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             {nhomCho.map((nh) => {
               const r = cho.filter((x) => x.nhom_cho === nh);
               const qua = nh.startsWith("4.");
+              const ma = nh.slice(0, 1);
               return (
-                <tr key={nh}>
+                <Dong
+                  key={nh}
+                  href={link({ pt: pt || undefined, cho: ma })}
+                  dangMo={moCho === ma}
+                >
                   <td>{nh.slice(3)}</td>
                   <td className={`num mono${qua ? " bad" : ""}`}>
                     {cong(r, "so_don").toLocaleString("vi-VN")}
@@ -135,7 +143,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className="mono muted">
                     {r.map((x) => x.ky_som_nhat).filter(Boolean).sort()[0] ?? "—"}
                   </td>
-                </tr>
+                </Dong>
               );
             })}
           </tbody>
@@ -196,6 +204,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         phải hỏng. Đọc tỉ lệ lắp từ những tháng đã đủ thời gian, và so cột “còn chờ” với số ngày chờ
         trung vị của chính tháng đó.
       </p>
+
+      {moCho && (
+        <ChiTietChoLap
+          nhom={moCho}
+          phuTrach={pt}
+          dongLai={link({ pt: pt || undefined })}
+        />
+      )}
 
       {moThang && (
         <ChiTietThangKy
