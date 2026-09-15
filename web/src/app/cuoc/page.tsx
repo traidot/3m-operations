@@ -51,11 +51,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
   const phu = Number(coverage?.ty_le_tinh_duoc ?? 0);
 
-  // "Phải ra kỳ" và "có kỳ cước" phải bằng nhau. Gom trước để vừa cảnh báo ở
-  // đầu bảng vừa đánh dấu đúng ô lệch, khỏi tính hai lần.
-  const lechKy = total
-    .map((r) => ({ ky: r.ky, lech: Number(theoThang.get(r.ky)?.phai_ra_ky ?? 0) - Number(r.so_hop_dong) }))
-    .filter((l) => theoThang.has(l.ky) && l.lech !== 0);
+  // Đối chiếu với sổ cước bên CMS. "Phải ra kỳ" và "có kỳ cước" đều suy ra từ
+  // cùng một luật của mình nên khớp nhau là đương nhiên — không đem so. Bên độc
+  // lập là fee_period_snapshot: kỳ nào sổ CMS có mà luật mình bảo không nên có
+  // thì mới là chuyện phải xem.
+  const ngoaiKy = chay
+    .filter((c) => Number(c.ngoai_ky) > 0)
+    .map((c) => ({ ky: c.ky, so: Number(c.ngoai_ky) }))
+    .sort((a, b) => b.ky.localeCompare(a.ky));
 
   return (
     <main>
@@ -74,23 +77,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </div>
 
       <h2>Theo tháng</h2>
-      {/* Luôn bày kết quả đối chiếu, kể cả khi khớp: không thấy gì thì không biết
+      {/* Luôn bày kết quả đối chiếu, kể cả khi sạch: không thấy gì thì không biết
           là đã kiểm hay chưa kiểm. */}
-      {lechKy.length > 0 ? (
+      {ngoaiKy.length > 0 ? (
         <p className="stale">
-          ⚠ Sổ cước lệch với số hợp đồng phải ra kỳ ở{" "}
-          {lechKy.length === 1 ? "tháng" : `${lechKy.length} tháng`}:{" "}
-          {lechKy
-            .map((l) => `${l.ky} ${l.lech > 0 ? "thiếu" : "thừa"} ${Math.abs(l.lech)}`)
-            .join(", ")}
-          . Hai số này phải bằng nhau — lệch là sổ cước đã trôi khỏi hợp đồng, thường do ngày
-          lắp hoặc khoảng thu bên nguồn sửa sau khi kỳ đã sinh.
+          ⚠ Sổ cước bên CMS có kỳ mà luật của mình bảo lẽ ra không có, ở{" "}
+          {ngoaiKy.length} tháng: {ngoaiKy.map((l) => `${l.ky} (${l.so})`).join(", ")}. Phần
+          lớn là dòng ghi chú hoặc miễn phí 0 yên, nhưng có cả kỳ đã thu tiền thật — bấm vào
+          tháng rồi mở tab “ngoài kỳ tính” để xem từng hợp đồng.
         </p>
       ) : (
         <p className="khop">
-          ✓ Đối chiếu sổ cước: cột “phải ra kỳ” khớp với “có kỳ cước” ở cả{" "}
-          {total.filter((r) => theoThang.has(r.ky)).length} tháng. Lệch thì dòng này chuyển
-          thành cảnh báo và ô lệch tô đỏ kèm dấu ⚠.
+          ✓ Đối chiếu với sổ cước bên CMS: không tháng nào có kỳ nằm ngoài luật tính của
+          mình.
         </p>
       )}
       <p className="muted">
@@ -119,6 +118,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               </th>
               <th colSpan={2} className="nhom" title="Hợp đồng có dòng trong sổ cước của tháng đó">
                 Có kỳ cước
+              </th>
+              <th className="num" rowSpan={2} title="Hợp đồng công ty thực sự có dòng trong sổ thu cước bên CMS. Đây là bên độc lập duy nhất — dấu ⚠ nghĩa là sổ có kỳ mà luật tính của mình bảo lẽ ra không có.">
+                Sổ CMS
               </th>
               <th className="num" rowSpan={2}>Phải thu</th>
               <th className="num" rowSpan={2}>Miễn phí</th>
@@ -254,9 +256,8 @@ function TableRows({
   const theo = (ma: string) => chiTiet.find((c) => c.trang_thai === ma) ?? null;
   const chay_ = theo("ACTIVE");
   const huy = theo("TERMINATED");
-  // Hai số này phải bằng nhau. Lệch chiều nào cũng là sổ cước trôi khỏi hợp
-  // đồng — thường do ngày lắp hoặc khoảng thu bên nguồn sửa sau khi kỳ đã sinh.
-  const lech = chay ? Number(chay.phai_ra_ky) - Number(row.so_hop_dong) : 0;
+  // Kỳ có trong sổ CMS mà luật tính của mình bảo lẽ ra không có.
+  const ngoai = Number(chay?.ngoai_ky ?? 0);
 
   return (
     <Dong href={href} dangMo={dangMo}>
@@ -266,24 +267,25 @@ function TableRows({
       <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
         {chay ? n(chay.thieu_gia_cuoc) : "—"}
       </td>
-      <td
-        className={`num mono${lech ? " bad" : ""}`}
-        title={
-          lech
-            ? `Lệch ${Math.abs(lech)} hợp đồng so với sổ cước: sổ ${lech > 0 ? "thiếu" : "thừa"} dòng`
-            : undefined
-        }
-      >
-        {chay ? n(chay.phai_ra_ky) : "—"}
-        {chay &&
-          (lech === 0 ? (
-            <span className="dau-khop" title="Khớp với sổ cước"> ✓</span>
-          ) : (
-            <span className="dau-lech"> ⚠</span>
-          ))}
-      </td>
+      <td className="num mono">{chay ? n(chay.phai_ra_ky) : "—"}</td>
       <td className="num mono">{chay_ ? n(chay_.so_hop_dong) : "—"}</td>
       <td className="num mono muted">{huy ? n(huy.so_hop_dong) : "—"}</td>
+      <td
+        className={`num mono${ngoai > 0 ? " bad" : ""}`}
+        title={
+          ngoai > 0
+            ? `${ngoai} hợp đồng có kỳ trong sổ CMS mà luật tính của mình bảo lẽ ra không có`
+            : "Không có kỳ nào nằm ngoài luật tính"
+        }
+      >
+        {chay ? n(chay.so_cms) : "—"}
+        {chay &&
+          (ngoai > 0 ? (
+            <span className="dau-lech"> ⚠{ngoai}</span>
+          ) : (
+            <span className="dau-khop"> ✓</span>
+          ))}
+      </td>
       <td className="num mono">{n(row.phai_thu)}</td>
       <td className="num mono muted">{n(row.tien_mien_phi)}</td>
       <td className="num mono">{n(row.da_thu)}</td>
