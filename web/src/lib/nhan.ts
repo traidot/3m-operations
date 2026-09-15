@@ -158,7 +158,8 @@ export const CANH_BAO_TELECOM: Record<string, string> = {
   NO_QUA_HAN: "nợ quá hạn",
   KHONG_DOI_DUOC: "có hoá đơn mất trắng",
   THIEU_HOA_DON: "lâu không có hoá đơn",
-  THIEU_GIA: "thiếu giá gói",
+  KHONG_RA_CUOC: "kỳ này không ra cước",
+  HET_HAN: "hết hạn mà vẫn đang chạy",
   MAY_CHUA_TRA: "máy chưa thu hồi",
 };
 
@@ -167,6 +168,8 @@ export const CANH_BAO_TELECOM_NANG = new Set([
   "NO_QUA_HAN",
   "KHONG_DOI_DUOC",
   "THIEU_HOA_DON",
+  "KHONG_RA_CUOC",
+  "HET_HAN",
 ]);
 
 /** Loại hoá đơn bên nguồn cầm tay. REFUND mang số âm: 3M nợ khách. */
