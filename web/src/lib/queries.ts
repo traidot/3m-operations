@@ -1251,13 +1251,14 @@ export type FixedThangChay = {
   co_ky_cuoc: string;
   thieu_gia_cuoc: string;
   chenh: string;
+  phai_ra_ky: string;
 };
 
 /** Hợp đồng wifi cố định đang chạy từng tháng, so với số có kỳ cước trong sổ. */
 export const getFixedThangChay = () =>
   query<FixedThangChay>(
     `select ky, cong_ty::text, dai_ly::text, co_ky_cuoc::text, thieu_gia_cuoc::text,
-            chenh::text
+            chenh::text, phai_ra_ky::text
        from v_fixed_month_chay order by ky desc`,
   );
 

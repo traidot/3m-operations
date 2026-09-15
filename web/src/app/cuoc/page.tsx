@@ -89,6 +89,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num" rowSpan={2} title="Trong nhóm công ty, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
                 Thiếu giá
               </th>
+              <th className="num" rowSpan={2} title="Hợp đồng công ty đủ điều kiện sinh kỳ cước trong tháng: có giá, có ngày bắt đầu thu, và tháng đó nằm trong khoảng thu. Đây là cơ sở tính cước — lệch với “có kỳ cước” là sổ cước thiếu dòng.">
+                Phải ra kỳ
+              </th>
               <th colSpan={2} className="nhom" title="Hợp đồng có dòng trong sổ cước của tháng đó">
                 Có kỳ cước
               </th>
@@ -226,6 +229,9 @@ function TableRows({
   const theo = (ma: string) => chiTiet.find((c) => c.trang_thai === ma) ?? null;
   const chay_ = theo("ACTIVE");
   const huy = theo("TERMINATED");
+  // Hai số này phải bằng nhau. Lệch chiều nào cũng là sổ cước trôi khỏi hợp
+  // đồng — thường do ngày lắp hoặc khoảng thu bên nguồn sửa sau khi kỳ đã sinh.
+  const lechKy = chay ? Number(chay.phai_ra_ky) - Number(row.so_hop_dong) : 0;
 
   return (
     <Dong href={href} dangMo={dangMo}>
@@ -234,6 +240,13 @@ function TableRows({
       <td className="num mono muted">{chay ? n(chay.dai_ly) : "—"}</td>
       <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
         {chay ? n(chay.thieu_gia_cuoc) : "—"}
+      </td>
+      <td className={`num mono${lechKy ? " bad" : ""}`} title={
+          lechKy
+            ? `Lệch ${Math.abs(lechKy)} hợp đồng so với sổ cước: sổ ${lechKy > 0 ? "thiếu" : "thừa"} dòng`
+            : undefined
+        }>
+        {chay ? n(chay.phai_ra_ky) : "—"}
       </td>
       <td className="num mono">{chay_ ? n(chay_.so_hop_dong) : "—"}</td>
       <td className="num mono muted">{huy ? n(huy.so_hop_dong) : "—"}</td>
