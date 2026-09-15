@@ -11,18 +11,20 @@ const n = (v: string | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
 
 export const NHOM_CD = {
-  chua_ky: "Đang chạy, chưa ra kỳ cước",
+  chua_ky: "Công ty, chưa ra kỳ cước",
   da_ngung: "Có kỳ cước, đã ngừng",
+  dai_ly: "Của đại lý",
   tat_ca: "Tất cả",
 } as const;
 export type NhomCd = keyof typeof NHOM_CD;
 
-const thuoc = (r: HopDongThang, nhom: NhomCd) =>
-  nhom === "chua_ky"
-    ? r.dang_chay && !r.co_ky_cuoc
-    : nhom === "da_ngung"
-      ? r.co_ky_cuoc && !r.dang_chay
-      : true;
+/** Đại lý tự thu nên không có kỳ cước — để riêng, không trộn vào nhóm cần xử lý. */
+const thuoc = (r: HopDongThang, nhom: NhomCd) => {
+  if (nhom === "chua_ky") return r.dang_chay && r.do_cong_ty && !r.co_ky_cuoc;
+  if (nhom === "da_ngung") return r.co_ky_cuoc && !r.dang_chay;
+  if (nhom === "dai_ly") return r.dang_chay && !r.do_cong_ty;
+  return true;
+};
 
 export async function ChiTietThangCoDinh({
   ky,
@@ -38,14 +40,18 @@ export async function ChiTietThangCoDinh({
   const tatCa = await getHopDongThang(ky);
   const rows = tatCa.filter((r) => thuoc(r, nhom));
   const dem = (k: NhomCd) => tatCa.filter((r) => thuoc(r, k)).length;
-  const thieuGia = tatCa.filter((r) => r.dang_chay && !r.co_ky_cuoc && r.thieu_gia).length;
+  const thieuGia = tatCa.filter(
+    (r) => r.dang_chay && r.do_cong_ty && !r.co_ky_cuoc && r.thieu_gia,
+  ).length;
 
   return (
     <NganKeo dongLai={dongLai}>
       <h1>Tháng {ky}</h1>
       <p className="muted">
-        {tatCa.filter((r) => r.dang_chay).length.toLocaleString("vi-VN")} hợp đồng đang chạy ·{" "}
-        {tatCa.filter((r) => r.co_ky_cuoc).length.toLocaleString("vi-VN")} có kỳ cước trong sổ
+        {tatCa.filter((r) => r.dang_chay && r.do_cong_ty).length.toLocaleString("vi-VN")} hợp đồng
+        công ty đang chạy · {tatCa.filter((r) => r.co_ky_cuoc).length.toLocaleString("vi-VN")} có
+        kỳ cước trong sổ ·{" "}
+        {tatCa.filter((r) => r.dang_chay && !r.do_cong_ty).length.toLocaleString("vi-VN")} của đại lý
       </p>
 
       <p className="actions">
@@ -79,6 +85,7 @@ export async function ChiTietThangCoDinh({
                 <th>Hợp đồng</th>
                 <th>Địa chỉ</th>
                 <th>Trạng thái</th>
+                <th>Phụ trách</th>
                 <th>Lắp xong → huỷ</th>
                 <th className="num">Cước/tháng</th>
                 <th>Kỳ tháng này</th>
@@ -99,6 +106,12 @@ export async function ChiTietThangCoDinh({
                   <td>{r.dia_chi ?? "—"}</td>
                   <td>
                     <Chip ma={r.trang_thai_hop_dong} nhan={HOP_DONG} />
+                  </td>
+                  <td>
+                    <span className={`chip ${r.do_cong_ty ? "ctv" : "tat"}`}>
+                      {r.do_cong_ty ? "công ty" : "đại lý"}
+                    </span>
+                    <div className="muted">{r.nguoi_tao ?? "—"}</div>
                   </td>
                   <td className="mono">
                     {r.ngay_lap_xong ?? "—"}
@@ -136,7 +149,8 @@ export async function ChiTietThangCoDinh({
       )}
       <p className="muted khoi-ghi-chu">
         “Đang chạy” là hợp đồng đã lắp xong trước hết tháng và chưa huỷ trước đầu tháng. “Có kỳ cước”
-        là có dòng trong sổ cước của tháng đó. Hợp đồng đang chạy mà chưa ra kỳ là chỗ thất thu.
+        là có dòng trong sổ cước của tháng đó. Hợp đồng do công ty phụ trách mà đang chạy lại chưa ra
+        kỳ cước là chỗ thất thu; hợp đồng của đại lý thì đại lý tự thu nên không có kỳ là bình thường.
       </p>
     </NganKeo>
   );

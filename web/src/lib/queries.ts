@@ -96,6 +96,7 @@ export type Coverage = {
   thieu_ngay_bat_dau: string;
   tinh_duoc: string;
   ty_le_tinh_duoc: string | null;
+  hop_dong_dai_ly: string;
 };
 
 export type Arrears = {
@@ -131,7 +132,8 @@ export const getMonthlyByStatus = () =>
 export const getCoverage = () =>
   query<Coverage>(
     `select hop_dong_dang_chay::text, thieu_gia_cuoc::text, thieu_ngay_bat_dau::text,
-            tinh_duoc::text, ty_le_tinh_duoc::text from v_fixed_billing_coverage`,
+            tinh_duoc::text, ty_le_tinh_duoc::text, hop_dong_dai_ly::text
+       from v_fixed_billing_coverage`,
   );
 
 export const getArrears = () =>
@@ -1226,16 +1228,18 @@ export const getThueBaoThang = (ky: string, dichVu?: string) =>
 
 export type FixedThangChay = {
   ky: string;
-  da_lap_chua_huy: string;
-  thieu_gia_cuoc: string;
+  cong_ty: string;
+  dai_ly: string;
   co_ky_cuoc: string;
+  thieu_gia_cuoc: string;
   chenh: string;
 };
 
 /** Hợp đồng wifi cố định đang chạy từng tháng, so với số có kỳ cước trong sổ. */
 export const getFixedThangChay = () =>
   query<FixedThangChay>(
-    `select ky, da_lap_chua_huy::text, thieu_gia_cuoc::text, co_ky_cuoc::text, chenh::text
+    `select ky, cong_ty::text, dai_ly::text, co_ky_cuoc::text, thieu_gia_cuoc::text,
+            chenh::text
        from v_fixed_month_chay order by ky desc`,
   );
 
@@ -1251,6 +1255,8 @@ export type HopDongThang = {
   dang_chay: boolean;
   co_ky_cuoc: boolean;
   thieu_gia: boolean;
+  do_cong_ty: boolean;
+  nguoi_tao: string | null;
   trang_thai_ky: string | null;
   phai_thu: string | null;
   da_thu: string | null;
@@ -1263,9 +1269,10 @@ export const getHopDongThang = (ky: string) =>
   query<HopDongThang>(
     `select subscription_id, ma_hop_dong, dia_chi, trang_thai_hop_dong,
             ngay_lap_xong::text, ngay_huy::text, cuoc_thang::text, bat_dau_thu::text,
-            dang_chay, co_ky_cuoc, thieu_gia, trang_thai_ky, phai_thu::text,
+            dang_chay, co_ky_cuoc, thieu_gia, do_cong_ty, nguoi_tao,
+            trang_thai_ky, phai_thu::text,
             da_thu::text, kho_doi, link_cms
        from fixed_month_contracts($1)
-      order by (dang_chay <> co_ky_cuoc) desc, thieu_gia desc, ma_hop_dong`,
+      order by do_cong_ty desc, (dang_chay <> co_ky_cuoc) desc, thieu_gia desc, ma_hop_dong`,
     [ky],
   );

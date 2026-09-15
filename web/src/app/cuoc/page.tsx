@@ -57,7 +57,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       {/* Độ phủ đứng trên cùng: không biết nó thì mọi số dưới đều đọc sai. */}
       <div className={phu < 80 ? "stale" : "muted"}>
         Chỉ tính được cước cho <b>{n(coverage?.tinh_duoc ?? null)}</b> trên{" "}
-        <b>{n(coverage?.hop_dong_dang_chay ?? null)}</b> hợp đồng đang chạy ({phu}%).
+        <b>{n(coverage?.hop_dong_dang_chay ?? null)}</b> hợp đồng đang chạy do công ty phụ
+        trách ({phu}%). {n(coverage?.hop_dong_dai_ly ?? null)} hợp đồng của đại lý không
+        tính ở đây vì đại lý tự thu.
         {Number(coverage?.thieu_gia_cuoc ?? 0) > 0 && (
           <> {n(coverage!.thieu_gia_cuoc)} hợp đồng thiếu giá cước nên không sinh được kỳ.</>
         )}{" "}
@@ -67,21 +69,25 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h2>Theo tháng</h2>
       <p className="muted">
         Ghép theo kỳ cước, không theo ngày thu — tiền một kỳ có thể được thu ở tháng khác.
-        “Đang chạy” là hợp đồng đã lắp xong và chưa huỷ trong tháng đó; chênh với “có kỳ cước”
-        là phần không ra được kỳ nào. Bấm vào một tháng để xem danh sách hợp đồng.
+        Cột “công ty” là hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng —
+        chênh với “có kỳ cước” là phần không ra được kỳ nào. Hợp đồng của đại lý để riêng vì
+        đại lý tự thu. Bấm vào một tháng để xem danh sách hợp đồng.
       </p>
       <div className="scroller">
         <table className="bang-thang">
           <thead>
             <tr>
               <th>Kỳ</th>
-              <th className="num" title="Hợp đồng đã lắp xong trước hết tháng và chưa huỷ trước đầu tháng">
-                Đang chạy
+              <th className="num" title="Hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng đó">
+                Công ty
+              </th>
+              <th className="num" title="Hợp đồng do đại lý mở — đại lý tự thu nên không đặt giá cước bên nguồn">
+                Đại lý
               </th>
               <th className="num" title="Hợp đồng có dòng trong sổ cước của tháng đó">
                 Có kỳ cước
               </th>
-              <th className="num" title="Trong số đang chạy, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
+              <th className="num" title="Trong nhóm công ty, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
                 Thiếu giá
               </th>
               <th className="num">Phải thu</th>
@@ -209,7 +215,8 @@ function TableRows({
     <>
       <Dong href={href} dangMo={dangMo}>
         <td className="mono">{row.ky}</td>
-        <td className="num mono">{chay ? n(chay.da_lap_chua_huy) : "—"}</td>
+        <td className="num mono">{chay ? n(chay.cong_ty) : "—"}</td>
+        <td className="num mono muted">{chay ? n(chay.dai_ly) : "—"}</td>
         <td className="num mono">{n(row.so_hop_dong)}</td>
         <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
           {chay ? n(chay.thieu_gia_cuoc) : "—"}
@@ -233,6 +240,7 @@ function TableRows({
         chiTiet.map((c) => (
           <tr key={`${c.ky}-${c.trang_thai}`} className="sub">
             <td className="mono muted">{c.trang_thai}</td>
+            <td />
             <td />
             <td className="num mono muted">{n(c.so_hop_dong)}</td>
             <td />

@@ -5,8 +5,9 @@ import { HOP_DONG, KY_CUOC } from "@/lib/nhan";
 
 /** Xuất hợp đồng wifi cố định của một tháng, kèm cột tình trạng để lọc trong Excel. */
 function tinhTrang(r: HopDongThang): string {
+  if (r.dang_chay && !r.do_cong_ty && !r.co_ky_cuoc) return "Của đại lý, đại lý tự thu";
   if (r.dang_chay && !r.co_ky_cuoc) {
-    return r.thieu_gia ? "Đang chạy, thiếu giá cước" : "Đang chạy, chưa ra kỳ cước";
+    return r.thieu_gia ? "Công ty, thiếu giá cước" : "Công ty, chưa ra kỳ cước";
   }
   if (r.co_ky_cuoc && !r.dang_chay) return "Có kỳ cước, đã ngừng";
   return "Đang chạy, có kỳ cước";
@@ -29,6 +30,8 @@ export async function GET(request: NextRequest) {
     { header: "Hợp đồng", key: "ma", width: 12 },
     { header: "Địa chỉ", key: "dia_chi", width: 45 },
     { header: "Trạng thái", key: "trang_thai", width: 12 },
+    { header: "Phụ trách", key: "phu_trach", width: 10 },
+    { header: "Người tạo", key: "nguoi_tao", width: 18 },
     { header: "Lắp xong", key: "lap_xong", width: 12 },
     { header: "Huỷ", key: "huy", width: 12 },
     { header: "Cước/tháng", key: "cuoc_thang", width: 12, style: { numFmt: "#,##0" } },
@@ -47,6 +50,8 @@ export async function GET(request: NextRequest) {
       ma: r.ma_hop_dong,
       dia_chi: r.dia_chi,
       trang_thai: HOP_DONG[r.trang_thai_hop_dong] ?? r.trang_thai_hop_dong,
+      phu_trach: r.do_cong_ty ? "công ty" : "đại lý",
+      nguoi_tao: r.nguoi_tao,
       lap_xong: r.ngay_lap_xong,
       huy: r.ngay_huy ?? "chưa huỷ",
       cuoc_thang: r.thieu_gia ? null : so(r.cuoc_thang),
