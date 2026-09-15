@@ -128,8 +128,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num" rowSpan={2}>Phải thu</th>
               <th className="num" rowSpan={2}>Miễn phí</th>
               <th className="num" rowSpan={2}>Đã thu</th>
-              <th className="num" rowSpan={2} title="Kỳ đã có dòng duyệt trong sổ nhưng số tiền ghi ít hơn giá cước của hợp đồng. Tách riêng để hàng ngang khép kín: phải thu = miễn phí + đã thu + còn thiếu + thu thiếu.">
+              <th className="num" rowSpan={2} title="Kỳ đã có dòng duyệt trong sổ nhưng số tiền ghi ít hơn giá cước của hợp đồng.">
                 Thu thiếu
+              </th>
+              <th colSpan={2} className="nhom" title="Kỳ đã có dòng trong sổ nhưng chưa quyết là thu hay miễn. Đong bằng giá cước của hợp đồng để hàng ngang cộng lại đúng, nên có thể lệch với số tiền ghi trên phiếu.">
+                Chưa chốt
               </th>
               <th colSpan={2} className="nhom">Còn thiếu</th>
               <th rowSpan={2}>Tỉ lệ thu</th>
@@ -138,6 +141,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num">Đang chạy</th>
               <th className="num" title="Hợp đồng đã huỷ nhưng kỳ cước tháng đó vẫn còn hiệu lực">
                 Đã huỷ
+              </th>
+              <th className="num" title="Đã có phiếu thu, chưa ai duyệt — tiền cầm rồi, thiếu chữ ký">
+                Chờ duyệt
+              </th>
+              <th className="num" title="Chỉ có dòng ghi chú, chưa quyết thu hay miễn">
+                Ghi chú
               </th>
               <th className="num">Đang chạy</th>
               <th className="num" title="Tiền còn thiếu nằm trên hợp đồng đã huỷ — khó đòi hơn">
@@ -166,7 +175,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           {pending
             .map((p) => `${n(p.so_ky)} kỳ ${p.status}${Number(p.tien) > 0 ? ` (${n(p.tien)})` : ""}`)
             .join(", ")}
-          . Những kỳ này chưa quyết là thu hay miễn nên chưa vào bảng trên.
+. Đây là số tiền ghi trên phiếu bên sổ, nên lệch với hai cột “chưa chốt” trong
+          bảng — hai cột đó đong bằng giá cước hợp đồng để hàng ngang cộng lại đúng.
         </p>
       )}
 
@@ -301,6 +311,8 @@ function TableRows({
       <td className={`num mono${Number(row.thu_thieu ?? 0) > 0 ? " bad" : " muted"}`}>
         {Number(row.thu_thieu ?? 0) === 0 ? "—" : n(row.thu_thieu)}
       </td>
+      <td className="num mono muted">{Number(row.cho_duyet ?? 0) === 0 ? "—" : n(row.cho_duyet)}</td>
+      <td className="num mono muted">{Number(row.ghi_chu ?? 0) === 0 ? "—" : n(row.ghi_chu)}</td>
       <td className="num mono">{chay_ ? n(chay_.con_thieu) : "—"}</td>
       <td className={`num mono${Number(huy?.con_thieu ?? 0) > 0 ? " bad" : " muted"}`}>
         {huy ? n(huy.con_thieu) : "—"}

@@ -87,6 +87,8 @@ export type MonthlyBilling = {
   con_thieu: string | null;
   ty_le_thu: string | null;
   thu_thieu: string | null;
+  cho_duyet: string | null;
+  ghi_chu: string | null;
 };
 
 export type MonthlyByStatus = MonthlyBilling & { trang_thai: string };
@@ -117,7 +119,8 @@ export type Arrears = {
 };
 
 const MONTHLY_COLS = `ky, so_hop_dong::text, phai_thu::text, tien_mien_phi::text,
-                      da_thu::text, con_thieu::text, ty_le_thu::text, thu_thieu::text`;
+                      da_thu::text, con_thieu::text, ty_le_thu::text, thu_thieu::text,
+                      cho_duyet::text, ghi_chu::text`;
 
 export const getMonthlyTotal = () =>
   query<MonthlyBilling>(
