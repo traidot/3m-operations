@@ -239,7 +239,8 @@ function TableRows({
       {chiTiet.length > 1 &&
         chiTiet.map((c) => (
           <tr key={`${c.ky}-${c.trang_thai}`} className="sub">
-            <td className="mono muted">{c.trang_thai}</td>
+            {/* Trạng thái bên nguồn viết bằng mã, dịch ra cho dễ đọc. */}
+            <td className="mono muted">{HOP_DONG[c.trang_thai] ?? c.trang_thai}</td>
             <td />
             <td />
             <td className="num mono muted">{n(c.so_hop_dong)}</td>
