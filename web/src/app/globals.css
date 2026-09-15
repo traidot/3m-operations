@@ -94,6 +94,20 @@ thead th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; 
 /* Bảng dài cuộn mấy màn hình thì mất tiêu đề cột, không biết con số ở cột nào.
    Nền đặc để dòng bên dưới không lộ qua; ngăn kéo cũng nền --paper nên dùng
    chung một luật, nó sẽ dính vào mép trên của ngăn kéo thay vì của trang. */
+/* Tiêu đề nhiều tầng: mỗi tầng phải dính ở đúng độ cao của nó, không thì cả ba
+   cùng nằm ở mép trên và đè lên nhau. Các hàng tiêu đề cùng cỡ chữ cùng padding
+   nên cao bằng nhau; đo ra 40px. Hàng cuối không cần biết vì không có gì dính
+   dưới nó. */
+:root { --cao-th: 40px; }
+thead tr:nth-child(2) th { top: var(--cao-th); }
+thead tr:nth-child(3) th { top: calc(var(--cao-th) * 2); }
+/* Nhóm lớn nhất đứng trên cùng: chữ rõ hơn và có vách ngăn hai bên để nhìn ra
+   ranh giới giữa phần hợp đồng và phần tiền. */
+th.nhom-lon {
+  color: var(--ink); letter-spacing: 0.14em;
+  border-left: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line-strong);
+}
 thead th {
   position: sticky; top: 0; z-index: 2;
   /* Dính lại thì nó thành ranh giới giữa tiêu đề và dữ liệu, phải nhìn ra ngay

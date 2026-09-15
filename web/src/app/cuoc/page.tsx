@@ -102,45 +102,53 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <div className="scroller">
         <table className="bang-thang">
           <thead>
+            {/* Ba tầng: nhóm lớn, nhóm nhỏ, rồi cột. Mười tám cột mà không gom
+                thì mắt không biết cột nào thuộc chuyện gì. */}
             <tr>
-              <th rowSpan={2}>Kỳ</th>
-              <th className="num" rowSpan={2} title="Hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng đó">
-                Công ty
+              <th rowSpan={3}>Kỳ</th>
+              <th colSpan={8} className="nhom nhom-lon">Hợp đồng</th>
+              <th colSpan={9} className="nhom nhom-lon">Tiền</th>
+            </tr>
+            <tr>
+              <th colSpan={2} className="nhom">Đang chạy</th>
+              <th colSpan={2} className="nhom" title="Hợp đồng công ty chưa thiết lập đủ bên CMS nên không sinh được kỳ nào. Thiếu cả hai thì đếm ở cả hai cột.">
+                Chưa đặt cước
               </th>
-              <th className="num" rowSpan={2} title="Hợp đồng do đại lý mở — đại lý tự thu nên không đặt giá cước bên nguồn">
-                Đại lý
-              </th>
-              <th className="num" rowSpan={2} title="Hợp đồng công ty chưa điền giá cước bên CMS nên không sinh được kỳ">
-                Thiếu giá
-              </th>
-              <th className="num" rowSpan={2} title="Hợp đồng công ty chưa điền ngày bắt đầu thu bên CMS nên không sinh được kỳ. Hợp đồng thiếu cả hai thì đếm ở cả hai cột.">
-                Thiếu ngày thu
-              </th>
-              <th className="num" rowSpan={2} title="Hợp đồng công ty đủ điều kiện sinh kỳ cước trong tháng: có giá, có ngày bắt đầu thu, và tháng đó nằm trong khoảng thu. Đây là cơ sở tính cước — lệch với “có kỳ cước” là sổ cước thiếu dòng.">
-                Phải ra kỳ
-              </th>
-              <th colSpan={2} className="nhom" title="Hợp đồng có dòng trong sổ cước của tháng đó">
+              <th colSpan={4} className="nhom" title="Hợp đồng công ty có kỳ cước của tháng đó, và bao nhiêu trong số đó thật sự có dòng thu tiền bên CMS">
                 Có kỳ cước
               </th>
-              <th className="num" rowSpan={2} title="Hợp đồng công ty có dòng THU TIỀN THẬT trong sổ cước bên CMS (đã duyệt, không miễn phí). Đây là bên độc lập duy nhất — dấu ⚠ nghĩa là sổ thu tiền ở kỳ mà luật tính của mình bảo lẽ ra không có.">
-                Sổ CMS
-              </th>
-              <th className="num" rowSpan={2}>Phải thu</th>
-              <th className="num" rowSpan={2}>Miễn phí</th>
-              <th className="num" rowSpan={2}>Đã thu</th>
-              <th className="num" rowSpan={2} title="Kỳ đã có dòng duyệt trong sổ nhưng số tiền ghi ít hơn giá cước của hợp đồng.">
+              <th rowSpan={2} className="num">Phải thu</th>
+              <th rowSpan={2} className="num">Miễn phí</th>
+              <th rowSpan={2} className="num">Đã thu</th>
+              <th rowSpan={2} className="num" title="Kỳ đã có dòng duyệt trong sổ nhưng số tiền ghi ít hơn giá cước của hợp đồng.">
                 Thu thiếu
               </th>
               <th colSpan={2} className="nhom" title="Kỳ đã có dòng trong sổ nhưng chưa quyết là thu hay miễn. Đong bằng giá cước của hợp đồng để hàng ngang cộng lại đúng, nên có thể lệch với số tiền ghi trên phiếu.">
                 Chưa chốt
               </th>
-              <th colSpan={2} className="nhom">Còn thiếu</th>
+              <th colSpan={2} className="nhom" title="Kỳ không có một dòng nào trong sổ cước">
+                Còn thiếu
+              </th>
               <th rowSpan={2}>Tỉ lệ thu</th>
             </tr>
             <tr>
+              <th className="num" title="Hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng đó">
+                Công ty
+              </th>
+              <th className="num" title="Hợp đồng do đại lý mở — đại lý tự thu nên không đặt giá cước bên nguồn">
+                Đại lý
+              </th>
+              <th className="num" title="Chưa điền giá cước bên CMS">Thiếu giá</th>
+              <th className="num" title="Chưa điền ngày bắt đầu thu bên CMS">Thiếu ngày</th>
+              <th className="num" title="Hợp đồng công ty đủ điều kiện sinh kỳ cước trong tháng: có giá, có ngày bắt đầu thu, và tháng đó nằm trong khoảng thu.">
+                Phải ra
+              </th>
               <th className="num">Đang chạy</th>
               <th className="num" title="Hợp đồng đã huỷ nhưng kỳ cước tháng đó vẫn còn hiệu lực">
                 Đã huỷ
+              </th>
+              <th className="num" title="Hợp đồng công ty có dòng THU TIỀN THẬT trong sổ cước bên CMS (đã duyệt, không miễn phí). Đây là bên độc lập duy nhất — dấu ⚠ nghĩa là sổ thu tiền ở kỳ mà luật tính của mình bảo lẽ ra không có.">
+                Sổ CMS
               </th>
               <th className="num" title="Đã có phiếu thu, chưa ai duyệt — tiền cầm rồi, thiếu chữ ký">
                 Chờ duyệt
