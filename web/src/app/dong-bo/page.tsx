@@ -27,8 +27,9 @@ export default async function Page() {
     <main>
       <h1>Đồng bộ</h1>
       <p className="muted">
-        Kéo dữ liệu từ cả hai hệ thống nguồn — wifi cố định và wifi cầm tay — về kho số liệu. Chỉ đọc — không ghi gì
-        ngược lại hệ thống nguồn.
+        Kéo dữ liệu từ hệ thống nguồn về kho số liệu, mỗi nguồn một nút. Chỉ đọc — không ghi gì ngược
+        lại hệ thống nguồn. Hai nguồn dùng chung một khoá nên không chạy song song được: bấm nút
+        này lúc nút kia đang chạy sẽ bị từ chối.
       </p>
       <p className="muted">
         {moiNhat

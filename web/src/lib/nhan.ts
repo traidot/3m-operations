@@ -226,3 +226,9 @@ export const NHOM_COC: Record<string, string> = {
 
 /** Ba nhóm đầu là việc phải làm, hai nhóm sau chỉ để đối chiếu. */
 export const NHOM_COC_VIEC = ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"];
+
+/** Hai hệ thống nguồn của lượt đồng bộ, đúng tên khoá bên agent/src/sync/run.ts. */
+export const NGUON_DONG_BO: Record<string, string> = {
+  FIXED: "wifi cố định",
+  TELECOM: "wifi cầm tay",
+};
