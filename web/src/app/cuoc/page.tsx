@@ -81,15 +81,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           là đã kiểm hay chưa kiểm. */}
       {ngoaiKy.length > 0 ? (
         <p className="stale">
-          ⚠ Sổ cước bên CMS có kỳ mà luật của mình bảo lẽ ra không có, ở{" "}
-          {ngoaiKy.length} tháng: {ngoaiKy.map((l) => `${l.ky} (${l.so})`).join(", ")}. Phần
-          lớn là dòng ghi chú hoặc miễn phí 0 yên, nhưng có cả kỳ đã thu tiền thật — bấm vào
-          tháng rồi mở tab “ngoài kỳ tính” để xem từng hợp đồng.
+          ⚠ Sổ cước bên CMS thu tiền ở kỳ mà luật của mình bảo lẽ ra không có, ở{" "}
+          {ngoaiKy.length} tháng: {ngoaiKy.map((l) => `${l.ky} (${l.so})`).join(", ")}. Hầu
+          hết là hợp đồng đã qua ngày kết thúc thu ghi trên hợp đồng mà vẫn thu tiếp — bấm
+          vào tháng để xem từng cái.
         </p>
       ) : (
         <p className="khop">
-          ✓ Đối chiếu với sổ cước bên CMS: không tháng nào có kỳ nằm ngoài luật tính của
-          mình.
+          ✓ Đối chiếu với sổ cước bên CMS: không tháng nào thu tiền ở kỳ nằm ngoài luật
+          tính của mình.
         </p>
       )}
       <p className="muted">
@@ -110,8 +110,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num" rowSpan={2} title="Hợp đồng do đại lý mở — đại lý tự thu nên không đặt giá cước bên nguồn">
                 Đại lý
               </th>
-              <th className="num" rowSpan={2} title="Trong nhóm công ty, bao nhiêu hợp đồng thiếu giá cước hoặc ngày bắt đầu thu nên không sinh được kỳ">
+              <th className="num" rowSpan={2} title="Hợp đồng công ty chưa điền giá cước bên CMS nên không sinh được kỳ">
                 Thiếu giá
+              </th>
+              <th className="num" rowSpan={2} title="Hợp đồng công ty chưa điền ngày bắt đầu thu bên CMS nên không sinh được kỳ. Hợp đồng thiếu cả hai thì đếm ở cả hai cột.">
+                Thiếu ngày thu
               </th>
               <th className="num" rowSpan={2} title="Hợp đồng công ty đủ điều kiện sinh kỳ cước trong tháng: có giá, có ngày bắt đầu thu, và tháng đó nằm trong khoảng thu. Đây là cơ sở tính cước — lệch với “có kỳ cước” là sổ cước thiếu dòng.">
                 Phải ra kỳ
@@ -119,7 +122,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th colSpan={2} className="nhom" title="Hợp đồng có dòng trong sổ cước của tháng đó">
                 Có kỳ cước
               </th>
-              <th className="num" rowSpan={2} title="Hợp đồng công ty thực sự có dòng trong sổ thu cước bên CMS. Đây là bên độc lập duy nhất — dấu ⚠ nghĩa là sổ có kỳ mà luật tính của mình bảo lẽ ra không có.">
+              <th className="num" rowSpan={2} title="Hợp đồng công ty có dòng THU TIỀN THẬT trong sổ cước bên CMS (đã duyệt, không miễn phí). Đây là bên độc lập duy nhất — dấu ⚠ nghĩa là sổ thu tiền ở kỳ mà luật tính của mình bảo lẽ ra không có.">
                 Sổ CMS
               </th>
               <th className="num" rowSpan={2}>Phải thu</th>
@@ -266,6 +269,9 @@ function TableRows({
       <td className="num mono muted">{chay ? n(chay.dai_ly) : "—"}</td>
       <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
         {chay ? n(chay.thieu_gia_cuoc) : "—"}
+      </td>
+      <td className={`num mono${Number(chay?.thieu_ngay_thu ?? 0) > 0 ? " bad" : ""}`}>
+        {chay ? n(chay.thieu_ngay_thu) : "—"}
       </td>
       <td className="num mono">{chay ? n(chay.phai_ra_ky) : "—"}</td>
       <td className="num mono">{chay_ ? n(chay_.so_hop_dong) : "—"}</td>

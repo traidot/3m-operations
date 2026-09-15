@@ -40,7 +40,8 @@ export const KY_CUOC: Record<string, string> = {
 export const CANH_BAO: Record<string, string> = {
   NO_NANG: "nợ nặng",
   HUY_CON_NO: "huỷ còn nợ",
-  THIEU_CUOC: "thiếu giá cước",
+  THIEU_GIA_CUOC: "thiếu giá cước",
+  THIEU_NGAY_THU: "thiếu ngày bắt đầu thu",
   CHO_DUYET: "chờ duyệt",
   GHI_CHU: "chỉ ghi chú",
   NGOAI_KY: "kỳ ngoài khoảng",
@@ -54,7 +55,8 @@ export const CANH_BAO: Record<string, string> = {
 export const CANH_BAO_NANG = new Set([
   "NO_NANG",
   "HUY_CON_NO",
-  "THIEU_CUOC",
+  "THIEU_GIA_CUOC",
+  "THIEU_NGAY_THU",
   "THU_THIEU",
   "KHO_DOI",
 ]);

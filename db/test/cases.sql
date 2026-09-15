@@ -280,9 +280,15 @@ do $$
 declare v_n int; v_ev jsonb;
 begin
   insert into subscription_snapshot (source, source_id, source_customer_id,
-    service_type, status, monthly_price, fee_start_on, created_at_src)
+    service_type, status, monthly_price, fee_start_on, created_at_src, created_by_src)
   values ('FIXED', 'C1', 'HD_TEST', 'FIXED_INTERNET', 'ACTIVE', 2000,
-          current_date - interval '6 months', now());
+          current_date - interval '6 months', now(), 'ty');
+
+  -- Phải có đơn lắp ĐÃ XONG trước ngày bắt đầu thu, không thì 050 và 096 chặn
+  -- hết: chưa lắp thì không sinh kỳ nào, và cả khối test dưới đây đo vào rỗng.
+  insert into install_order_snapshot (source, source_id, status, signed_on, completed_on)
+  values ('FIXED', 'C1', 'DONE', (current_date - interval '7 months')::date,
+          (current_date - interval '7 months')::date);
 
   -- Một kỳ đã thu, một kỳ được miễn; bốn kỳ còn lại là nợ.
   insert into fee_period_snapshot (source, source_id, subscription_source_id,
@@ -364,9 +370,9 @@ begin
 
   -- Hợp đồng thiếu giá cước: không sinh được kỳ nào nhưng vẫn phải liệt kê.
   insert into subscription_snapshot (source, source_id, source_customer_id,
-    service_type, status, monthly_price, fee_start_on, created_at_src)
+    service_type, status, monthly_price, fee_start_on, created_at_src, created_by_src)
   values ('FIXED', 'C2', 'HD_TRONG', 'FIXED_INTERNET', 'ACTIVE', null,
-          current_date - interval '3 months', now());
+          current_date - interval '3 months', now(), 'ty');
 
   select tinh_trang_cuoc into v_tt from v_fixed_contract where subscription_id = 'C1';
   assert v_tt = 'NO', 'C1 còn nợ nên phải là NO — đang là ' || coalesce(v_tt,'null');
@@ -396,17 +402,20 @@ begin
   select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C1';
   assert 'NO_NANG' = any(v_cb), 'C1 nợ quá ngưỡng phải có NO_NANG — đang là ' || v_cb::text;
   assert 'NGOAI_KY' = any(v_cb), 'C1 có kỳ ngoài khoảng phải có NGOAI_KY — đang là ' || v_cb::text;
-  assert not ('THIEU_CUOC' = any(v_cb)), 'C1 có giá cước, không được gắn THIEU_CUOC';
+  assert not ('THIEU_GIA_CUOC' = any(v_cb)), 'C1 có giá cước, không được gắn THIEU_GIA_CUOC';
 
   select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C2';
-  assert 'THIEU_CUOC' = any(v_cb),
-    'C2 đang chạy mà thiếu giá cước phải có THIEU_CUOC — đang là ' || v_cb::text;
+  assert 'THIEU_GIA_CUOC' = any(v_cb),
+    'C2 đang chạy mà thiếu giá cước phải có THIEU_GIA_CUOC — đang là ' || v_cb::text;
 
   -- Hợp đồng đã huỷ nhưng chưa đòi xong tiền.
   insert into subscription_snapshot (source, source_id, source_customer_id,
-    service_type, status, monthly_price, fee_start_on, created_at_src)
+    service_type, status, monthly_price, fee_start_on, created_at_src, created_by_src)
   values ('FIXED', 'C3', 'HD_HUY', 'FIXED_INTERNET', 'TERMINATED', 2000,
-          current_date - interval '2 months', now());
+          current_date - interval '2 months', now(), 'ty');
+  insert into install_order_snapshot (source, source_id, status, signed_on, completed_on)
+  values ('FIXED', 'C3', 'DONE', (current_date - interval '3 months')::date,
+          (current_date - interval '3 months')::date);
 
   select canh_bao into v_cb from v_fixed_contract where subscription_id = 'C3';
   assert 'HUY_CON_NO' = any(v_cb),
@@ -419,10 +428,18 @@ declare v_bd int; v_kt int; v_cb text[]; v_mo boolean; v_dong boolean;
 begin
   -- C4 bắt đầu tháng 3 năm nay, kết thúc tháng 9, thu kỳ đầu thiếu 500.
   insert into subscription_snapshot (source, source_id, source_customer_id,
-    service_type, status, monthly_price, fee_start_on, fee_end_on, created_at_src)
+    service_type, status, monthly_price, fee_start_on, fee_end_on, created_at_src,
+    created_by_src)
   values ('FIXED', 'C4', 'HD_MOC', 'FIXED_INTERNET', 'ACTIVE', 2000,
           make_date(extract(year from current_date)::int, 3, 1),
-          make_date(extract(year from current_date)::int, 9, 30), now());
+          make_date(extract(year from current_date)::int, 9, 30), now(), 'ty');
+
+  -- Lắp xong ngay đầu tháng 3: 096 lấy mốc muộn hơn giữa ngày lắp xong và ngày
+  -- bắt đầu thu, lắp sau thì kỳ tháng 3 không sinh và cả khối này đo vào rỗng.
+  insert into install_order_snapshot (source, source_id, status, signed_on, completed_on)
+  values ('FIXED', 'C4', 'DONE',
+          make_date(extract(year from current_date)::int, 3, 5),
+          make_date(extract(year from current_date)::int, 3, 1));
 
   insert into fee_period_snapshot (source, source_id, subscription_source_id,
     period, amount, is_free, status)
@@ -462,14 +479,9 @@ end $$;
 do $$
 declare v_n bigint; v_ky text;
 begin
-  update install_order_snapshot set signed_on = make_date(extract(year from current_date)::int, 3, 5),
-                                    completed_on = make_date(extract(year from current_date)::int, 4, 2)
+  -- Đơn lắp của C4 đã dựng ở khối trên; ở đây chỉ cần chắc ngày ký là tháng 3.
+  update install_order_snapshot set signed_on = make_date(extract(year from current_date)::int, 3, 5)
    where source = 'FIXED' and source_id = 'C4';
-  insert into install_order_snapshot (source, source_id, status, signed_on, completed_on)
-  select 'FIXED', 'C4', 'DONE',
-         make_date(extract(year from current_date)::int, 3, 5),
-         make_date(extract(year from current_date)::int, 4, 2)
-   where not exists (select 1 from install_order_snapshot where source='FIXED' and source_id='C4');
 
   update subscription_snapshot set terminated_on = make_date(extract(year from current_date)::int, 9, 30)
    where source = 'FIXED' and source_id = 'C4';
