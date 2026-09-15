@@ -128,6 +128,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th className="num" rowSpan={2}>Phải thu</th>
               <th className="num" rowSpan={2}>Miễn phí</th>
               <th className="num" rowSpan={2}>Đã thu</th>
+              <th className="num" rowSpan={2} title="Kỳ đã có dòng duyệt trong sổ nhưng số tiền ghi ít hơn giá cước của hợp đồng. Tách riêng để hàng ngang khép kín: phải thu = miễn phí + đã thu + còn thiếu + thu thiếu.">
+                Thu thiếu
+              </th>
               <th colSpan={2} className="nhom">Còn thiếu</th>
               <th rowSpan={2}>Tỉ lệ thu</th>
             </tr>
@@ -295,6 +298,9 @@ function TableRows({
       <td className="num mono">{n(row.phai_thu)}</td>
       <td className="num mono muted">{n(row.tien_mien_phi)}</td>
       <td className="num mono">{n(row.da_thu)}</td>
+      <td className={`num mono${Number(row.thu_thieu ?? 0) > 0 ? " bad" : " muted"}`}>
+        {Number(row.thu_thieu ?? 0) === 0 ? "—" : n(row.thu_thieu)}
+      </td>
       <td className="num mono">{chay_ ? n(chay_.con_thieu) : "—"}</td>
       <td className={`num mono${Number(huy?.con_thieu ?? 0) > 0 ? " bad" : " muted"}`}>
         {huy ? n(huy.con_thieu) : "—"}
