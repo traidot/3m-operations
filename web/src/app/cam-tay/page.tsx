@@ -49,6 +49,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <p className="muted">
         Hệ telecom có hoá đơn thật nên công nợ đọc thẳng, không phải suy từ sổ thu như
         bên wifi cố định. Bảng theo tháng ghép theo <b>kỳ cước</b>, không theo ngày lập.
+        Mọi con số tiền ở các thẻ dưới đây là phần mình thu:{" "}
+        {n(tong.thue_bao_dai_ly)} thuê bao của đại lý không tính vì đại lý tự thu.
       </p>
 
       <div className="the-hang">

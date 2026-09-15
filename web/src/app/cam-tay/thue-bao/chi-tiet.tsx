@@ -80,14 +80,21 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
                   : n(tb.so_hoa_don)
               }
             />
-            <O ten="đã thu" gia_tri={n(tb.da_thu)} />
-            <O ten="còn nợ">
-              <span className={Number(tb.con_no) > 0 ? "bad" : undefined}>{n(tb.con_no)}</span>
-            </O>
-            <O ten="mất trắng">
-              <span className={Number(tb.tien_mat) > 0 ? "bad" : undefined}>{n(tb.tien_mat)}</span>
-            </O>
-            <O ten="quá hạn" gia_tri={`${n(tb.ngay_qua_han)} ngày`} />
+            {/* Đại lý tự thu: không bày ô tiền nào. */}
+            {!tb.la_dai_ly && (
+              <>
+                <O ten="đã thu" gia_tri={n(tb.da_thu)} />
+                <O ten="còn nợ">
+                  <span className={Number(tb.con_no) > 0 ? "bad" : undefined}>{n(tb.con_no)}</span>
+                </O>
+                <O ten="mất trắng">
+                  <span className={Number(tb.tien_mat) > 0 ? "bad" : undefined}>
+                    {n(tb.tien_mat)}
+                  </span>
+                </O>
+                <O ten="quá hạn" gia_tri={`${n(tb.ngay_qua_han)} ngày`} />
+              </>
+            )}
           </dl>
 
           <h2>Máy và cọc</h2>

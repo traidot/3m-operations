@@ -248,7 +248,8 @@ export default async function Page({
         theo mã khách và mã máy. Có party là tài khoản CTV hoặc đại lý giữ hàng
         trăm thuê bao — lọc “từ 2 thuê bao” để thấy. Phiếu thu xuất mùng 5 và 15
         cho tháng sau; qua mùng 1 của tháng dùng mà chưa thu được thì vào cột
-        “nợ quá hạn” và tới mức xem xét huỷ dịch vụ.
+        “nợ quá hạn” và tới mức xem xét huỷ dịch vụ. Khách loại <b>đại lý</b> tự thu nên
+        mọi ô về cước để trống và không vào danh sách thu cước.
       </p>
 
       <form method="get">
@@ -360,19 +361,20 @@ export default async function Page({
                   </td>
                   <td className="num mono">{n(r.so_thue_bao)}</td>
                   <td className="num mono muted">{n(r.dang_chay)}</td>
-                  <td className="num mono">{n(r.da_thu)}</td>
+                  {/* Đại lý tự thu: mọi ô về cước để trống, không phải thiếu dữ liệu. */}
+                  <td className="num mono">{r.la_dai_ly ? <span className="muted">—</span> : n(r.da_thu)}</td>
                   <td
-                    className={`num mono${Number(r.con_no) > 0 ? " bad" : ""}`}
+                    className={`num mono${!r.la_dai_ly && Number(r.con_no) > 0 ? " bad" : ""}`}
                   >
-                    {n(r.con_no)}
+                    {r.la_dai_ly ? <span className="muted">—</span> : n(r.con_no)}
                   </td>
                   <td className="num mono">
-                    {Number(r.chua_toi_han) > 0 ? n(r.chua_toi_han) : "—"}
+                    {r.la_dai_ly || Number(r.chua_toi_han) === 0 ? "—" : n(r.chua_toi_han)}
                   </td>
                   <td
-                    className={`num mono${Number(r.tien_mat) > 0 ? " bad" : ""}`}
+                    className={`num mono${!r.la_dai_ly && Number(r.tien_mat) > 0 ? " bad" : ""}`}
                   >
-                    {n(r.tien_mat)}
+                    {r.la_dai_ly ? <span className="muted">—</span> : n(r.tien_mat)}
                   </td>
                   <td
                     className={`num mono${Number(r.may_chua_tra) > 0 ? " bad" : ""}`}

@@ -670,6 +670,7 @@ export type TelecomSub = {
   canh_bao: string[];
   link_cms: string | null;
   hoa_don_don_hang: string;
+  la_dai_ly: boolean;
 };
 
 export type TelecomFilter = {
@@ -685,7 +686,7 @@ const COT_TELECOM = `subscription_id, khach, service_type, goi, trang_thai,
        so_hoa_don::text, hoa_don_dang_doi::text, con_no::text, hoa_don_mat::text,
        tien_mat::text, da_thu::text, ky_gan_nhat_den::text, ngay_qua_han::text,
        may_chua_tra::text, ngay_khong_co_cuoc::text, canh_bao,
-       hoa_don_don_hang::text,
+       hoa_don_don_hang::text, la_dai_ly,
        telecom_url('thue_bao', subscription_id) as link_cms`;
 
 function telecomWhere(f: TelecomFilter): { sql: string; params: unknown[] } {
@@ -817,6 +818,7 @@ export type TelecomTotals = {
   khach: string;
   thue_bao: string;
   dang_chay: string;
+  thue_bao_dai_ly: string;
   con_no: string;
   no_qua_han: string;
   tien_mat: string;
@@ -824,14 +826,20 @@ export type TelecomTotals = {
   may_chua_tra: string;
 };
 
+/**
+ * Tổng quan cầm tay. Số lượng thì đếm hết, nhưng mọi con số TIỀN chỉ tính phần
+ * mình thu: đại lý tự thu nên không cộng vào đây, cũng không vào hai danh sách
+ * việc. Xem db/097.
+ */
 export const getTelecomTotals = async () => {
   const [row] = await query<TelecomTotals>(
     `select count(distinct party_id)::text                          as khach,
             count(*)::text                                          as thue_bao,
             count(*) filter (where trang_thai = 'ACTIVE')::text     as dang_chay,
-            round(sum(con_no))::text                                as con_no,
+            count(*) filter (where la_dai_ly)::text                 as thue_bao_dai_ly,
+            round(sum(con_no) filter (where not la_dai_ly))::text    as con_no,
             round(sum(con_no) filter (where 'NO_QUA_HAN' = any(canh_bao)))::text as no_qua_han,
-            round(sum(tien_mat))::text                              as tien_mat,
+            round(sum(tien_mat) filter (where not la_dai_ly))::text  as tien_mat,
             count(*) filter (where 'THIEU_HOA_DON' = any(canh_bao))::text as thieu_hoa_don,
             sum(may_chua_tra)::text                                 as may_chua_tra
        from v_telecom_subscription`,
@@ -857,6 +865,7 @@ export type TelecomCustomer = {
   ky_gan_nhat_den: string | null;
   canh_bao: string[];
   chua_toi_han: string;
+  la_dai_ly: boolean;
   link_cms: string[] | null;
   phai_hoan: string;
 };
@@ -874,7 +883,7 @@ const COT_KHACH = `party_id::text, khach, ma_khach, dien_thoai, loai_khach,
        nhom_khach, so_thue_bao::text,
        dang_chay::text, dich_vu, da_thu::text, con_no::text, tien_mat::text,
        may_chua_tra::text, ngay_qua_han::text, ky_gan_nhat_den::text, canh_bao,
-       chua_toi_han::text, link_cms, phai_hoan::text`;
+       chua_toi_han::text, link_cms, phai_hoan::text, la_dai_ly`;
 
 function customerWhere(f: CustomerFilter): { sql: string; params: unknown[] } {
   const dieu: string[] = [];

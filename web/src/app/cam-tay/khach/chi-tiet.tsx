@@ -68,18 +68,32 @@ export async function ChiTietKhach({
             </p>
           )}
 
+          {/* Đại lý tự thu nên mình không theo cước của họ — bỏ hẳn các ô tiền
+              thay vì bày số 3M không quản. Máy vẫn là của 3M nên vẫn theo. */}
+          {kh.la_dai_ly && (
+            <p className="muted">
+              Khách loại đại lý — đại lý tự thu cước của khách mình, nên phần cước không
+              theo dõi ở đây và không vào danh sách thu cước.
+            </p>
+          )}
           <dl className="chung-cu">
-            <O ten="đã thu" gia_tri={n(kh.da_thu)} />
-            <O ten="còn nợ">
-              <span className={Number(kh.con_no) > 0 ? "bad" : undefined}>{n(kh.con_no)}</span>
-            </O>
-            <O ten="mất trắng">
-              <span className={Number(kh.tien_mat) > 0 ? "bad" : undefined}>{n(kh.tien_mat)}</span>
-            </O>
-            {Number(kh.phai_hoan) > 0 && (
-              <O ten="phải hoàn khách" gia_tri={n(kh.phai_hoan)} />
+            {!kh.la_dai_ly && (
+              <>
+                <O ten="đã thu" gia_tri={n(kh.da_thu)} />
+                <O ten="còn nợ">
+                  <span className={Number(kh.con_no) > 0 ? "bad" : undefined}>{n(kh.con_no)}</span>
+                </O>
+                <O ten="mất trắng">
+                  <span className={Number(kh.tien_mat) > 0 ? "bad" : undefined}>
+                    {n(kh.tien_mat)}
+                  </span>
+                </O>
+                {Number(kh.phai_hoan) > 0 && (
+                  <O ten="phải hoàn khách" gia_tri={n(kh.phai_hoan)} />
+                )}
+                <O ten="quá hạn" gia_tri={`${n(kh.ngay_qua_han)} ngày`} />
+              </>
             )}
-            <O ten="quá hạn" gia_tri={`${n(kh.ngay_qua_han)} ngày`} />
             <O ten="máy chưa trả" gia_tri={n(kh.may_chua_tra)} />
             <O ten="kỳ gần nhất" gia_tri={kh.ky_gan_nhat_den?.slice(0, 7) ?? "—"} />
           </dl>
@@ -113,9 +127,11 @@ export async function ChiTietKhach({
                     </td>
                     <td className="num mono">{n(s.gia_thang)}</td>
                     <td className="num mono muted">{n(s.so_hoa_don)}</td>
-                    <td className="num mono">{n(s.da_thu)}</td>
-                    <td className={`num mono${Number(s.con_no) > 0 ? " bad" : ""}`}>
-                      {n(s.con_no)}
+                    <td className="num mono">
+                      {kh.la_dai_ly ? <span className="muted">—</span> : n(s.da_thu)}
+                    </td>
+                    <td className={`num mono${!kh.la_dai_ly && Number(s.con_no) > 0 ? " bad" : ""}`}>
+                      {kh.la_dai_ly ? <span className="muted">—</span> : n(s.con_no)}
                     </td>
                     <td className="mono">{s.ky_gan_nhat_den?.slice(0, 7) ?? "—"}</td>
                     <td className="khong-xuong-dong">
