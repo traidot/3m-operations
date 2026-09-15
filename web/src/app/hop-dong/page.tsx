@@ -147,6 +147,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <Link href="/hop-dong">
               <button type="button">Bỏ lọc</button>
             </Link>
+            {/* Thẻ a thường: trả tệp tải xuống chứ không phải trang. */}
+            <a href={`/hop-dong/xuat${link({ xem: undefined }).replace("/hop-dong", "")}`} download>
+              <button type="button">Xuất Excel</button>
+            </a>
           </div>
         </div>
       </form>

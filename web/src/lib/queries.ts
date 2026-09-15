@@ -310,6 +310,8 @@ export type Contract = {
   goi_cuoc: string | null;
   cuoc_thang: string | null;
   fee_start_on: string | null;
+  fee_end_on: string | null;
+  nguoi_nhap: string | null;
   ngay_ky: string | null;
   ngay_lap_xong: string | null;
   ngay_huy: string | null;
@@ -352,7 +354,7 @@ export type ContractFilter = {
 
 const COT_HOP_DONG = `subscription_id, contract_code, dia_chi, trang_thai_hop_dong,
        trang_thai_lap_dat, goi_cuoc, cuoc_thang::text,
-       fee_start_on::text, ngay_ky::text, ngay_lap_xong::text,
+       fee_start_on::text, fee_end_on::text, nguoi_nhap, ngay_ky::text, ngay_lap_xong::text,
        ngay_huy::text, ly_do_huy, nhom_ly_do_huy, kho_doi,
        so_ky::text, so_ky_mien_phi::text, so_ky_no::text,
        tong_da_thu::text, con_no::text, ky_da_thu_gan_nhat,
@@ -442,6 +444,15 @@ export const getContracts = (f: ContractFilter) => {
        from v_fixed_contract ${sql}
       order by so_ky_no desc, contract_code
       limit ${CONTRACTS_PER_PAGE} offset ${offset}`,
+    params,
+  );
+};
+
+/** Toàn bộ hợp đồng khớp bộ lọc, không phân trang — dùng cho tệp Excel. */
+export const getContractsForExport = (f: ContractFilter) => {
+  const { sql, params } = contractWhere(f);
+  return query<Contract>(
+    `select ${COT_HOP_DONG} from v_fixed_contract ${sql} order by contract_code`,
     params,
   );
 };
