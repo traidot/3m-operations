@@ -17,6 +17,7 @@ export const TINH_TRANG_CUOC: Record<string, string> = {
   NO: "còn nợ",
   CHUA_TINH_DUOC: "chưa tính được",
   CHUA_LAP: "chưa phát sinh",
+  DAI_LY: "đại lý tự thu",
 };
 
 /**
@@ -24,7 +25,7 @@ export const TINH_TRANG_CUOC: Record<string, string> = {
  * kỳ" và "kỳ nợ" phải để gạch chứ không phải số 0 — 0 đọc ra là "đã kiểm, không
  * nợ", trong khi sự thật là chưa tính.
  */
-export const KHONG_SINH_KY = new Set(["CHUA_TINH_DUOC", "CHUA_LAP"]);
+export const KHONG_SINH_KY = new Set(["CHUA_TINH_DUOC", "CHUA_LAP", "DAI_LY"]);
 
 export const KY_CUOC: Record<string, string> = {
   DA_THU: "đã thu",
@@ -88,6 +89,7 @@ export const MAU_TRANG_THAI: Record<string, string> = {
   NO: "xau",
   CHUA_TINH_DUOC: "cho",
   CHUA_LAP: "tat",
+  DAI_LY: "tat",
 };
 
 /** Hợp đồng wifi cố định: công ty thu cước, hay đại lý tự thu. */
