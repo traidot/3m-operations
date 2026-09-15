@@ -85,7 +85,6 @@ export async function ChiTietThangCoDinh({
                 <th>Hợp đồng</th>
                 <th>Địa chỉ</th>
                 <th>Trạng thái</th>
-                <th>Phụ trách</th>
                 <th>Lắp xong → huỷ</th>
                 <th className="num">Cước/tháng</th>
                 <th>Kỳ tháng này</th>
@@ -103,14 +102,19 @@ export async function ChiTietThangCoDinh({
                     </Link>
                     {r.kho_doi && <span className="tag critical"> khó đòi</span>}
                   </td>
-                  <td>{r.dia_chi ?? "—"}</td>
+                  {/* Địa chỉ Nhật rất dài, cắt ở hai dòng; rê chuột xem đủ. */}
                   <td>
-                    <Chip ma={r.trang_thai_hop_dong} nhan={HOP_DONG} />
+                    <span className="hai-dong" title={r.dia_chi ?? undefined}>
+                      {r.dia_chi ?? "—"}
+                    </span>
                   </td>
                   <td>
-                    <span className={`chip ${r.do_cong_ty ? "ctv" : "tat"}`}>
-                      {r.do_cong_ty ? "công ty" : "đại lý"}
-                    </span>
+                    <Chip ma={r.trang_thai_hop_dong} nhan={HOP_DONG} />
+                    <div>
+                      <span className={`chip ${r.do_cong_ty ? "ctv" : "tat"}`}>
+                        {r.do_cong_ty ? "công ty" : "đại lý"}
+                      </span>
+                    </div>
                     <div className="muted">{r.nguoi_tao ?? "—"}</div>
                   </td>
                   <td className="mono">
