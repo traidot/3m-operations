@@ -1294,3 +1294,68 @@ export const getHopDongThang = (ky: string) =>
       order by do_cong_ty desc, (dang_chay <> co_ky_cuoc) desc, thieu_gia desc, ma_hop_dong`,
     [ky],
   );
+
+export type InstallMonth = {
+  ky_ky: string;
+  do_cong_ty: boolean;
+  so_don: string;
+  lap_xong: string;
+  cho_lap: string;
+  huy_truoc_lap: string;
+  lap_hong: string;
+  lap_roi_huy: string;
+  ty_le_lap: string | null;
+  ngay_trung_vi: string | null;
+};
+
+/** Đơn wifi cố định gom theo tháng ký — xem v_fixed_install_month. */
+export const getInstallMonths = () =>
+  query<InstallMonth>(
+    `select ky_ky, do_cong_ty, so_don::text, lap_xong::text, cho_lap::text,
+            huy_truoc_lap::text, lap_hong::text, lap_roi_huy::text,
+            ty_le_lap::text, round(ngay_trung_vi)::text as ngay_trung_vi
+       from v_fixed_install_month order by ky_ky desc`,
+  );
+
+export type InstallPending = {
+  do_cong_ty: boolean;
+  nhom_cho: string;
+  so_don: string;
+  ky_som_nhat: string | null;
+};
+
+export const getInstallPending = () =>
+  query<InstallPending>(
+    `select do_cong_ty, nhom_cho, so_don::text, ky_som_nhat::text
+       from v_fixed_install_pending order by nhom_cho`,
+  );
+
+export type InstallOrder = {
+  subscription_id: string;
+  ma_hop_dong: string | null;
+  dia_chi: string | null;
+  do_cong_ty: boolean;
+  nguoi_tao: string | null;
+  trang_thai_lap_dat: string | null;
+  trang_thai_hop_dong: string;
+  ngay_ky: string | null;
+  ngay_lap_xong: string | null;
+  ngay_huy: string | null;
+  so_ngay_cho: string | null;
+  ly_do_huy: string | null;
+  nhom_ly_do_huy: string | null;
+  tinh_huong: string;
+  link_cms: string | null;
+};
+
+/** Đơn của một tháng ký. Còn chờ lâu nhất lên đầu — đó là thứ tự cần xử lý. */
+export const getInstallCohort = (ky: string) =>
+  query<InstallOrder>(
+    `select subscription_id, ma_hop_dong, dia_chi, do_cong_ty, nguoi_tao,
+            trang_thai_lap_dat, trang_thai_hop_dong, ngay_ky::text,
+            ngay_lap_xong::text, ngay_huy::text, so_ngay_cho::text,
+            ly_do_huy, nhom_ly_do_huy, tinh_huong, link_cms
+       from fixed_install_cohort($1)
+      order by (tinh_huong = 'CHO_LAP') desc, so_ngay_cho desc, ma_hop_dong`,
+    [ky],
+  );

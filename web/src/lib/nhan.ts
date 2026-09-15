@@ -134,6 +134,15 @@ export const MAU_DICH_VU: Record<string, string> = {
   WIFI_DEVICE: "cam",
 };
 
+/** Tình huống của một đơn lắp, xét cả trạng thái lắp lẫn trạng thái hợp đồng. */
+export const TINH_HUONG_LAP: Record<string, string> = {
+  CHO_LAP: "còn chờ lắp",
+  DA_LAP: "đã lắp xong",
+  HUY_TRUOC_LAP: "huỷ trước khi lắp",
+  LAP_ROI_HUY: "lắp xong rồi huỷ",
+  LAP_HONG: "lắp hỏng",
+};
+
 export const DICH_VU: Record<string, string> = {
   WIFI_DEVICE: "wifi cầm tay",
   SOFTBANK_SIM: "sim Softbank",

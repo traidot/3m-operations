@@ -33,6 +33,7 @@ const MENU: NhomMenu[] = [
     muc: [
       { ten: "Báo cáo", href: "/thang" },
       { ten: "Hợp đồng", href: "/hop-dong" },
+      { ten: "Lắp đặt", href: "/lap-dat" },
       { ten: "Cước", href: "/cuoc" },
     ],
   },
