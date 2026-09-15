@@ -51,6 +51,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
   const phu = Number(coverage?.ty_le_tinh_duoc ?? 0);
 
+  // "Phải ra kỳ" và "có kỳ cước" phải bằng nhau. Gom trước để vừa cảnh báo ở
+  // đầu bảng vừa đánh dấu đúng ô lệch, khỏi tính hai lần.
+  const lechKy = total
+    .map((r) => ({ ky: r.ky, lech: Number(theoThang.get(r.ky)?.phai_ra_ky ?? 0) - Number(r.so_hop_dong) }))
+    .filter((l) => theoThang.has(l.ky) && l.lech !== 0);
+
   return (
     <main>
       <h1>Cước wifi cố định</h1>
@@ -68,6 +74,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </div>
 
       <h2>Theo tháng</h2>
+      {lechKy.length > 0 && (
+        <p className="stale">
+          ⚠ Sổ cước lệch với số hợp đồng phải ra kỳ ở{" "}
+          {lechKy.length === 1 ? "tháng" : `${lechKy.length} tháng`}:{" "}
+          {lechKy
+            .map((l) => `${l.ky} ${l.lech > 0 ? "thiếu" : "thừa"} ${Math.abs(l.lech)}`)
+            .join(", ")}
+          . Hai số này phải bằng nhau — lệch là sổ cước đã trôi khỏi hợp đồng, thường do ngày
+          lắp hoặc khoảng thu bên nguồn sửa sau khi kỳ đã sinh.
+        </p>
+      )}
       <p className="muted">
         Ghép theo kỳ cước, không theo ngày thu — tiền một kỳ có thể được thu ở tháng khác.
         Cột “công ty” là hợp đồng do công ty phụ trách, đã lắp xong và chưa huỷ trong tháng —
@@ -231,7 +248,7 @@ function TableRows({
   const huy = theo("TERMINATED");
   // Hai số này phải bằng nhau. Lệch chiều nào cũng là sổ cước trôi khỏi hợp
   // đồng — thường do ngày lắp hoặc khoảng thu bên nguồn sửa sau khi kỳ đã sinh.
-  const lechKy = chay ? Number(chay.phai_ra_ky) - Number(row.so_hop_dong) : 0;
+  const lech = chay ? Number(chay.phai_ra_ky) - Number(row.so_hop_dong) : 0;
 
   return (
     <Dong href={href} dangMo={dangMo}>
@@ -241,12 +258,16 @@ function TableRows({
       <td className={`num mono${Number(chay?.thieu_gia_cuoc ?? 0) > 0 ? " bad" : ""}`}>
         {chay ? n(chay.thieu_gia_cuoc) : "—"}
       </td>
-      <td className={`num mono${lechKy ? " bad" : ""}`} title={
-          lechKy
-            ? `Lệch ${Math.abs(lechKy)} hợp đồng so với sổ cước: sổ ${lechKy > 0 ? "thiếu" : "thừa"} dòng`
+      <td
+        className={`num mono${lech ? " bad" : ""}`}
+        title={
+          lech
+            ? `Lệch ${Math.abs(lech)} hợp đồng so với sổ cước: sổ ${lech > 0 ? "thiếu" : "thừa"} dòng`
             : undefined
-        }>
+        }
+      >
         {chay ? n(chay.phai_ra_ky) : "—"}
+        {lech !== 0 && <span className="dau-lech"> ⚠</span>}
       </td>
       <td className="num mono">{chay_ ? n(chay_.so_hop_dong) : "—"}</td>
       <td className="num mono muted">{huy ? n(huy.so_hop_dong) : "—"}</td>
