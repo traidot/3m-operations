@@ -74,7 +74,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </div>
 
       <h2>Theo tháng</h2>
-      {lechKy.length > 0 && (
+      {/* Luôn bày kết quả đối chiếu, kể cả khi khớp: không thấy gì thì không biết
+          là đã kiểm hay chưa kiểm. */}
+      {lechKy.length > 0 ? (
         <p className="stale">
           ⚠ Sổ cước lệch với số hợp đồng phải ra kỳ ở{" "}
           {lechKy.length === 1 ? "tháng" : `${lechKy.length} tháng`}:{" "}
@@ -83,6 +85,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             .join(", ")}
           . Hai số này phải bằng nhau — lệch là sổ cước đã trôi khỏi hợp đồng, thường do ngày
           lắp hoặc khoảng thu bên nguồn sửa sau khi kỳ đã sinh.
+        </p>
+      ) : (
+        <p className="khop">
+          ✓ Đối chiếu sổ cước: cột “phải ra kỳ” khớp với “có kỳ cước” ở cả{" "}
+          {total.filter((r) => theoThang.has(r.ky)).length} tháng. Lệch thì dòng này chuyển
+          thành cảnh báo và ô lệch tô đỏ kèm dấu ⚠.
         </p>
       )}
       <p className="muted">
