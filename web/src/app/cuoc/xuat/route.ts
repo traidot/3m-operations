@@ -54,11 +54,16 @@ export async function GET(request: NextRequest) {
       nguoi_tao: r.nguoi_tao,
       lap_xong: r.ngay_lap_xong,
       huy: r.ngay_huy ?? "chưa huỷ",
-      cuoc_thang: r.thieu_gia ? null : so(r.cuoc_thang),
-      bat_dau_thu: r.bat_dau_thu,
-      ky: r.trang_thai_ky ? (KY_CUOC[r.trang_thai_ky] ?? r.trang_thai_ky) : "không có kỳ",
-      phai_thu: so(r.phai_thu),
-      da_thu: so(r.da_thu),
+      // Đại lý tự thu nên không có cước, không có kỳ — để trống chứ không ghi 0.
+      cuoc_thang: !r.do_cong_ty || r.thieu_gia ? null : so(r.cuoc_thang),
+      bat_dau_thu: r.do_cong_ty ? r.bat_dau_thu : null,
+      ky: !r.do_cong_ty
+        ? ""
+        : r.trang_thai_ky
+          ? (KY_CUOC[r.trang_thai_ky] ?? r.trang_thai_ky)
+          : "không có kỳ",
+      phai_thu: r.do_cong_ty ? so(r.phai_thu) : null,
+      da_thu: r.do_cong_ty ? so(r.da_thu) : null,
       kho_doi: r.kho_doi ? "x" : "",
       link_cms: r.link_cms,
     });

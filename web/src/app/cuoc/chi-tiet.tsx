@@ -121,16 +121,27 @@ export async function ChiTietThangCoDinh({
                     {r.ngay_lap_xong ?? "—"}
                     <div className="muted">→ {r.ngay_huy ?? "chưa huỷ"}</div>
                   </td>
+                  {/* Đại lý tự thu: mọi ô về cước để trống, không phải thiếu dữ liệu. */}
                   <td className="num mono">
-                    {r.thieu_gia ? <span className="bad">thiếu giá</span> : n(r.cuoc_thang)}
+                    {!r.do_cong_ty ? (
+                      <span className="muted">—</span>
+                    ) : r.thieu_gia ? (
+                      <span className="bad">thiếu giá</span>
+                    ) : (
+                      n(r.cuoc_thang)
+                    )}
                   </td>
                   <td>
-                    {r.trang_thai_ky
-                      ? (KY_CUOC[r.trang_thai_ky] ?? r.trang_thai_ky)
-                      : <span className="muted">không có kỳ</span>}
+                    {!r.do_cong_ty ? (
+                      <span className="muted">—</span>
+                    ) : r.trang_thai_ky ? (
+                      (KY_CUOC[r.trang_thai_ky] ?? r.trang_thai_ky)
+                    ) : (
+                      <span className="muted">không có kỳ</span>
+                    )}
                   </td>
-                  <td className="num mono">{n(r.phai_thu)}</td>
-                  <td className="num mono">{n(r.da_thu)}</td>
+                  <td className="num mono">{r.do_cong_ty ? n(r.phai_thu) : "—"}</td>
+                  <td className="num mono">{r.do_cong_ty ? n(r.da_thu) : "—"}</td>
                   <td>
                     {r.link_cms && (
                       <a href={r.link_cms} target="_blank" rel="noreferrer">
