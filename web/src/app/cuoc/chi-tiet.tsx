@@ -101,6 +101,7 @@ export async function ChiTietThangCoDinh({
                       {r.ma_hop_dong ?? r.subscription_id}
                     </Link>
                     {r.kho_doi && <span className="tag critical"> khó đòi</span>}
+                    <div className="muted">{r.nguoi_tao ?? "—"}</div>
                   </td>
                   {/* Địa chỉ Nhật rất dài, cắt ở hai dòng; rê chuột xem đủ. */}
                   <td>
@@ -115,7 +116,6 @@ export async function ChiTietThangCoDinh({
                         {r.do_cong_ty ? "công ty" : "đại lý"}
                       </span>
                     </div>
-                    <div className="muted">{r.nguoi_tao ?? "—"}</div>
                   </td>
                   <td className="mono">
                     {r.ngay_lap_xong ?? "—"}
