@@ -213,9 +213,15 @@ export async function ChiTiet({
                       <td className={nhanKy(k).do ? "bad" : undefined}>
                         {nhanKy(k).chu}
                       </td>
-                      <td className="num mono">{n(k.phai_thu)}</td>
+                      {/* Kỳ miễn phí: tiền đã được tha, không phải khoản thu
+                          hụt. Vẫn hiện giá cước để biết tha bao nhiêu, nhưng
+                          để mờ và không tô đỏ ô "đã thu". */}
+                      <td className={`num mono${k.trang_thai === "MIEN_PHI" ? " muted" : ""}`}>
+                        {n(k.phai_thu)}
+                      </td>
                       <td
                         className={`num mono${
+                          k.trang_thai !== "MIEN_PHI" &&
                           k.phai_thu !== null &&
                           k.tien !== null &&
                           Number(k.tien) < Number(k.phai_thu)
@@ -223,7 +229,7 @@ export async function ChiTiet({
                             : ""
                         }`}
                       >
-                        {n(k.tien)}
+                        {k.trang_thai === "MIEN_PHI" ? <span className="muted">—</span> : n(k.tien)}
                       </td>
                       <td className="num mono">
                         {Number(k.coc_cho_duyet) > 0 ? n(k.coc_cho_duyet) : "—"}
@@ -238,10 +244,12 @@ export async function ChiTiet({
             </div>
           )}
           <p className="muted">
-            “Ngoài kỳ” là dòng trong sổ ứng với tháng nằm ngoài khoảng hệ thống
-            tính được — trả trước, nhập nhầm năm, hoặc hợp đồng chưa lắp nên
-            không có khoảng nào để tính. “Chỉ ghi chú” và “chờ duyệt” chưa tính
-            là đã thu.
+            “Miễn phí” là tháng được tha cước: cột “phải thu” để mờ vì tiền đó
+            không còn phải đòi, và kỳ đó không tính vào nợ. “Chỉ ghi chú” và
+            “chờ duyệt” thì ngược lại — chưa tính là đã thu nên vẫn nằm trong
+            nợ. “Ngoài kỳ” là dòng trong sổ ứng với tháng nằm ngoài khoảng hệ
+            thống tính được — trả trước, nhập nhầm năm, hoặc hợp đồng chưa lắp
+            nên không có khoảng nào để tính.
           </p>
 
           {url && (
