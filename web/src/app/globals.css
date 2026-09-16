@@ -322,6 +322,26 @@ a.chip:hover { background: color-mix(in srgb, var(--mau-chip) 26%, transparent);
 /* Trong ngăn kéo có hơn chục cặp nhãn–giá trị, để chảy tự do thì mỗi dòng
    một kiểu, mắt không dóng được. Ép ba cột. */
 .ngan-keo .chung-cu { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 24px; }
+/* Ba khối thông tin của hợp đồng: hợp đồng, dịch vụ, tiền. Mỗi khối một cột
+   riêng nên ô lẻ chỉ có ở vài hợp đồng (cọc chờ duyệt, khách khó đòi) không
+   đẩy lệch khối bên cạnh — lỗi của cách xếp cũ, xếp tràn theo thứ tự code. */
+.nhom-tt {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 24px; margin: 12px 0 4px; align-items: start;
+}
+.nhom-tt h3 {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted); font-weight: 500;
+  margin: 0 0 6px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+}
+.nhom-tt dl { display: grid; gap: 6px; margin: 0; }
+.nhom-tt dl > div { display: flex; gap: 8px; align-items: baseline; }
+.nhom-tt dt { color: var(--muted); font-size: 0.8rem; margin: 0; min-width: 84px; }
+.nhom-tt dd {
+  margin: 0; font-family: var(--mono); font-size: 0.84rem; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) { .nhom-tt { grid-template-columns: 1fr; } }
 .ngan-keo .chung-cu dt { min-width: 84px; }
 @media (max-width: 900px) {
   .ngan-keo .chung-cu { grid-template-columns: repeat(2, minmax(0, 1fr)); }

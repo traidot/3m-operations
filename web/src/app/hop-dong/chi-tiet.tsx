@@ -89,55 +89,73 @@ export async function ChiTiet({
             </p>
           )}
 
-          <dl className="chung-cu">
-            <O ten="hợp đồng">
-              <Chip ma={hd.trang_thai_hop_dong} nhan={HOP_DONG} />
-            </O>
-            <O ten="lắp đặt">
-              <Chip ma={hd.trang_thai_lap_dat} nhan={LAP_DAT} />
-            </O>
-            <O ten="cước">
-              <Chip ma={hd.tinh_trang_cuoc} nhan={TINH_TRANG_CUOC} />
-            </O>
-            {hd.goi_cuoc && <O ten="gói" gia_tri={hd.goi_cuoc} />}
-            <O ten="cước/tháng" gia_tri={n(hd.cuoc_thang)} />
-            <O ten="bắt đầu thu" gia_tri={hd.fee_start_on ?? "—"} />
-            <O ten="ngày ký" gia_tri={hd.ngay_ky ?? "—"} />
-            <O ten="lắp xong" gia_tri={hd.ngay_lap_xong ?? "—"} />
-            {hd.ngay_huy && <O ten="ngày huỷ" gia_tri={hd.ngay_huy} />}
-            {hd.kho_doi && (
-              <O ten="đánh giá">
-                <span className="chip xau">khách khó đòi</span>
-              </O>
-            )}
-            <O
-              ten="tổng kỳ"
-              gia_tri={
-                KHONG_SINH_KY.has(hd.tinh_trang_cuoc) ? "—" : n(hd.so_ky)
-              }
-            />
-            <O ten="phụ trách">
-              <span className={`chip ${hd.do_cong_ty ? "ctv" : "tat"}`}>
-                {hd.do_cong_ty ? "công ty" : "đại lý"}
-              </span>
-            </O>
-            <O ten="đã thu" gia_tri={n(hd.tong_da_thu)} />
-            <O ten="nợ quá hạn" gia_tri={n(hd.con_no)} />
-            {Number(hd.coc_cho_duyet) > 0 && (
-              <O ten="cọc chờ duyệt" gia_tri={n(hd.coc_cho_duyet)} />
-            )}
-            <O
-              ten="còn phải đòi"
-              gia_tri={n(hd.con_no_sau_coc)}
-              do={Number(hd.con_no_sau_coc) > 0}
-            />
-            {Number(hd.so_ky_chua_den_han) > 0 && (
-              <O
-                ten="chưa tới hạn"
-                gia_tri={`${n(hd.tien_chua_den_han)} · ${n(hd.so_ky_chua_den_han)} kỳ`}
-              />
-            )}
-          </dl>
+          {/* Gom theo chuyện chứ không theo thứ tự tiện tay: hợp đồng là danh
+              tính và vòng đời, giữa là dịch vụ và giá, phải là tiền. Ba khối
+              đứng cạnh nhau nên thêm bớt ô lẻ cũng không xô lệch khối khác. */}
+          <div className="nhom-tt">
+            <section>
+              <h3>Hợp đồng</h3>
+              <dl>
+                <O ten="trạng thái">
+                  <Chip ma={hd.trang_thai_hop_dong} nhan={HOP_DONG} />
+                </O>
+                <O ten="phụ trách">
+                  <span className={`chip ${hd.do_cong_ty ? "ctv" : "tat"}`}>
+                    {hd.do_cong_ty ? "công ty" : "đại lý"}
+                  </span>
+                </O>
+                <O ten="ngày ký" gia_tri={hd.ngay_ky ?? "—"} />
+                <O ten="ngày huỷ" gia_tri={hd.ngay_huy ?? "chưa huỷ"} />
+                {hd.kho_doi && (
+                  <O ten="đánh giá">
+                    <span className="chip xau">khách khó đòi</span>
+                  </O>
+                )}
+              </dl>
+            </section>
+
+            <section>
+              <h3>Lắp đặt và gói cước</h3>
+              <dl>
+                <O ten="lắp đặt">
+                  <Chip ma={hd.trang_thai_lap_dat} nhan={LAP_DAT} />
+                </O>
+                <O ten="lắp xong" gia_tri={hd.ngay_lap_xong ?? "—"} />
+                <O ten="gói" gia_tri={hd.goi_cuoc ?? "—"} />
+                <O ten="cước/tháng" gia_tri={n(hd.cuoc_thang)} />
+                <O ten="bắt đầu thu" gia_tri={hd.fee_start_on ?? "—"} />
+              </dl>
+            </section>
+
+            <section>
+              <h3>Tiền</h3>
+              <dl>
+                <O ten="tình trạng">
+                  <Chip ma={hd.tinh_trang_cuoc} nhan={TINH_TRANG_CUOC} />
+                </O>
+                <O
+                  ten="tổng kỳ"
+                  gia_tri={KHONG_SINH_KY.has(hd.tinh_trang_cuoc) ? "—" : n(hd.so_ky)}
+                />
+                <O ten="đã thu" gia_tri={n(hd.tong_da_thu)} />
+                <O ten="nợ quá hạn" gia_tri={n(hd.con_no)} />
+                {Number(hd.coc_cho_duyet) > 0 && (
+                  <O ten="cọc chờ duyệt" gia_tri={n(hd.coc_cho_duyet)} />
+                )}
+                {Number(hd.so_ky_chua_den_han) > 0 && (
+                  <O
+                    ten="chưa tới hạn"
+                    gia_tri={`${n(hd.tien_chua_den_han)} · ${n(hd.so_ky_chua_den_han)} kỳ`}
+                  />
+                )}
+                <O
+                  ten="còn phải đòi"
+                  gia_tri={n(hd.con_no_sau_coc)}
+                  do={Number(hd.con_no_sau_coc) > 0}
+                />
+              </dl>
+            </section>
+          </div>
 
           {hd.ly_do_huy && (
             <p className="ly-do">
