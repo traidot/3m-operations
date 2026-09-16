@@ -18,6 +18,7 @@ const MENU: NhomMenu[] = [
       { ten: "Dự kiến huỷ", href: "/xem-xet-huy" },
       { ten: "Cọc", href: "/cam-tay/coc" },
       { ten: "Thu ngoài hợp đồng", href: "/thu-ngoai" },
+      { ten: "Tháng không ra kỳ", href: "/ky-hut" },
     ],
   },
   {

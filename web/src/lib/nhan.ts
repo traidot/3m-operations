@@ -257,3 +257,15 @@ export const THU_NGOAI_CACH_XU_LY: Record<string, string> = {
   THU_TRUOC_LAP: "Thu cho tháng máy chưa về nhà khách.",
   CHUA_DAT_COC: "Hợp đồng chưa điền giá hoặc ngày bắt đầu thu nên không có khoảng nào để đối chiếu.",
 };
+
+/** Sổ cước ghi gì cho tháng nằm giữa ngày kết thúc thu và ngày huỷ. */
+export const KY_HUT: Record<string, string> = {
+  KHONG_CO_DONG: "không có dòng nào",
+  GHI_CHU: "chỉ ghi chú",
+  CHO_DUYET: "chờ duyệt",
+  MIEN_PHI: "được miễn",
+  DA_THU: "đã thu",
+};
+
+/** Tháng không thu được đồng nào — phần đáng đòi. */
+export const KY_HUT_MAT_TIEN = new Set(["KHONG_CO_DONG", "GHI_CHU", "CHO_DUYET"]);

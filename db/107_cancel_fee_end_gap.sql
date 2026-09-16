@@ -8,7 +8,12 @@
 --
 -- Đặt ngưỡng 31 ngày vì lệch dưới một tháng thường chỉ là chuyện chốt sổ cuối
 -- tháng rồi huỷ vài ngày sau, không phải sai. Quá mốc đó còn 61 hợp đồng, tất
--- cả đều là ngừng thu sớm, ước chừng 228.000 yên tháng chạy mà không thu.
+-- cả đều là ngừng thu sớm.
+--
+-- 157 tháng nằm trong khoảng lệch, và soi sổ ra thì không phải tất cả đều mất
+-- tiền: 106 tháng đã có dòng ghi chú 0 yên, 8 tháng được miễn, 2 tháng thu
+-- thật, còn 41 tháng trên 28 hợp đồng là không có dòng nào — 82.000 yên. Xem
+-- từng tháng ở v_fixed_ky_hut (109).
 --
 -- Lệch chiều ngược lại — thu kéo dài sau khi huỷ — đã có màn hình Thu ngoài
 -- hợp đồng soi từng kỳ; ở đây gộp chung một cảnh báo vì cùng là hai mốc không

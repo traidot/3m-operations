@@ -1431,3 +1431,32 @@ export const getThuNgoaiHopDong = () =>
        from v_fixed_thu_ngoai_hop_dong
       order by tien desc, ma_hop_dong, ky`,
   );
+
+export type KyHut = {
+  subscription_id: string;
+  ma_hop_dong: string | null;
+  dia_chi: string | null;
+  ky: string;
+  tien_le_ra: string;
+  tien_da_thu: string;
+  fee_start_on: string | null;
+  fee_end_on: string | null;
+  ngay_lap_xong: string | null;
+  ngay_huy: string | null;
+  so_ngay_lech: string;
+  ly_do_huy: string | null;
+  nhom_ly_do_huy: string | null;
+  trang_thai_so: string;
+  link_cms: string | null;
+};
+
+/** Tháng còn chạy giữa ngày kết thúc thu và ngày huỷ — xem db/109. */
+export const getKyHut = () =>
+  query<KyHut>(
+    `select subscription_id, ma_hop_dong, dia_chi, ky, tien_le_ra::text,
+            tien_da_thu::text, fee_start_on::text, fee_end_on::text,
+            ngay_lap_xong::text, ngay_huy::text, so_ngay_lech::text,
+            ly_do_huy, nhom_ly_do_huy, trang_thai_so, link_cms
+       from v_fixed_ky_hut
+      order by so_ngay_lech desc, ma_hop_dong, ky`,
+  );
