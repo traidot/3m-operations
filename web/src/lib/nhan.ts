@@ -48,6 +48,7 @@ export const CANH_BAO: Record<string, string> = {
   THU_THIEU: "thu thiếu tiền",
   KHO_DOI: "khách khó đòi",
   CHO_LAP_LAU: "chờ lắp lâu",
+  HUY_LECH_KY: "huỷ lệch ngày kết thúc thu",
   CO_COC: "có cọc chờ duyệt",
 };
 
@@ -58,6 +59,7 @@ export const CANH_BAO_NANG = new Set([
   "THIEU_GIA_CUOC",
   "THIEU_NGAY_THU",
   "THU_THIEU",
+  "HUY_LECH_KY",
   "KHO_DOI",
 ]);
 

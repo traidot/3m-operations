@@ -66,6 +66,16 @@ export async function ChiTiet({
     getContractUrl(id),
   ]);
 
+  // Hai mốc rời nhau bên nguồn: thu tới đâu và dịch vụ dừng lúc nào. Lệch bao
+  // nhiêu ngày mới là thứ người xem cần, chứ không phải "có lệch".
+  const lechKetThuc =
+    hd?.fee_end_on && hd.ngay_huy
+      ? Math.round(
+          (Date.parse(hd.ngay_huy) - Date.parse(hd.fee_end_on)) / 86_400_000,
+        )
+      : null;
+  const lechNang = hd?.canh_bao.includes("HUY_LECH_KY") ?? false;
+
   return (
     <NganKeo dongLai={dongLai}>
       <h1 className="mono">{hd?.contract_code ?? id}</h1>
@@ -124,6 +134,11 @@ export async function ChiTiet({
                 <O ten="gói" gia_tri={hd.goi_cuoc ?? "—"} />
                 <O ten="cước/tháng" gia_tri={n(hd.cuoc_thang)} />
                 <O ten="bắt đầu thu" gia_tri={hd.fee_start_on ?? "—"} />
+                <O
+                  ten="kết thúc thu"
+                  gia_tri={hd.fee_end_on ?? "chưa đặt"}
+                  do={lechNang}
+                />
               </dl>
             </section>
 
@@ -156,6 +171,15 @@ export async function ChiTiet({
               </dl>
             </section>
           </div>
+
+          {lechNang && lechKetThuc !== null && (
+            <p className="stale">
+              Ngày kết thúc thu lệch ngày huỷ <b>{Math.abs(lechKetThuc)} ngày</b>:{" "}
+              {lechKetThuc > 0
+                ? `sổ ngừng thu từ ${hd.fee_end_on} nhưng dịch vụ tới ${hd.ngay_huy} mới dừng — mấy tháng ở giữa khách vẫn dùng mà không ra kỳ cước nào.`
+                : `dịch vụ dừng từ ${hd.ngay_huy} nhưng sổ vẫn thu tới ${hd.fee_end_on} — phần sau ngày huỷ là thu thừa.`}
+            </p>
+          )}
 
           {hd.ly_do_huy && (
             <p className="ly-do">
