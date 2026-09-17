@@ -75,10 +75,28 @@ const NGUON: Nguon[] = [
                "approved_at", "note", "created_at_src", "created_by_src"],
       },
       staff: { table: "staff_snapshot", cols: STAFF_COLS },
+      contract_extra: {
+        table: "fixed_contract_extra",
+        cols: ["source_id", "contract_type", "lich_huy_du_kien", "ma_u",
+               "provider_status", "owner", "caf_number", "billing_number",
+               "designated_account", "so_lan_dang_ky", "ngay_ky_thuat_den",
+               "ngay_gui_thiet_bi", "ly_do_lap_that_bai", "ly_do_chua_lap_xong"],
+      },
+      no_collection_reason: {
+        table: "fixed_no_collection_reason",
+        cols: ["source_id", "ten", "trang_thai", "gay_cho_huy"],
+      },
+      fee_installment: {
+        table: "fixed_fee_installment",
+        cols: ["source_id", "fee_period_id", "contract_id", "ky", "amount",
+               "paid_at", "channel", "status", "note", "created_at_src",
+               "created_by_src"],
+      },
     },
     // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
     thu_tu: ["staff", "subscription", "fee_period", "install_order", "payment",
-             "device", "deposit_allocation"],
+             "device", "deposit_allocation", "contract_extra",
+             "no_collection_reason", "fee_installment"],
   },
   {
     key: "TELECOM",
