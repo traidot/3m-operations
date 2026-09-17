@@ -87,6 +87,10 @@ p { margin: 0 0 12px; max-width: 62ch; }
 button { font: inherit; font-size: 0.85rem; padding: 6px 14px; height: 34px; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--bo); cursor: pointer; transition: border-color 0.12s, color 0.12s; }
 button:hover { border-color: var(--ok); color: var(--ok); }
 button.primary { background: var(--ok); color: var(--paper); border-color: var(--ok); }
+/* Nút đồng bộ cầm tay: cùng kiểu đặc như primary nhưng khác màu, vì hai nút
+   đứng cạnh nhau và bấm nhầm nguồn thì phải chờ hết lượt mới kéo lại được. */
+button.lam { background: var(--lam); color: var(--paper); border-color: var(--lam); }
+button.lam:hover { border-color: var(--lam); color: var(--paper); filter: brightness(1.08); }
 
 table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 th, td { text-align: left; vertical-align: top; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); }

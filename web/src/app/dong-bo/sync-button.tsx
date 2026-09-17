@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { runSync } from "@/lib/sync-action";
-import { NGUON_DONG_BO } from "@/lib/nhan";
+import { MAU_NGUON_DONG_BO, NGUON_DONG_BO } from "@/lib/nhan";
 
 export function SyncButton() {
   const [pending, start] = useTransition();
@@ -25,7 +25,7 @@ export function SyncButton() {
           <button
             key={k}
             type="button"
-            className="primary"
+            className={MAU_NGUON_DONG_BO[k] ?? "primary"}
             disabled={pending}
             onClick={() => bam(k)}
           >

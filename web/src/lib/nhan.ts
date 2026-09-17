@@ -236,8 +236,14 @@ export const NHOM_COC_VIEC = ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"];
 
 /** Hai hệ thống nguồn của lượt đồng bộ, đúng tên khoá bên agent/src/sync/run.ts. */
 export const NGUON_DONG_BO: Record<string, string> = {
-  FIXED: "wifi cố định",
   TELECOM: "wifi cầm tay",
+  FIXED: "wifi cố định",
+};
+
+/** Mỗi nguồn một màu nút, để bấm nhầm nguồn thì nhận ra ngay. */
+export const MAU_NGUON_DONG_BO: Record<string, string> = {
+  TELECOM: "lam",
+  FIXED: "primary",
 };
 
 /** Vì sao một kỳ đã thu lại nằm ngoài khoảng thu của hợp đồng. */
