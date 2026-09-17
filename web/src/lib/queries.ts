@@ -763,17 +763,20 @@ export type TelecomInvoice = {
   qua_han: boolean;
   link_cms: string | null;
   loai: string | null;
+  so_thue_bao: number | null;
+  thue_bao_don: string | null;
 };
 
 /**
- * Hoá đơn của khách không gắn thuê bao nào. Chúng vẫn là nợ thật — 116 cái đang
- * quá hạn, 241.917 yên — nhưng không xuất hiện ở bảng thuê bao nào cả.
+ * Hoá đơn của khách không điền subscriptionId. Phần lớn vẫn có chủ — nối được
+ * về thuê bao qua đơn hàng, xem db/110. Chúng không hiện ở bảng thuê bao nào
+ * nên phải bày riêng, nhưng tiền thì vẫn là nợ của khách.
  */
 export const getLooseInvoices = (partyId: string) =>
   query<TelecomInvoice>(
     `select invoice_id, so_hoa_don, ngay_lap::text, han_tra::text, ky_tu::text,
             ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai,
-            kenh_thu, qua_han, link_cms, loai
+            kenh_thu, qua_han, link_cms, loai, so_thue_bao, thue_bao_don
        from v_telecom_invoice
       where party_id = $1::uuid and subscription_id is null
       order by han_tra desc nulls last`,
@@ -784,7 +787,7 @@ export const getTelecomInvoices = (id: string) =>
   query<TelecomInvoice>(
     `select invoice_id, so_hoa_don, ngay_lap::text, han_tra::text, ky_tu::text,
             ky_den::text, tien::text, da_tra::text, con_lai::text, trang_thai,
-            kenh_thu, qua_han, link_cms, loai
+            kenh_thu, qua_han, link_cms, loai, so_thue_bao, thue_bao_don
        from v_telecom_invoice where subscription_id = $1
       order by coalesce(ky_tu, ngay_lap) desc`,
     [id],
