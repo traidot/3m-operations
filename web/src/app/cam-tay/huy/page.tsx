@@ -93,6 +93,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             </button>
           </Link>
         ))}
+        {/* Thẻ a thường: trả về tệp tải xuống, không phải trang. */}
+        <a href={`/cam-tay/huy/xuat?${new URLSearchParams(loai ? { loai } : {})}`} download>
+          <button type="button">Xuất Excel</button>
+        </a>
       </p>
 
       <div className="the-hang">

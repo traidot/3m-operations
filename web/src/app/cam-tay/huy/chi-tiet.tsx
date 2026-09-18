@@ -32,6 +32,17 @@ export async function ChiTietHuy({
         {conNo > 0 && ` · còn nợ ${conNo.toLocaleString("vi-VN")} yên`}
       </p>
 
+      <p className="actions">
+        <a
+          href={`/cam-tay/huy/xuat?${new URLSearchParams(
+            loaiKhach ? { thang, loai: loaiKhach } : { thang },
+          )}`}
+          download
+        >
+          <button type="button">Xuất Excel tháng này</button>
+        </a>
+      </p>
+
       {rows.length === 0 ? (
         <p className="empty">Không có thuê bao nào ngừng trong tháng này.</p>
       ) : (

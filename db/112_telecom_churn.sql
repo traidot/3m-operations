@@ -56,13 +56,13 @@ having count(*) filter (where tb.activated_on <= m.d2) > 0;
 comment on view v_telecom_huy_thang is
   'Thuê bao cầm tay huỷ theo tháng, tách theo loại khách; tỉ lệ tính trên tập đang chạy đầu tháng';
 
-/** Danh sách thuê bao ngừng trong một tháng, cho ngăn kéo. */
+/** Danh sách thuê bao ngừng; p_thang rỗng là lấy mọi tháng, cho tệp Excel. */
 create or replace function telecom_huy_danh_sach(p_thang text)
 returns table (
   subscription_id text, khach text, ma_khach text, loai_khach text,
   service_type text, goi text, gia_thang numeric,
   ngay_kich_hoat date, ngay_ngung date, so_thang_dung int,
-  la_dai_ly boolean, con_no numeric, link_cms text
+  la_dai_ly boolean, con_no numeric, link_cms text, thang text
 ) language sql stable as $$
   select s.source_id,
          coalesce(p.display_name, 'khách chưa có tên'),
@@ -73,7 +73,8 @@ returns table (
           + extract(month from age(n.ngung, s.activated_on)))::int,
          coalesce(dl.la_dai_ly, false),
          coalesce(v.con_no, 0),
-         telecom_url('thue_bao', s.source_id)
+         telecom_url('thue_bao', s.source_id),
+         to_char(n.ngung, 'YYYY-MM')
     from subscription_snapshot s
     join v_telecom_sub_ngung n on n.subscription_id = s.source_id
     left join v_telecom_sub_dai_ly dl on dl.subscription_id = s.source_id
@@ -82,5 +83,6 @@ returns table (
     left join party p on p.id = ps.party_id
     left join v_telecom_subscription v on v.subscription_id = s.source_id
    where s.source = 'TELECOM' and s.activated_on is not null
-     and to_char(n.ngung, 'YYYY-MM') = p_thang
+     and n.ngung is not null
+     and (p_thang = '' or to_char(n.ngung, 'YYYY-MM') = p_thang)
 $$;

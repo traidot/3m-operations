@@ -1497,15 +1497,16 @@ export type TelecomChurnRow = {
   la_dai_ly: boolean;
   con_no: string;
   link_cms: string | null;
+  thang: string;
 };
 
-/** Thuê bao ngừng trong một tháng, cho ngăn kéo. */
+/** Thuê bao ngừng; chuỗi rỗng là lấy mọi tháng. */
 export const getTelecomChurnList = (thang: string) =>
   query<TelecomChurnRow>(
     `select subscription_id, khach, ma_khach, loai_khach, service_type, goi,
             gia_thang::text, ngay_kich_hoat::text, ngay_ngung::text,
-            so_thang_dung::text, la_dai_ly, con_no::text, link_cms
+            so_thang_dung::text, la_dai_ly, con_no::text, link_cms, thang
        from telecom_huy_danh_sach($1)
-      order by con_no desc, so_thang_dung, khach`,
+      order by ngay_ngung desc, con_no desc, so_thang_dung, khach`,
     [thang],
   );
