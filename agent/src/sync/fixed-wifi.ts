@@ -80,6 +80,12 @@ export const FEE_PERIOD = `
     p.status            as status,
     p.paidAt            as paid_at,
     p.collectionAccount as channel,
+    -- Ba ô đánh dấu trên màn hình "Cập nhật thu cước phí" bên CMS. Thiếu chúng
+    -- thì mọi kỳ thu ít hơn giá cước đều bị đọc nhầm là thu thiếu.
+    p.isManuallySettled = 1 as tuy_chinh,
+    nullif(trim(p.manualSettleNote), '') as ghi_chu_tuy_chinh,
+    p.isNoCollection = 1    as khong_thu,
+    p.noCollectionReasonId  as ly_do_khong_thu_id,
     p.createdAt         as created_at_src,
     p.createBy          as created_by_src
   from contract_fee_payments p

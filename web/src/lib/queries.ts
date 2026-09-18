@@ -89,6 +89,7 @@ export type MonthlyBilling = {
   thu_thieu: string | null;
   cho_duyet: string | null;
   ghi_chu: string | null;
+  giam_tru: string | null;
 };
 
 export type MonthlyByStatus = MonthlyBilling & { trang_thai: string };
@@ -120,7 +121,7 @@ export type Arrears = {
 
 const MONTHLY_COLS = `ky, so_hop_dong::text, phai_thu::text, tien_mien_phi::text,
                       da_thu::text, con_thieu::text, ty_le_thu::text, thu_thieu::text,
-                      cho_duyet::text, ghi_chu::text`;
+                      cho_duyet::text, ghi_chu::text, giam_tru::text`;
 
 export const getMonthlyTotal = () =>
   query<MonthlyBilling>(
@@ -490,12 +491,15 @@ export type ContractPeriod = {
   nguoi_nhap: string | null;
   qua_han: boolean;
   coc_cho_duyet: string;
+  tuy_chinh: boolean;
+  khong_thu: boolean;
 };
 
 export const getContractPeriods = (id: string) =>
   query<ContractPeriod>(
     `select ky, phai_thu::text, trang_thai, ngoai_ky_tinh, tien::text,
-            thu_luc::text, kenh, nguoi_nhap, qua_han, coc_cho_duyet::text
+            thu_luc::text, kenh, nguoi_nhap, qua_han, coc_cho_duyet::text,
+            tuy_chinh, khong_thu
        from v_fixed_contract_period where subscription_id = $1 order by ky desc`,
     [id],
   );
@@ -1510,3 +1514,25 @@ export const getTelecomChurnList = (thang: string) =>
       order by ngay_ngung desc, con_no desc, so_thang_dung, khach`,
     [thang],
   );
+
+export type ContractExtra = {
+  contract_type: string | null;
+  lich_huy_du_kien: string | null;
+  ma_u: string | null;
+  provider_status: string | null;
+  owner: string | null;
+  nguoi_tao: string | null;
+};
+
+/** Trường phụ bên nguồn, xem db/111. Bày để đối chiếu với màn hình CMS. */
+export const getContractExtra = async (id: string) => {
+  const [row] = await query<ContractExtra>(
+    `select e.contract_type, e.lich_huy_du_kien::text, e.ma_u, e.provider_status,
+            e.owner, s.created_by_src as nguoi_tao
+       from fixed_contract_extra e
+       join subscription_snapshot s on s.source = 'FIXED' and s.source_id = e.source_id
+      where e.source = 'FIXED' and e.source_id = $1`,
+    [id],
+  );
+  return row ?? null;
+};

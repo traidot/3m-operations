@@ -2,6 +2,7 @@ import { Chip } from "../chip";
 import { NganKeo } from "../ngan-keo";
 import {
   getContract,
+  getContractExtra,
   getContractPeriods,
   getContractUrl,
   type ContractPeriod,
@@ -60,10 +61,11 @@ export async function ChiTiet({
   id: string;
   dongLai: string;
 }) {
-  const [hd, ky, url] = await Promise.all([
+  const [hd, ky, url, them] = await Promise.all([
     getContract(id),
     getContractPeriods(id),
     getContractUrl(id),
+    getContractExtra(id),
   ]);
 
   // Hai mốc rời nhau bên nguồn: thu tới đâu và dịch vụ dừng lúc nào. Lệch bao
@@ -116,6 +118,13 @@ export async function ChiTiet({
                 </O>
                 <O ten="ngày ký" gia_tri={hd.ngay_ky ?? "—"} />
                 <O ten="ngày huỷ" gia_tri={hd.ngay_huy ?? "chưa huỷ"} />
+                {/* CMS gọi hai ô này là "Người phụ trách" và "Tên Đại lý";
+                    bày ra để đối chiếu thẳng với màn hình bên đó. */}
+                <O ten="người phụ trách" gia_tri={them?.owner ?? "—"} />
+                <O ten="người tạo" gia_tri={them?.nguoi_tao ?? "—"} />
+                {them?.lich_huy_du_kien && (
+                  <O ten="lịch huỷ dự kiến" gia_tri={them.lich_huy_du_kien} />
+                )}
                 {hd.kho_doi && (
                   <O ten="đánh giá">
                     <span className="chip xau">khách khó đòi</span>
@@ -132,6 +141,7 @@ export async function ChiTiet({
                 </O>
                 <O ten="lắp xong" gia_tri={hd.ngay_lap_xong ?? "—"} />
                 <O ten="gói" gia_tri={hd.goi_cuoc ?? "—"} />
+                <O ten="loại hợp đồng" gia_tri={them?.contract_type ?? "—"} />
                 <O ten="cước/tháng" gia_tri={n(hd.cuoc_thang)} />
                 <O ten="bắt đầu thu" gia_tri={hd.fee_start_on ?? "—"} />
                 <O
@@ -246,6 +256,8 @@ export async function ChiTiet({
                       <td
                         className={`num mono${
                           k.trang_thai !== "MIEN_PHI" &&
+                          !k.tuy_chinh &&
+                          !k.khong_thu &&
                           k.phai_thu !== null &&
                           k.tien !== null &&
                           Number(k.tien) < Number(k.phai_thu)
@@ -254,6 +266,13 @@ export async function ChiTiet({
                         }`}
                       >
                         {k.trang_thai === "MIEN_PHI" ? <span className="muted">—</span> : n(k.tien)}
+                        {/* Bên CMS đã đánh dấu là thu thế này cho xong, đọc ra
+                            "thiếu tiền" là sai. */}
+                        {(k.tuy_chinh || k.khong_thu) && (
+                          <div className="muted" style={{ fontSize: "0.72rem" }}>
+                            {k.khong_thu ? "không thu cước" : "tuỳ chỉnh"}
+                          </div>
+                        )}
                       </td>
                       <td className="num mono">
                         {Number(k.coc_cho_duyet) > 0 ? n(k.coc_cho_duyet) : "—"}
@@ -268,6 +287,8 @@ export async function ChiTiet({
             </div>
           )}
           <p className="muted">
+            Kỳ ghi “tuỳ chỉnh” là bên CMS bật ô “tuỳ chỉnh số tiền thu”: thu ít hơn
+            giá cước nhưng coi như xong, không tính vào nợ.{" "}
             “Miễn phí” là tháng được tha cước: cột “phải thu” để mờ vì tiền đó
             không còn phải đòi, và kỳ đó không tính vào nợ. “Chỉ ghi chú” và
             “chờ duyệt” thì ngược lại — chưa tính là đã thu nên vẫn nằm trong

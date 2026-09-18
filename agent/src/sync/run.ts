@@ -54,7 +54,8 @@ const NGUON: Nguon[] = [
       fee_period: {
         table: "fee_period_snapshot",
         cols: ["source_id", "subscription_source_id", "period", "amount", "is_free",
-               "status", "paid_at", "channel", "created_at_src", "created_by_src"],
+               "status", "paid_at", "channel", "tuy_chinh", "ghi_chu_tuy_chinh",
+               "khong_thu", "ly_do_khong_thu_id", "created_at_src", "created_by_src"],
       },
       install_order: {
         table: "install_order_snapshot",

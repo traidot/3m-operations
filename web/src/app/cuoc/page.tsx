@@ -108,7 +108,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <tr>
               <th rowSpan={3}>Kỳ</th>
               <th colSpan={8} className="nhom nhom-lon">Hợp đồng</th>
-              <th colSpan={9} className="nhom nhom-lon">Tiền</th>
+              <th colSpan={10} className="nhom nhom-lon">Tiền</th>
             </tr>
             <tr>
               <th colSpan={2} className="nhom">Đang chạy</th>
@@ -323,7 +323,13 @@ function TableRows({
       <td className="num mono">{n(row.phai_thu)}</td>
       <td className="num mono muted">{n(row.tien_mien_phi)}</td>
       <td className="num mono">{n(row.da_thu)}</td>
-      <td className={`num mono${Number(row.thu_thieu ?? 0) > 0 ? " bad" : " muted"}`}>
+      <td className="num mono muted" title="Giảm trừ có chủ ý bên CMS">
+        {Number(row.giam_tru ?? 0) === 0 ? "—" : n(row.giam_tru)}
+      </td>
+      <td
+        className={`num mono${Number(row.thu_thieu ?? 0) > 0 ? " bad" : " muted"}`}
+        title={Number(row.thu_thieu ?? 0) < 0 ? "Số âm: thu dư so với giá cước" : undefined}
+      >
         {Number(row.thu_thieu ?? 0) === 0 ? "—" : n(row.thu_thieu)}
       </td>
       <td className="num mono muted">{Number(row.cho_duyet ?? 0) === 0 ? "—" : n(row.cho_duyet)}</td>
