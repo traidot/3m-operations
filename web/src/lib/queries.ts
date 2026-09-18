@@ -1463,3 +1463,49 @@ export const getKyHut = () =>
        from v_fixed_ky_hut
       order by so_ngay_lech desc, ma_hop_dong, ky`,
   );
+
+export type TelecomChurn = {
+  thang: string;
+  loai_khach: string;
+  dau_ky: string;
+  moi: string;
+  huy: string;
+  cuoi_ky: string;
+  ty_le_huy: string | null;
+  thang_chua_xong: boolean;
+};
+
+/** Thuê bao cầm tay huỷ theo tháng — xem db/112. */
+export const getTelecomChurn = () =>
+  query<TelecomChurn>(
+    `select thang, loai_khach, dau_ky::text, moi::text, huy::text, cuoi_ky::text,
+            ty_le_huy::text, thang_chua_xong
+       from v_telecom_huy_thang order by thang desc, loai_khach`,
+  );
+
+export type TelecomChurnRow = {
+  subscription_id: string;
+  khach: string;
+  ma_khach: string | null;
+  loai_khach: string | null;
+  service_type: string | null;
+  goi: string | null;
+  gia_thang: string | null;
+  ngay_kich_hoat: string | null;
+  ngay_ngung: string | null;
+  so_thang_dung: string | null;
+  la_dai_ly: boolean;
+  con_no: string;
+  link_cms: string | null;
+};
+
+/** Thuê bao ngừng trong một tháng, cho ngăn kéo. */
+export const getTelecomChurnList = (thang: string) =>
+  query<TelecomChurnRow>(
+    `select subscription_id, khach, ma_khach, loai_khach, service_type, goi,
+            gia_thang::text, ngay_kich_hoat::text, ngay_ngung::text,
+            so_thang_dung::text, la_dai_ly, con_no::text, link_cms
+       from telecom_huy_danh_sach($1)
+      order by con_no desc, so_thang_dung, khach`,
+    [thang],
+  );
