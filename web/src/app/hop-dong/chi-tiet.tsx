@@ -118,8 +118,10 @@ export async function ChiTiet({
                 </O>
                 <O ten="ngày ký" gia_tri={hd.ngay_ky ?? "—"} />
                 <O ten="ngày huỷ" gia_tri={hd.ngay_huy ?? "chưa huỷ"} />
-                {/* CMS gọi hai ô này là "Người phụ trách" và "Tên Đại lý";
-                    bày ra để đối chiếu thẳng với màn hình bên đó. */}
+                {/* CMS gọi hai ô này là "Người phụ trách" và "Tên Đại lý".
+                    Nhãn "Tên Đại lý" bên đó đặt sai: giá trị trong cột là NHÂN
+                    VIÊN CÔNG TY (ty, hà đông, tố hữu, hoa- mc, sakura), đúng
+                    danh sách fixed_company_staff. Đừng đọc nó thành đại lý. */}
                 <O ten="người phụ trách" gia_tri={them?.owner ?? "—"} />
                 <O ten="người tạo" gia_tri={them?.nguoi_tao ?? "—"} />
                 {them?.lich_huy_du_kien && (

@@ -30,6 +30,10 @@ on conflict (ten) do nothing;
 comment on table fixed_company_staff is
   'Tên người tạo hợp đồng thuộc công ty; còn lại coi là đại lý tự thu. So khớp theo lower(trim()).';
 
+-- Cảnh báo cho người đọc sau: màn hình CMS gắn nhãn cột người tạo là "Tên Đại
+-- lý" và hiển thị đúng mấy tên trong bảng này. Nhãn đó SAI — chủ hệ thống đã
+-- xác nhận đây là nhân viên công ty. Đừng đảo luật theo nhãn của CMS.
+
 /** Hợp đồng do công ty phụ trách hay do đại lý. */
 create or replace view v_fixed_contract_owner as
 select c.subscription_id,
