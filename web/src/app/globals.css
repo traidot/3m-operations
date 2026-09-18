@@ -179,6 +179,11 @@ tr.sub td:first-child { padding-left: 16px; }
 .bar-fill.xau { background: var(--bad); }
 .dau-lech { color: var(--bad); white-space: nowrap; }
 .dau-khop { color: var(--ok); opacity: 0.75; }
+/* Khối đối chiếu gấp lại: chỉ mở khi cần, nhưng mở ra phải tách bạch với bảng
+   chính nên có khung riêng. */
+.doi-chieu { border: 1px solid var(--line); border-radius: var(--bo-to); padding: 10px 14px; }
+.doi-chieu > summary { color: var(--ink); font-size: 0.86rem; }
+.doi-chieu[open] > summary { margin-bottom: 8px; border-bottom: 1px solid var(--line); }
 /* Đối chiếu khớp: cùng khuôn với .stale để hai trạng thái đổi chỗ cho nhau. */
 .khop { margin: 12px 0; padding: 10px 14px; font-size: 0.85rem; color: var(--muted); background: var(--surface-2); border-left: 3px solid var(--ok); border-radius: 0 var(--bo) var(--bo) 0; }
 .bar-label { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 0.78rem; font-variant-numeric: tabular-nums; color: var(--body); }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Dong } from "../hop-dong/dong";
+import { DoiChieuCms } from "./doi-chieu";
 import { ChiTietThangCoDinh, NHOM_CD, type NhomCd } from "./chi-tiet";
 import {
   getArrears,
@@ -191,6 +192,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           bảng — hai cột đó đong bằng giá cước hợp đồng để hàng ngang cộng lại đúng.
         </p>
       )}
+
+      <DoiChieuCms />
 
       <h2>Nợ từ ba kỳ trở lên ({arrears.length >= 20 ? "20 nặng nhất" : arrears.length})</h2>
       {arrears.length === 0 ? (

@@ -1536,3 +1536,26 @@ export const getContractExtra = async (id: string) => {
   );
   return row ?? null;
 };
+
+export type DoiChieuCms = {
+  ky: string;
+  cms_hop_dong: string;
+  cms_tien: string | null;
+  minh_hop_dong: string;
+  minh_tien: string | null;
+  huy_sau: string;
+  minh_them_khac: string;
+  het_han_chua_huy: string;
+  cms_them_khac: string;
+};
+
+/** So bảng cước của mình với luật báo cáo CMS — xem db/116. */
+export const getDoiChieuCms = () =>
+  query<DoiChieuCms>(
+    `select ky, cms_hop_dong::text, cms_tien::text, minh_hop_dong::text,
+            minh_tien::text, huy_sau::text, minh_them_khac::text,
+            het_han_chua_huy::text, cms_them_khac::text
+       from v_fixed_doi_chieu_cms
+      where minh_hop_dong > 0 or cms_hop_dong > 0
+      order by ky desc limit 18`,
+  );
