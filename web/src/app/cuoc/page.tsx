@@ -121,7 +121,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               <th rowSpan={2} className="num">Phải thu</th>
               <th rowSpan={2} className="num">Miễn phí</th>
               <th rowSpan={2} className="num">Đã thu</th>
-              <th rowSpan={2} className="num" title="Kỳ đã có dòng duyệt trong sổ nhưng số tiền ghi ít hơn giá cước của hợp đồng.">
+              <th rowSpan={2} className="num" title="Kỳ bên CMS bật ô “tuỳ chỉnh số tiền thu” hoặc “không thu cước”: thu ít hơn giá cước nhưng là có chủ ý, không phải nợ.">
+                Giảm trừ
+              </th>
+              <th rowSpan={2} className="num" title="Kỳ đã duyệt, không miễn phí, không đánh dấu tuỳ chỉnh, mà tiền trong sổ vẫn ít hơn giá cước. Số âm là thu dư.">
                 Thu thiếu
               </th>
               <th colSpan={2} className="nhom" title="Kỳ đã có dòng trong sổ nhưng chưa quyết là thu hay miễn. Đong bằng giá cước của hợp đồng để hàng ngang cộng lại đúng, nên có thể lệch với số tiền ghi trên phiếu.">
