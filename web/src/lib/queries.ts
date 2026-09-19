@@ -1559,3 +1559,78 @@ export const getDoiChieuCms = () =>
       where minh_hop_dong > 0 or cms_hop_dong > 0
       order by ky desc limit 18`,
   );
+
+export type TelecomMay = {
+  imei: string;
+  luot_moi_nhat_id: string;
+  model: string | null;
+  trang_thai: string | null;
+  coc: string | null;
+  trang_thai_coc: string | null;
+  ngay_thue: string | null;
+  ngay_tra: string | null;
+  so_luot_thue: string;
+  thue_bao_hien_tai: string | null;
+  dich_vu: string | null;
+  goi: string | null;
+  trang_thai_thue_bao: string | null;
+  khach: string;
+  ma_khach: string | null;
+  loai_khach: string | null;
+  so_lan_gan: string;
+  so_thue_bao: string;
+  so_ky: string;
+  ky_dau: string | null;
+  ky_cuoi: string | null;
+  phai_thu: string;
+  da_thu: string;
+  chua_thu: string;
+  mat_trang: string;
+  chua_ra_cuoc: boolean;
+  link_cms: string | null;
+};
+
+/** Máy cho thuê wifi cầm tay, một dòng một máy — xem db/118. */
+export const getTelecomMay = () =>
+  query<TelecomMay>(
+    `select imei, luot_moi_nhat_id, model, trang_thai, coc::text, trang_thai_coc,
+            ngay_thue::text, ngay_tra::text, so_luot_thue::text, thue_bao_hien_tai,
+            dich_vu, goi, trang_thai_thue_bao, khach, ma_khach, loai_khach,
+            so_lan_gan::text, so_thue_bao::text, so_ky::text, ky_dau, ky_cuoi,
+            phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
+            chua_ra_cuoc, link_cms
+       from v_telecom_may
+      order by chua_ra_cuoc desc, chua_thu desc, imei`,
+  );
+
+export type TelecomMayKy = {
+  ky: string;
+  subscription_id: string;
+  tien: string;
+  trang_thai_hd: string | null;
+  so_hoa_don: string | null;
+  fee_line_id: string;
+};
+
+/** Một máy, cho ngăn kéo — đừng kéo cả 3.048 dòng về rồi lọc ở JS. */
+export const getTelecomMayMot = async (imei: string) => {
+  const [row] = await query<TelecomMay>(
+    `select imei, luot_moi_nhat_id, model, trang_thai, coc::text, trang_thai_coc,
+            ngay_thue::text, ngay_tra::text, so_luot_thue::text, thue_bao_hien_tai,
+            dich_vu, goi, trang_thai_thue_bao, khach, ma_khach, loai_khach,
+            so_lan_gan::text, so_thue_bao::text, so_ky::text, ky_dau, ky_cuoi,
+            phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
+            chua_ra_cuoc, link_cms
+       from v_telecom_may where imei = $1`,
+    [imei],
+  );
+  return row ?? null;
+};
+
+/** Từng kỳ cước của một máy, cho ngăn kéo. */
+export const getTelecomMayKy = (imei: string) =>
+  query<TelecomMayKy>(
+    `select ky, subscription_id, tien::text, trang_thai_hd, so_hoa_don, fee_line_id
+       from v_telecom_may_ky where imei = $1 order by ky desc, subscription_id`,
+    [imei],
+  );
