@@ -123,7 +123,8 @@ const NGUON: Nguon[] = [
       },
       device: {
         table: "device_snapshot",
-        cols: [...DEVICE_COLS, "deposit", "deposit_status", "rented_on", "returned_on"],
+        cols: [...DEVICE_COLS, "deposit", "deposit_status", "rented_on", "returned_on",
+               "device_type", "sales_type"],
       },
       subscription_device: {
         table: "subscription_device_snapshot",

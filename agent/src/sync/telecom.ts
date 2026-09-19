@@ -135,11 +135,19 @@ export const PAYMENT = `
   where p."deletedAt" is null
 `;
 
+/**
+ * Loại máy KHÔNG nằm ở device_info: cột `msn` bên đó là số điện thoại của máy
+ * chứ không phải đời máy, và `variantId` chỉ có ở 27/124 dòng. Đời máy thật nằm
+ * ở sản phẩm của order_item sinh ra lượt thuê — U20, H1, MR1, U3, WIMAX, và các
+ * loại SIM.
+ */
 export const DEVICE = `
   select
     d.id::text                                   as source_id,
     d."deviceCode"                               as imei,
-    di.msn                                       as model,
+    p.name                                       as model,
+    p.type::text                                 as device_type,
+    oi."salesType"::text                         as sales_type,
     d."rentalStatus"::text                       as status,
     (select sd."subscriptionId"::text from subscription_device sd
       where sd."deviceCode" = d."deviceCode" and sd."deletedAt" is null
@@ -151,7 +159,8 @@ export const DEVICE = `
     d."returnDate"::date                         as returned_on,
     d."updatedAt"                                as updated_at_src
   from rental_device d
-  left join device_info di on di."deviceCode" = d."deviceCode" and di."deletedAt" is null
+  left join order_item oi on oi.id = d."orderItemId"
+  left join product p on p.id = oi."productId"
   where d."deletedAt" is null
 `;
 
