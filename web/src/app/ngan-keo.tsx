@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /**
@@ -9,6 +9,14 @@ import { useRouter } from "next/navigation";
  * chứ đổi URL trước thì React gỡ luôn thẻ, không kịp thấy gì.
  */
 const THOI_GIAN_DONG = 180;
+
+/**
+ * Điều hướng không xong trong ngần này thì coi như hỏng và mở ngăn kéo trở lại.
+ * Thà người dùng thấy nó bật lên rồi bấm đóng lần nữa, còn hơn kẹt ở trạng thái
+ * vô hình mà URL vẫn giữ tham số — lúc đó bấm lại đúng dòng cũ là cùng một URL,
+ * router không làm gì, và chỉ F5 mới thoát ra được.
+ */
+const HET_KIEN_NHAN = 4000;
 
 export function NganKeo({
   dongLai,
@@ -19,13 +27,28 @@ export function NganKeo({
 }) {
   const router = useRouter();
   const [dangDong, setDangDong] = useState(false);
-  const [anHan, setAnHan] = useState(false);
+  const hen = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dong = () => {
     if (dangDong) return;
     setDangDong(true);
-    setTimeout(() => router.push(dongLai, { scroll: false }), THOI_GIAN_DONG);
+    hen.current = setTimeout(() => router.push(dongLai, { scroll: false }), THOI_GIAN_DONG);
   };
+
+  // Hẹn giờ phải huỷ khi thẻ bị gỡ. Không huỷ thì cú push vẫn nổ sau khi người
+  // dùng đã bấm sang dòng khác, đè URL vừa mở về lại URL đóng — nhìn ra thành
+  // "bấm mà không mở được".
+  useEffect(() => () => {
+    if (hen.current) clearTimeout(hen.current);
+  }, []);
+
+  // Ngăn kéo đổi sang bản ghi khác mà thẻ không bị gỡ (bấm dòng khác lúc ngăn
+  // kéo đang mở, hoặc đi từ ngăn kéo này sang ngăn kéo kia): trạng thái đóng
+  // còn dính lại thì ngăn kéo mới hiện ra trong tư thế đang trượt đi.
+  useEffect(() => {
+    setDangDong(false);
+    if (hen.current) clearTimeout(hen.current);
+  }, [dongLai]);
 
   // Khoá cuộn trang nền khi ngăn kéo đang mở: không khoá thì lăn chuột trong
   // ngăn kéo sẽ đẩy danh sách phía sau chạy theo. Bù đúng bề rộng thanh cuộn
@@ -48,11 +71,10 @@ export function NganKeo({
     };
   }, []);
 
-  // Nếu vì lý do gì đó chuyển trang không xong, vẫn phải gỡ ngăn kéo ra khỏi
-  // đường đi của chuột thay vì để nó đè cả trang mãi.
+  // Điều hướng treo quá lâu thì mở lại, đừng để ngăn kéo nằm vô hình vĩnh viễn.
   useEffect(() => {
     if (!dangDong) return;
-    const h = setTimeout(() => setAnHan(true), 4000);
+    const h = setTimeout(() => setDangDong(false), HET_KIEN_NHAN);
     return () => clearTimeout(h);
   }, [dangDong]);
 
@@ -65,7 +87,6 @@ export function NganKeo({
   });
 
   const lop = dangDong ? " dang-dong" : "";
-  if (anHan) return null;
 
   return (
     <>
