@@ -3,7 +3,7 @@ import { ThanBam } from "../../than-bam";
 import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
-import { COC, MAY } from "@/lib/nhan";
+import { COC, MAY, MAY_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -15,17 +15,26 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 const cong = (rows: TelecomMay[], k: keyof TelecomMay) =>
   rows.reduce((t, r) => t + Number(r[k] ?? 0), 0);
 
-/** Lọc theo việc phải làm, không phải theo trạng thái thô của nguồn. */
+/**
+ * Lọc theo việc phải làm, không phải theo trạng thái thô của nguồn. Bốn nhóm
+ * đầu là bốn việc khác nhau, đừng gộp chung thành "chưa ra cước".
+ */
 const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
-  chua_ra_cuoc: {
-    ten: "chưa ra cước",
-    hop: (r) => r.chua_ra_cuoc,
+  hut_cuoc: { ten: "hụt cước", hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC" },
+  tb_da_xoa: { ten: "thuê bao đã xoá", hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA" },
+  chua_gan: { ten: "chưa gắn thuê bao", hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" },
+  huy_chua_thu_may: {
+    ten: "huỷ rồi, chưa thu máy",
+    hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
   },
+  dang_ra_cuoc: { ten: "đang ra cước", hop: (r) => r.tinh_trang_cuoc === "DANG_RA_CUOC" },
   con_no: { ten: "còn nợ cước", hop: (r) => Number(r.chua_thu) > 0 },
   chua_tra: { ten: "chưa trả máy", hop: (r) => r.trang_thai === "NOT_RETURNED" },
-  dang_thue: { ten: "đang thuê", hop: (r) => r.trang_thai === "RENTING" },
   da_tra: { ten: "đã trả", hop: (r) => r.trang_thai === "RETURNED" },
 };
+
+const dem = (rows: TelecomMay[], ma: string) =>
+  rows.filter((r) => r.tinh_trang_cuoc === ma).length;
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
@@ -57,8 +66,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         nguồn ghi từng <b>lượt cho thuê</b>: 3.048 bản ghi nhưng chỉ {n(String(tatCa.length))}{" "}
         máy, có cái cho thuê tới sáu lượt. Tình trạng lấy theo lượt mới nhất. Cước tính theo
         khoảng máy ở với từng thuê bao — một máy đi qua nhiều thuê bao, một thuê bao có thể đổi
-        máy giữa chừng, nên kỳ ngoài khoảng là cước của máy khác. Bấm vào một dòng để xem từng
-        kỳ. Không phân trang: cả {n(String(tatCa.length))} máy nằm trên một trang.
+        máy giữa chừng, nên kỳ ngoài khoảng là cước của máy khác. Máy cầm tay <b>chính là dịch
+        vụ</b>, nên máy còn nằm ở khách thì tháng nào cũng phải ra cước — cột Cước xếp mỗi
+        máy vào đúng một trong sáu tình trạng. Bấm vào một dòng để xem từng kỳ. Không phân
+        trang: cả {n(String(tatCa.length))} máy nằm trên một trang.
       </p>
 
       <div className="the-hang">
@@ -89,13 +100,31 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </div>
         </div>
         <div className="the-so">
-          <div className="the-ten">Chưa ra cước</div>
-          <div className="the-gia-tri mono bad">
-            {n(String(tatCa.filter((r) => r.chua_ra_cuoc).length))}
+          <div className="the-ten">Hụt cước</div>
+          <div className="the-gia-tri mono bad">{n(String(dem(tatCa, "HUT_CUOC")))}</div>
+          <div className="the-phu">
+            máy còn ngoài, thuê bao vẫn chạy mà không ra cước — ước tính{" "}
+            {n(String(cong(tatCa, "tien_hut_uoc")))} yên
           </div>
-          <div className="the-phu">máy chưa trả mà không có kỳ nào</div>
         </div>
       </div>
+
+      <p className="stale">
+        <b>
+          {n(String(tatCa.filter((r) => r.trang_thai !== "RETURNED").length))} máy còn nằm ở
+          khách, nhưng chỉ {n(String(dem(tatCa, "DANG_RA_CUOC")))} cái đang ra cước.
+        </b>{" "}
+        {n(String(tatCa.length - dem(tatCa, "DANG_RA_CUOC") - dem(tatCa, "DA_TRA")))} cái còn
+        lại là bốn việc khác nhau:{" "}
+        <b>{n(String(dem(tatCa, "HUT_CUOC")))}</b> máy thuê bao vẫn ACTIVE mà ngừng ra cước —
+        đây là tiền, ước tính {n(String(cong(tatCa, "tien_hut_uoc")))} yên;{" "}
+        <b>{n(String(dem(tatCa, "HUY_CHUA_THU_MAY")))}</b> máy thuê bao đã huỷ nên không ra
+        cước là đúng, nhưng máy chưa đòi về được và{" "}
+        {n(String(cong(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && r.trang_thai_coc === "PENDING"), "coc")))}{" "}
+        yên cọc vẫn đang treo; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy đưa ra mà chưa
+        mở dịch vụ lần nào; <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn thuê bao
+        nhưng hồ sơ thuê bao đã bị xoá bên nguồn.
+      </p>
 
       <form method="get">
         <div className="formgrid">
@@ -143,7 +172,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <thead>
               <tr>
                 <th>IMEI</th>
-                <th>Tình trạng</th>
+                <th>Cước</th>
+                <th>Tình trạng máy</th>
                 <th>Khách đang giữ</th>
                 <th className="num">Cọc</th>
                 <th className="num" title="Số lượt cho thuê của chính máy này, và số lượt gắn vào thuê bao">
@@ -162,9 +192,25 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   data-href={link({ loc: loc || undefined, q: mot(sp.q) || undefined, xem: r.imei })}
                   className={moMay === r.imei ? "dang-mo" : undefined}
                 >
-                  <td className="mono">
-                    {r.imei}
-                    {r.chua_ra_cuoc && <div className="chip xau">chưa ra cước</div>}
+                  <td className="mono">{r.imei}</td>
+                  <td>
+                    <span
+                      className={`chip ${
+                        r.tinh_trang_cuoc === "HUT_CUOC"
+                          ? "xau"
+                          : r.tinh_trang_cuoc === "DANG_RA_CUOC" || r.tinh_trang_cuoc === "DA_TRA"
+                            ? "ok"
+                            : "cho"
+                      }`}
+                    >
+                      {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
+                    </span>
+                    {Number(r.thang_hut) > 0 && (
+                      <div className="mono muted">
+                        {n(r.thang_hut)} tháng
+                        {Number(r.tien_hut_uoc) > 0 && ` · ~${n(r.tien_hut_uoc)}`}
+                      </div>
+                    )}
                   </td>
                   <td>
                     <span className={`chip ${r.trang_thai === "NOT_RETURNED" ? "xau" : r.trang_thai === "RETURNED" ? "tat" : "ok"}`}>

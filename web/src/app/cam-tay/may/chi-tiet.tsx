@@ -2,7 +2,7 @@ import { NganKeo } from "../../ngan-keo";
 import Link from "next/link";
 import { Chip } from "../../chip";
 import { getTelecomMayKy, getTelecomMayMot } from "@/lib/queries";
-import { COC, DICH_VU, HOA_DON, MAY } from "@/lib/nhan";
+import { COC, DICH_VU, HOA_DON, MAY, MAY_CUOC } from "@/lib/nhan";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
@@ -35,6 +35,9 @@ export async function ChiTietMay({ imei, dongLai }: { imei: string; dongLai: str
             <O ten="tình trạng">
               <Chip ma={may.trang_thai} nhan={MAY} />
             </O>
+            <O ten="tình trạng cước">
+              <Chip ma={may.tinh_trang_cuoc} nhan={MAY_CUOC} />
+            </O>
             <O ten="cọc" gia_tri={n(may.coc)} />
             <O ten="tình trạng cọc">
               <Chip ma={may.trang_thai_coc} nhan={COC} />
@@ -53,10 +56,29 @@ export async function ChiTietMay({ imei, dongLai }: { imei: string; dongLai: str
             </O>
           </dl>
 
-          {may.chua_ra_cuoc && (
+          {may.tinh_trang_cuoc === "HUT_CUOC" && (
             <p className="stale">
-              Máy chưa trả mà không ra kỳ cước nào — hoặc chưa gắn thuê bao, hoặc gắn rồi mà
-              không ai xuất cước. Cọc {n(may.coc)} yên đang giữ.
+              Thuê bao {may.thue_bao_gan_cuoi} vẫn đang ACTIVE mà máy đã{" "}
+              {n(may.thang_hut)} tháng không ra cước. Ước tính hụt {n(may.tien_hut_uoc)} yên —
+              đây là ước tính theo giá gói, không phải số trong sổ.
+            </p>
+          )}
+          {may.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && (
+            <p className="stale">
+              Thuê bao đã huỷ nên không ra cước là đúng, nhưng máy vẫn chưa thu về sau{" "}
+              {n(may.thang_hut)} tháng. Cọc {n(may.coc)} yên đang treo.
+            </p>
+          )}
+          {may.tinh_trang_cuoc === "CHUA_GAN" && (
+            <p className="stale">
+              Máy đưa ra ngoài mà chưa gắn thuê bao lần nào — không có dịch vụ thì không có
+              cước. Cọc {n(may.coc)} yên đang giữ.
+            </p>
+          )}
+          {may.tinh_trang_cuoc === "TB_DA_XOA" && (
+            <p className="stale">
+              Máy có gắn thuê bao nhưng hồ sơ thuê bao đó đã bị xoá bên nguồn, nên không đọc
+              được trạng thái dịch vụ. Máy vẫn ở ngoài, cọc {n(may.coc)} yên đang giữ.
             </p>
           )}
 

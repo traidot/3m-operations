@@ -1588,9 +1588,14 @@ export type TelecomMay = {
   mat_trang: string;
   chua_ra_cuoc: boolean;
   link_cms: string | null;
+  tinh_trang_cuoc: string;
+  thue_bao_gan_cuoi: string | null;
+  trang_thai_tb_gan_cuoi: string | null;
+  thang_hut: string;
+  tien_hut_uoc: string;
 };
 
-/** Máy cho thuê wifi cầm tay, một dòng một máy — xem db/118. */
+/** Máy cho thuê wifi cầm tay, một dòng một máy — xem db/119, db/120. */
 export const getTelecomMay = () =>
   query<TelecomMay>(
     `select imei, luot_moi_nhat_id, model, trang_thai, coc::text, trang_thai_coc,
@@ -1598,9 +1603,13 @@ export const getTelecomMay = () =>
             dich_vu, goi, trang_thai_thue_bao, khach, ma_khach, loai_khach,
             so_lan_gan::text, so_thue_bao::text, so_ky::text, ky_dau, ky_cuoi,
             phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
-            chua_ra_cuoc, link_cms
+            chua_ra_cuoc, link_cms, tinh_trang_cuoc, thue_bao_gan_cuoi,
+            trang_thai_tb_gan_cuoi, thang_hut::text, tien_hut_uoc::text
        from v_telecom_may
-      order by chua_ra_cuoc desc, chua_thu desc, imei`,
+      order by case tinh_trang_cuoc
+                 when 'HUT_CUOC' then 1 when 'TB_DA_XOA' then 2
+                 when 'CHUA_GAN' then 3 when 'HUY_CHUA_THU_MAY' then 4 else 5 end,
+               chua_thu desc, imei`,
   );
 
 export type TelecomMayKy = {
@@ -1620,7 +1629,8 @@ export const getTelecomMayMot = async (imei: string) => {
             dich_vu, goi, trang_thai_thue_bao, khach, ma_khach, loai_khach,
             so_lan_gan::text, so_thue_bao::text, so_ky::text, ky_dau, ky_cuoi,
             phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
-            chua_ra_cuoc, link_cms
+            chua_ra_cuoc, link_cms, tinh_trang_cuoc, thue_bao_gan_cuoi,
+            trang_thai_tb_gan_cuoi, thang_hut::text, tien_hut_uoc::text
        from v_telecom_may where imei = $1`,
     [imei],
   );

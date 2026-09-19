@@ -223,6 +223,20 @@ export const COC: Record<string, string> = {
   NOT_RETURNABLE: "không hoàn",
 };
 
+/**
+ * Máy cầm tay chính là dịch vụ, nên máy còn nằm ở khách thì tháng nào cũng phải
+ * ra cước. Sáu nhóm dưới đây loại trừ nhau và phủ hết mọi máy; bốn nhóm giữa là
+ * bốn việc khác nhau chứ không phải một đống "chưa ra cước".
+ */
+export const MAY_CUOC: Record<string, string> = {
+  DANG_RA_CUOC: "đang ra cước",
+  HUT_CUOC: "hụt cước",
+  HUY_CHUA_THU_MAY: "huỷ rồi, chưa thu máy",
+  CHUA_GAN: "chưa gắn thuê bao",
+  TB_DA_XOA: "thuê bao đã xoá",
+  DA_TRA: "đã trả máy",
+};
+
 export const NHOM_COC: Record<string, string> = {
   CHUA_TRA: "máy chưa trả",
   NGUNG_CHUA_CHOT: "ngừng dịch vụ mà chưa chốt cọc",
