@@ -1731,3 +1731,48 @@ export const getKhoLanNhap = async () => {
   );
   return row ?? null;
 };
+
+export type KhoMa = {
+  ma_chuan: string;
+  ma: string;
+  pm_co: boolean;
+  cho_dung: string;
+  doi_may: string | null;
+  doc_type: string | null;
+  reason_type: string | null;
+  warehouse_name: string | null;
+  doc_date: string | null;
+  trang_thai_may: string | null;
+  tinh_trang_cuoc: string | null;
+  ky_cuoi: string | null;
+  coc: string | null;
+  trang_thai_coc: string | null;
+  chua_thu: string | null;
+  khach: string | null;
+  ma_khach: string | null;
+  loai_khach: string | null;
+  nguon_khach: string | null;
+  nha_mang: string | null;
+  vendor: string | null;
+  file_co: boolean;
+  file_nhom_hang: string | null;
+  file_ket_luan: string | null;
+  file_vi_tri_so: string | null;
+  file_kiem_kho: string | null;
+  file_nguoi_giu: string | null;
+};
+
+/** Mọi mã thiết bị hai phía biết, không bên nào làm chuẩn — xem db/129. */
+export const getKhoMa = () =>
+  query<KhoMa>(
+    `select ma_chuan, ma, pm_co, cho_dung, doi_may, doc_type, reason_type,
+            warehouse_name, doc_date::text, trang_thai_may, tinh_trang_cuoc,
+            ky_cuoi, coc::text, trang_thai_coc, chua_thu::text,
+            khach, ma_khach, loai_khach, nguon_khach, nha_mang, vendor,
+            file_co, file_nhom_hang, file_ket_luan, file_vi_tri_so,
+            file_kiem_kho, file_nguoi_giu
+       from v_kho_ma
+      order by case cho_dung when 'O_KHACH' then 1 when 'TRONG_KHO' then 2
+                             when 'CHI_NHA_MANG' then 3 when 'TRA_NCC' then 4 else 5 end,
+               ma`,
+  );
