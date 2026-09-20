@@ -1066,7 +1066,7 @@ export const getDepositSummary = () =>
 export const getDeposits = (nhom: string, trang: number) => {
   const params: unknown[] = [];
   let dieu = "where nhom = any($1)";
-  params.push(nhom ? [nhom] : ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"]);
+  params.push(nhom ? [nhom] : ["CHUA_TRA", "NGUNG_CHUA_CHOT", "CHUA_GAN"]);
   const offset = Math.max(0, (trang - 1) * CONTRACTS_PER_PAGE);
   return query<DepositRow>(
     `select imei, subscription_id, party_id::text, khach, loai_khach, service_type,
@@ -1083,7 +1083,7 @@ export const countDeposits = async (nhom: string) => {
   const [row] = await query<{ n: string; tien: string }>(
     `select count(*)::text as n, round(coalesce(sum(coc), 0))::text as tien
        from v_telecom_deposit where nhom = any($1)`,
-    [nhom ? [nhom] : ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"]],
+    [nhom ? [nhom] : ["CHUA_TRA", "NGUNG_CHUA_CHOT", "CHUA_GAN"]],
   );
   return { so: Number(row?.n ?? 0), tien: row?.tien ?? "0" };
 };

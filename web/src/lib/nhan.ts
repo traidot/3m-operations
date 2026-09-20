@@ -285,13 +285,13 @@ export const PHIEU_KHO: Record<string, string> = {
 export const NHOM_COC: Record<string, string> = {
   CHUA_TRA: "máy chưa trả",
   NGUNG_CHUA_CHOT: "ngừng dịch vụ mà chưa chốt cọc",
-  KHONG_CO_PHIEU: "không có phiếu thuê",
+  CHUA_GAN: "chưa gắn thuê bao bao giờ",
   DANG_THUE: "đang thuê bình thường",
   XONG: "đã xử lý xong",
 };
 
 /** Ba nhóm đầu là việc phải làm, hai nhóm sau chỉ để đối chiếu. */
-export const NHOM_COC_VIEC = ["CHUA_TRA", "NGUNG_CHUA_CHOT", "KHONG_CO_PHIEU"];
+export const NHOM_COC_VIEC = ["CHUA_TRA", "NGUNG_CHUA_CHOT", "CHUA_GAN"];
 
 /** Hai hệ thống nguồn của lượt đồng bộ, đúng tên khoá bên agent/src/sync/run.ts. */
 export const NGUON_DONG_BO: Record<string, string> = {

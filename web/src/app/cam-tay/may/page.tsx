@@ -275,6 +275,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       )}
 
       <p className="muted khoi-ghi-chu">
+        <b>Phạm vi trang này khác trang đối chiếu kho, đừng so thẳng hai con số.</b> Ở đây
+        chỉ có {n(String(tatCa.length))} máy <b>có hồ sơ cho thuê</b>, tức có cọc và ngày
+        thuê. <Link href="/cam-tay/kho">Đối chiếu kho</Link> đếm 5.744 mã vì tính cả SIM và
+        những mã mới chỉ có phiếu kho. Cọc và tình trạng cước thì hai bên cùng một luật nên
+        khớp nhau.
+      </p>
+
+      <p className="muted khoi-ghi-chu">
         Danh sách này chỉ gồm máy trong diện <b>cho thuê</b> bên nguồn. Lịch sử gắn máy ghi theo
         mã máy bất kể có thuộc diện cho thuê hay không, nên còn hơn một nghìn mã máy khác từng
         gắn thuê bao mà không có hồ sơ máy — thường là máy khách tự có. Một chỗ dữ liệu nguồn

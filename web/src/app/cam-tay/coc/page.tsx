@@ -34,6 +34,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Cọc cần xử lý</h1>
       <p className="muted">
+        Cọc tính theo <b>lượt thuê mới nhất của từng máy</b>: 568 lượt cũ vẫn để trạng thái
+        đang thuê dù máy đã cho người khác thuê lại, cộng cả vào thì thừa 2.064.641 yên.
+        Cùng luật với <Link href="/cam-tay/may">máy cho thuê</Link> và{" "}
+        <Link href="/cam-tay/kho">đối chiếu kho</Link> nên ba trang ra cùng một số.
+      </p>
+      <p className="muted">
         Máy đang gắn vào thuê bao mà tiền cọc chưa chốt. “Còn giữ” nghĩa là 3M đang cầm
         tiền cọc, chưa hoàn cho khách cũng chưa quyết giữ luôn — với máy đang thuê thì đó
         là bình thường, chỉ thành việc khi thuê bao đã ngừng hoặc máy đã bị đánh dấu chưa
