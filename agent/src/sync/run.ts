@@ -126,6 +126,16 @@ const NGUON: Nguon[] = [
         cols: [...DEVICE_COLS, "deposit", "deposit_status", "rented_on", "returned_on",
                "device_type", "sales_type"],
       },
+      stock_move: {
+        table: "stock_move_snapshot",
+        cols: ["source_id", "doc_source_id", "doc_code", "device_code", "doc_type",
+               "business_type", "reason_type", "warehouse_code", "warehouse_name",
+               "doc_date", "subscription_source_id", "source_customer_id", "vendor_name"],
+      },
+      provider_device: {
+        table: "provider_device_snapshot",
+        cols: ["source_id", "device_code", "state", "vendor"],
+      },
       subscription_device: {
         table: "subscription_device_snapshot",
         cols: ["source_id", "subscription_source_id", "imei", "started_on", "ended_on",
@@ -139,7 +149,7 @@ const NGUON: Nguon[] = [
       staff: { table: "staff_snapshot", cols: STAFF_COLS },
     },
     thu_tu: ["staff", "customer", "subscription", "invoice", "payment", "device",
-             "subscription_device", "fee_line"],
+             "subscription_device", "fee_line", "stock_move", "provider_device"],
   },
 ];
 

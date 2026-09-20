@@ -177,6 +177,43 @@ export const SUBSCRIPTION_DEVICE = `
   where sd."deletedAt" is null and sd."deviceCode" is not null
 `;
 
+/**
+ * Dòng phiếu nhập/xuất kho, nhân sẵn thông tin phiếu. Không lấy `msn` và
+ * `deviceRecallStatus` vì cả 13.327 dòng đều null, cũng không lấy `deviceStatus`
+ * vì luôn là GOOD.
+ */
+export const STOCK_MOVE = `
+  select
+    i.id::text                                   as source_id,
+    d.id::text                                   as doc_source_id,
+    d.code                                       as doc_code,
+    i."deviceCode"                               as device_code,
+    d."documentType"::text                       as doc_type,
+    d."businessType"::text                       as business_type,
+    d."reasonType"::text                         as reason_type,
+    w.code                                       as warehouse_code,
+    w.name                                       as warehouse_name,
+    d."documentDate"::date                       as doc_date,
+    d."subscriptionId"::text                     as subscription_source_id,
+    d."customerId"::text                         as source_customer_id,
+    v.name                                       as vendor_name
+  from inventory_document_item i
+  join inventory_document d on d.id = i."inventoryDocumentId" and d."deletedAt" is null
+  left join warehouse w on w.id = d."warehouseId"
+  left join vendor v on v.id = d."vendorId"
+  where i."deletedAt" is null
+`;
+
+/** Máy bật/tắt ở phía nhà mạng. Bảng này không có cột xoá mềm. */
+export const PROVIDER_DEVICE = `
+  select
+    p.id::text     as source_id,
+    p.imei         as device_code,
+    p.state::text  as state,
+    p.vendor::text as vendor
+  from provider_device_state p
+`;
+
 export const STAFF = `
   select
     u.id::text                                   as source_id,
@@ -240,5 +277,7 @@ export const QUERIES = {
   payment: PAYMENT,
   device: DEVICE,
   subscription_device: SUBSCRIPTION_DEVICE,
+  stock_move: STOCK_MOVE,
+  provider_device: PROVIDER_DEVICE,
   fee_line: FEE_LINE,
 } as const;

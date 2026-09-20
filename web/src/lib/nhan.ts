@@ -237,6 +237,23 @@ export const MAY_CUOC: Record<string, string> = {
   DA_TRA: "đã trả máy",
 };
 
+/**
+ * Kết luận của phần mềm về chỗ đứng của một mã thiết bị, đọc từ phiếu kho gần
+ * nhất. Đây là kết luận SUY RA, không phải cột có sẵn bên nguồn.
+ */
+export const KHO_PM: Record<string, string> = {
+  O_KHACH: "ở khách",
+  TRONG_KHO: "trong kho",
+  TRA_NCC: "đã trả nhà cung cấp",
+  CHI_NHA_MANG: "chỉ thấy ở nhà mạng",
+  PM_KHONG_BIET: "phần mềm không có mã này",
+};
+
+export const PHIEU_KHO: Record<string, string> = {
+  INVENTORY_IN: "phiếu nhập",
+  INVENTORY_OUT: "phiếu xuất",
+};
+
 export const NHOM_COC: Record<string, string> = {
   CHUA_TRA: "máy chưa trả",
   NGUNG_CHUA_CHOT: "ngừng dịch vụ mà chưa chốt cọc",

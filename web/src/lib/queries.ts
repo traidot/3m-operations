@@ -1647,3 +1647,64 @@ export const getTelecomMayKy = (imei: string) =>
        from v_telecom_may_ky where imei = $1 order by ky desc, subscription_id`,
     [imei],
   );
+
+export type KhoDoiChieu = {
+  ma: string;
+  ma_chuan: string;
+  nhom_hang: string | null;
+  ket_luan: string | null;
+  vi_tri_so: string | null;
+  vi_tri_kiem_kho: string | null;
+  nguoi_giu: string | null;
+  coc: string | null;
+  so_dong_so: string | null;
+  danh_sach_so: string | null;
+  pm_imei: string | null;
+  pm_doi_may: string | null;
+  pm_trang_thai_may: string | null;
+  pm_tinh_trang_cuoc: string | null;
+  pm_khach: string | null;
+  pm_ma_khach: string | null;
+  pm_phieu: string | null;
+  pm_ly_do: string | null;
+  pm_kho: string | null;
+  pm_ngay_phieu: string | null;
+  pm_nha_mang: string | null;
+  pm_vendor: string | null;
+  pm_ket_luan: string;
+};
+
+/** Bản đối chiếu kho làm tay đặt cạnh phần mềm — xem db/125. */
+export const getKhoDoiChieu = () =>
+  query<KhoDoiChieu>(
+    `select ma, ma_chuan, nhom_hang, ket_luan, vi_tri_so, vi_tri_kiem_kho,
+            nguoi_giu, coc::text, so_dong_so::text, danh_sach_so,
+            pm_imei, pm_doi_may, pm_trang_thai_may, pm_tinh_trang_cuoc,
+            pm_khach, pm_ma_khach, pm_phieu, pm_ly_do, pm_kho,
+            pm_ngay_phieu::text, pm_nha_mang, pm_vendor, pm_ket_luan
+       from v_kho_doi_chieu
+      order by case pm_ket_luan when 'O_KHACH' then 1 when 'TRONG_KHO' then 2
+                                when 'CHI_NHA_MANG' then 3 when 'TRA_NCC' then 4
+                                else 5 end, ket_luan, ma`,
+  );
+
+export type KhoThieu = {
+  device_code: string;
+  doc_type: string | null;
+  reason_type: string | null;
+  warehouse_name: string | null;
+  doc_date: string | null;
+  model: string | null;
+  trang_thai: string | null;
+  tinh_trang_cuoc: string | null;
+  khach: string | null;
+};
+
+/** Mã phần mềm đang giữ phiếu kho mà bản đối chiếu không nhắc tới. */
+export const getKhoThieuOFile = () =>
+  query<KhoThieu>(
+    `select device_code, doc_type, reason_type, warehouse_name, doc_date::text,
+            model, trang_thai, tinh_trang_cuoc, khach
+       from v_kho_thieu_o_file
+      order by doc_date desc nulls last, device_code`,
+  );
