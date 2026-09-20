@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { ChiTietNhom, type Chieu } from "../chi-tiet";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
-import { KHO_PM, LOAI_KHACH, LOAI_MA, MAY_CUOC } from "@/lib/nhan";
+import { KHO_PM, LOAI_KHACH, LOAI_MA, MAU_LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
+
+const KHONG_RO = "khong-ro";
+
+/** Thứ tự cố định để bảng không nhảy chỗ giữa hai lần tải. */
+const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", KHONG_RO];
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +37,7 @@ const CHIEU: Record<string, Chieu> = {
     ten: "Theo loại khách",
     lay: (r) => LOAI_KHACH[r.loai_khach ?? ""] ?? "không rõ loại",
   },
+  nguoiGiuFile: { ten: "Theo người giữ ghi ở sổ", lay: (r) => r.file_nguoi_giu ?? "sổ không ghi" },
   nhomFile: { ten: "Theo nhóm hàng ở file", lay: (r) => r.file_nhom_hang ?? "—" },
   ketLuanFile: { ten: "Theo kết luận ở file", lay: (r) => r.file_ket_luan ?? "—" },
   viTriSo: { ten: "Theo vị trí trong sổ", lay: (r) => r.file_vi_tri_so ?? "không có trong sổ" },
@@ -60,7 +66,7 @@ const PHAN: {
     mau: "var(--do)",
     canh_bao:
       "Đã quét 11 cột chứa mã thiết bị trên 59 bảng bên nguồn, kể cả dòng đã xoá mềm. Nhóm này chỉ tồn tại trên bản đối chiếu làm tay, không có gì để đối chứng.",
-    gom: ["loaiMa", "ketLuanFile", "nhomFile"],
+    gom: ["loaiMa", "ketLuanFile", "nhomFile", "nguoiGiuFile"],
     kem: true,
     chiFile: true,
     hop: (r) => r.file_co && !r.pm_co,
@@ -70,7 +76,7 @@ const PHAN: {
     ten: "Cả hai bên có",
     mo_ta: "cùng một mã xuất hiện ở cả phần mềm lẫn bản đối chiếu",
     mau: "var(--ok)",
-    gom: ["loaiMa", "choDung", "cuoc", "viTriSo", "doiMay"],
+    gom: ["khach", "loaiMa", "choDung", "cuoc", "viTriSo", "doiMay"],
     kem: false,
     hop: (r) => r.file_co && r.pm_co,
   },
@@ -81,7 +87,7 @@ const PHAN: {
     mau: "var(--lam)",
     canh_bao:
       "97% nhóm này là H1 và U3 — hai đời máy mà danh sách nhóm hàng của file (U20, MR1, WIMAX, SB, Datacall) không hề có. Nói cách khác file thiếu hẳn lô H1 và U3, chứ không phải bỏ sót lẻ tẻ. Và 1.198 cái trong số đó đang nằm ở tay khách.",
-    gom: ["loaiMa", "choDung", "doiMay", "kho", "cuoc"],
+    gom: ["khach", "loaiMa", "choDung", "doiMay", "kho", "cuoc"],
     kem: true,
     hop: (r) => r.pm_co && !r.file_co,
   },
@@ -120,6 +126,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
   const so = PHAN.map((p) => tatCa.filter(p.hop).length);
   const mo = PHAN.find((p) => p.ma === mot(sp.xem));
+  const lk = mot(sp.lk);
 
   return (
     <main>
@@ -197,6 +204,52 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </tbody>
         </table>
       </div>
+      <h2>Theo loại khách</h2>
+      <p className="muted">
+        Loại khách chỉ đọc được ở phía phần mềm — nhóm chỉ-có-trên-file không có mã nào bên
+        nguồn nên không có khách để phân loại.
+      </p>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>Loại khách</th>
+              <th className="num">Tổng</th>
+              {PHAN.map((p) => (
+                <th key={p.ma} className="num">
+                  {p.ten}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {LOAI.map((k) => {
+              const d = tatCa.filter((r) => (r.loai_khach ?? KHONG_RO) === k);
+              if (d.length === 0) return null;
+              return (
+                <tr key={k}>
+                  <td>
+                    {k === KHONG_RO ? (
+                      <span className="muted">không rõ loại</span>
+                    ) : (
+                      <span className={`chip ${MAU_LOAI_KHACH[k] ?? "tat"}`}>
+                        {LOAI_KHACH[k] ?? k}
+                      </span>
+                    )}
+                  </td>
+                  <td className="num mono">{n(d.length)}</td>
+                  {PHAN.map((p) => (
+                    <td key={p.ma} className="num mono">
+                      {n(d.filter(p.hop).length)}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
       <p className="stale">
         <b>19 mã ICCID không khớp được cái nào</b> — 4 cái file gọi SIM bằng ICCID trong khi
         phần mềm gọi bằng số điện thoại, 15 cái ngược lại. Không có bảng nào nối hai định
@@ -219,6 +272,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           canh_bao={mo.canh_bao}
           rows={tatCa.filter(mo.hop)}
           dongLai="/cam-tay/kho/hai-ben"
+          baseHref={`/cam-tay/kho/hai-ben?xem=${mo.ma}`}
+          lk={lk}
           tomTat={mo.gom.map((k) => CHIEU[k]!)}
           kemDanhSach={mo.kem}
           chiFile={mo.chiFile}
