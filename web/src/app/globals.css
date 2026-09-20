@@ -199,6 +199,11 @@ summary:hover { color: var(--ok); }
 .chart svg { display: block; overflow: visible; }
 .chart .truc { stroke: var(--line-strong); stroke-width: 1; }
 .chart .nhan-truc { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+/* Cột chồng ngang vẽ trong viewBox rộng 720 nhưng hiện ra rộng gấp rưỡi, nên
+   chữ bị phóng theo. Để 11px như trục ngày tháng thì nhãn hàng đọc ra to bằng
+   tiêu đề mục. */
+.chart .nhan-hang { fill: var(--muted); font-size: 8.5px; font-family: var(--mono); }
+.chart .tong-hang { fill: var(--body); font-size: 8.5px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .chart figcaption { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 .chu-thich { display: inline-flex; align-items: center; gap: 6px; }
 .o-mau { width: 10px; height: 10px; display: inline-block; border-radius: 3px; }

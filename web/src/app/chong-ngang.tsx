@@ -39,12 +39,12 @@ export function ChongNgang({
           return (
             <g key={g.ten}>
               <text
-                className="nhan-truc"
+                className="nhan-hang"
                 x={rongNhan - 8}
                 y={i * CAO_HANG + CAO_COT}
                 textAnchor="end"
               >
-                {g.ten.length > 38 ? `${g.ten.slice(0, 37)}…` : g.ten}
+                {g.ten.length > 46 ? `${g.ten.slice(0, 45)}…` : g.ten}
               </text>
               {phan.map((p) => {
                 const v = g.dem[p.ma] ?? 0;
@@ -64,7 +64,7 @@ export function ChongNgang({
                 );
               })}
               <text
-                className="nhan-truc"
+                className="tong-hang"
                 x={rong - LE_PHAI + 8}
                 y={i * CAO_HANG + CAO_COT}
               >
