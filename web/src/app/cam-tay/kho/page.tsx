@@ -16,10 +16,13 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 /** Ba khối của phần file có mà phần mềm không có, tách theo số thứ tự kết luận. */
 const KHOI_NGOAI = [
-  { ten: "Đã ra khỏi công ty", y: "trả lại nhà cung cấp", hop: (k: string) => k === "01" },
-  { ten: "SIM đã dừng", y: "đã huỷ hoặc trả lại nhà mạng", hop: (k: string) => k === "05" || k === "06" },
-  { ten: "Còn lại, phải xử lý", y: "sổ có hoặc kiểm kho thấy", hop: (k: string) => !["01", "05", "06"].includes(k) },
+  { ma: "ra-khoi", ten: "Đã ra khỏi công ty", y: "trả lại nhà cung cấp", hop: (k: string) => k === "01" },
+  { ma: "sim-dung", ten: "SIM đã dừng", y: "đã huỷ hoặc trả lại nhà mạng", hop: (k: string) => k === "05" || k === "06" },
+  { ma: "con-lai", ten: "Còn lại, phải xử lý", y: "sổ có hoặc kiểm kho thấy", hop: (k: string) => !["01", "05", "06"].includes(k) },
 ];
+
+/** Mã chỉ nằm trên file, phần mềm không có ở bất kỳ bảng nào. */
+const chiOFile = (r: KhoMa) => r.file_co && !r.pm_co;
 
 const maKetLuan = (s: string | null) => (s ?? "").slice(0, 2);
 
@@ -130,6 +133,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const ds = (q: string) => `/cam-tay/kho/danh-sach${q ? `?${q}` : ""}`;
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
   const buoc = BUOC.find((b) => b.ma === mot(sp.buoc));
+  const khoi = KHOI_NGOAI.find((k) => k.ma === mot(sp.khoi));
 
   return (
     <main>
@@ -174,7 +178,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
       <BangViec nhom="so" tatCa={tatCa} />
 
-      <h2>{n(fileRieng)} mã file có mà phần mềm không có</h2>
+      <h2>{n(fileRieng)} mã chỉ có trên file</h2>
+      <p className="muted">
+        Phần mềm <b>không có mã này ở bất kỳ bảng nào</b> — đã quét cả 11 cột chứa mã thiết
+        bị trên 59 bảng bên nguồn, kể cả dòng đã xoá mềm. Nói cách khác chúng chỉ tồn tại
+        trên bản đối chiếu làm tay. Bấm một dòng để xem danh sách.
+      </p>
       <div className="scroller">
         <table className="bang-thang">
           <thead>
@@ -189,13 +198,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <tbody>
             {KHOI_NGOAI.map((k) => {
               const d = tatCa.filter(
-                (r) => r.file_co && !r.pm_co && k.hop(maKetLuan(r.file_ket_luan)),
+                (r) => chiOFile(r) && k.hop(maKetLuan(r.file_ket_luan)),
               );
               return (
-                <tr key={k.ten}>
+                <tr key={k.ma}>
                   <td className="num mono">{n(d.length)}</td>
                   <td>
-                    {k.ten}
+                    <Link href={`/cam-tay/kho?khoi=${k.ma}`}>{k.ten}</Link>
                     <div className="muted">{k.y}</div>
                   </td>
                   <td className="num mono">{n(d.filter((r) => r.file_vi_tri_so !== null).length)}</td>
@@ -228,6 +237,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           rows={tatCa.filter(viec.hop)}
           dongLai="/cam-tay/kho"
           themLink={ds(`viec=${viec.ma}`)}
+        />
+      )}
+
+      {khoi && (
+        <ChiTietNhom
+          ten={khoi.ten}
+          mo_ta={`${khoi.y} — phần mềm không có mã nào trong nhóm này`}
+          canh_bao="Toàn bộ nhóm này chỉ tồn tại trên bản đối chiếu làm tay. Phần mềm không có mã ở bất kỳ bảng nào, nên không có gì để đối chứng — đúng hay sai phải đi kiểm thực tế."
+          rows={tatCa.filter((r) => chiOFile(r) && khoi.hop(maKetLuan(r.file_ket_luan)))}
+          dongLai="/cam-tay/kho"
+          chiFile
         />
       )}
 

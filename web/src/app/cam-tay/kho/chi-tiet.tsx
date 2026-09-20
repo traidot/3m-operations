@@ -50,6 +50,7 @@ export function ChiTietNhom({
   dongLai,
   themLink,
   tomTat,
+  chiFile,
 }: {
   ten: string;
   mo_ta: string;
@@ -59,6 +60,8 @@ export function ChiTietNhom({
   themLink?: string;
   /** Có thì gom số theo mấy chiều này thay vì liệt kê từng mã. */
   tomTat?: Chieu[];
+  /** Nhóm mà phần mềm không có mã nào: bỏ cột phần mềm vì chắc chắn rỗng. */
+  chiFile?: boolean;
 }) {
   return (
     <NganKeo dongLai={dongLai}>
@@ -82,6 +85,34 @@ export function ChiTietNhom({
         </>
       ) : rows.length === 0 ? (
         <p className="empty">Không còn mã nào.</p>
+      ) : chiFile ? (
+        <div className="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>Mã</th>
+                <th>Nhóm hàng</th>
+                <th>Kết luận ở file</th>
+                <th>Vị trí theo sổ / kiểm kho</th>
+                <th>Người giữ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.ma_chuan}>
+                  <td className="mono">{r.ma}</td>
+                  <td className="muted">{r.file_nhom_hang ?? "—"}</td>
+                  <td className="muted">{r.file_ket_luan ?? "—"}</td>
+                  <td className="muted">
+                    {r.file_vi_tri_so ?? "không có trong sổ"}
+                    {r.file_kiem_kho && <div>kiểm kho: {r.file_kiem_kho}</div>}
+                  </td>
+                  <td className="muted">{r.file_nguoi_giu ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <div className="scroller">
           <table>
