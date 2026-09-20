@@ -3,7 +3,7 @@ import { ThanBam } from "../../than-bam";
 import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
-import { COC, MAY, MAY_CUOC } from "@/lib/nhan";
+import { COC, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -220,15 +220,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {r.model ?? <span className="muted">không rõ loại</span>}
                   </td>
                   <td>
-                    <span
-                      className={`chip ${
-                        r.tinh_trang_cuoc === "HUT_CUOC"
-                          ? "xau"
-                          : r.tinh_trang_cuoc === "DANG_RA_CUOC" || r.tinh_trang_cuoc === "DA_TRA"
-                            ? "ok"
-                            : "cho"
-                      }`}
-                    >
+                    <span className={`chip ${MAU_MAY_CUOC[r.tinh_trang_cuoc] ?? "tat"}`}>
                       {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
                     </span>
                     {Number(r.thang_hut) > 0 && (

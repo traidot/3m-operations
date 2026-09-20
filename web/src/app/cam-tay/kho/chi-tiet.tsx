@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { NganKeo } from "../../ngan-keo";
-import { LOAI_KHACH, MAU_LOAI_KHACH, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+import { LOAI_KHACH, MAU_LOAI_KHACH, MAU_MAY_CUOC, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 import type { KhoMa } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
@@ -161,8 +161,10 @@ export function ChiTietNhom({
                     )}
                     {r.tinh_trang_cuoc && (
                       <div>
-                        {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
-                        {r.ky_cuoi && ` · kỳ cuối ${r.ky_cuoi}`}
+                        <span className={`chip ${MAU_MAY_CUOC[r.tinh_trang_cuoc] ?? "tat"}`}>
+                          {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
+                        </span>
+                        {r.ky_cuoi && <span className="mono"> kỳ cuối {r.ky_cuoi}</span>}
                       </div>
                     )}
                     {!r.doc_type && !r.tinh_trang_cuoc && "không có gì"}

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ThanBam } from "../../../than-bam";
 import { getKhoMa, type KhoMa } from "@/lib/queries";
-import { KHO_PM, LOAI_KHACH, LOAI_MA, MAU_LOAI_KHACH, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+import {
+  KHO_PM, LOAI_KHACH, LOAI_MA, MAU_LOAI_KHACH, MAU_MAY_CUOC, MAY_CUOC, PHIEU_KHO,
+} from "@/lib/nhan";
 import { VIEC } from "../viec";
 
 export const dynamic = "force-dynamic";
@@ -222,8 +224,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     )}
                     {r.tinh_trang_cuoc && (
                       <div>
-                        {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
-                        {r.ky_cuoi && ` · kỳ cuối ${r.ky_cuoi}`}
+                        <span className={`chip ${MAU_MAY_CUOC[r.tinh_trang_cuoc] ?? "tat"}`}>
+                          {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
+                        </span>
+                        {r.ky_cuoi && <span className="mono"> kỳ cuối {r.ky_cuoi}</span>}
                       </div>
                     )}
                   </td>

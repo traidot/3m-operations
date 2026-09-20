@@ -238,6 +238,23 @@ export const MAY_CUOC: Record<string, string> = {
 };
 
 /**
+ * Màu của từng tình trạng cước. Để một chỗ vì ba màn hình đang tô, mỗi nơi một
+ * kiểu thì cùng một chữ lại đổi màu tuỳ trang.
+ *
+ * Đỏ dành riêng cho hụt cước: máy còn ở khách, dịch vụ còn hiệu lực, mà tháng
+ * này không ra kỳ nào — đó là tiền chảy ra ngoài. Mấy tình trạng còn lại chỉ là
+ * việc phải làm, để vàng.
+ */
+export const MAU_MAY_CUOC: Record<string, string> = {
+  DANG_RA_CUOC: "ok",
+  HUT_CUOC: "do",
+  HUY_CHUA_THU_MAY: "cho",
+  CHUA_GAN: "cho",
+  TB_DA_XOA: "cho",
+  DA_TRA: "tat",
+};
+
+/**
  * Kết luận của phần mềm về chỗ đứng của một mã thiết bị, đọc từ phiếu kho gần
  * nhất. Đây là kết luận SUY RA, không phải cột có sẵn bên nguồn.
  */
