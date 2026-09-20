@@ -174,6 +174,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th>Phần mềm: phiếu gần nhất</th>
                 <th>Phần mềm: khách và cước</th>
                 <th>File nói gì</th>
+                <th />
               </tr>
             </thead>
             <ThanBam>
@@ -241,6 +242,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       </>
                     ) : (
                       <span className="chip cho">file không nhắc tới</span>
+                    )}
+                  </td>
+                  <td className="khong-xuong-dong">
+                    {r.link_cms && (
+                      <a href={r.link_cms} target="_blank" rel="noreferrer">
+                        CMS →
+                      </a>
                     )}
                   </td>
                 </tr>

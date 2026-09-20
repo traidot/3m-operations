@@ -74,6 +74,7 @@ export async function GET() {
       { header: "File: vị trí trong sổ", key: "f_vi_tri", width: 20 },
       { header: "File: kiểm kho 15/09", key: "f_kiem_kho", width: 20 },
       { header: "File: người giữ", key: "f_nguoi_giu", width: 28 },
+      { header: "Link CMS", key: "link", width: 70 },
     ];
     ws.getRow(1).font = { bold: true };
     for (const r of rows.filter(p.hop)) {
@@ -101,6 +102,7 @@ export async function GET() {
         f_vi_tri: r.file_vi_tri_so,
         f_kiem_kho: r.file_kiem_kho,
         f_nguoi_giu: r.file_nguoi_giu,
+        link: r.link_cms,
       });
     }
     ws.autoFilter = { from: "A1", to: { row: 1, column: ws.columns.length } };

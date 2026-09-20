@@ -129,6 +129,7 @@ export function ChiTietNhom({
                 <th>Mã</th>
                 <th>Đời máy</th>
                 <th>Khách</th>
+                <th />
                 <th>Phần mềm ghi</th>
                 <th>File ghi</th>
               </tr>
@@ -151,6 +152,13 @@ export function ChiTietNhom({
                       r.khach && <div>chưa phân loại</div>
                     )}
                     {r.nguon_khach && <div className="mono">{r.nguon_khach}</div>}
+                  </td>
+                  <td className="khong-xuong-dong">
+                    {r.link_cms && (
+                      <a href={r.link_cms} target="_blank" rel="noreferrer">
+                        CMS →
+                      </a>
+                    )}
                   </td>
                   <td className="muted">
                     {r.doc_type && (

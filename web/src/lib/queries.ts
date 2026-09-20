@@ -1735,6 +1735,7 @@ export type KhoMa = {
   nguon_khach: string | null;
   nha_mang: string | null;
   vendor: string | null;
+  link_cms: string | null;
   file_co: boolean;
   file_nhom_hang: string | null;
   file_ket_luan: string | null;
@@ -1750,7 +1751,7 @@ export const getKhoMa = () =>
             warehouse_name, doc_date::text, trang_thai_may, co_thue_bao,
             thue_bao, tinh_trang_cuoc,
             ky_cuoi, coc::text, trang_thai_coc, chua_thu::text,
-            khach, ma_khach, loai_khach, nguon_khach, nha_mang, vendor,
+            khach, ma_khach, loai_khach, nguon_khach, nha_mang, vendor, link_cms,
             file_co, file_nhom_hang, file_ket_luan, file_vi_tri_so,
             file_kiem_kho, file_nguoi_giu
        from v_kho_ma
