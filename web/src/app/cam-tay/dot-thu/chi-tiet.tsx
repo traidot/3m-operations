@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { NganKeo } from "../../ngan-keo";
 import { getKyCuocThang } from "@/lib/queries";
-import { HOA_DON, HOP_DONG, LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
+import { HOA_DON, HOP_DONG, LOAI_KHACH, MAU_HOP_DONG, MAU_LOAI_KHACH } from "@/lib/nhan";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
@@ -91,7 +91,13 @@ export async function ChiTietDot({
                 <tr key={r.fee_line_id}>
                   <td className="mono">
                     {r.subscription_id}
-                    <div className="muted">{HOP_DONG[r.trang_thai_tb ?? ""] ?? "—"}</div>
+                    {r.trang_thai_tb && (
+                      <div>
+                        <span className={`chip ${MAU_HOP_DONG[r.trang_thai_tb] ?? "tat"}`}>
+                          {HOP_DONG[r.trang_thai_tb] ?? r.trang_thai_tb}
+                        </span>
+                      </div>
+                    )}
                     {r.goi && <div className="muted">{r.goi}</div>}
                   </td>
                   <td className="muted">

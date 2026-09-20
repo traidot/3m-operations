@@ -1,5 +1,5 @@
 import { NganKeo } from "../../ngan-keo";
-import { HOP_DONG, LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
+import { HOP_DONG, LOAI_KHACH, MAU_HOP_DONG, MAU_LOAI_KHACH } from "@/lib/nhan";
 import type { ThueBaoNo } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
@@ -49,7 +49,11 @@ export function ChiTietThueBao({
                 <tr key={r.subscription_id}>
                   <td className="mono">
                     {r.subscription_id}
-                    <div className="muted">{HOP_DONG[r.trang_thai] ?? r.trang_thai}</div>
+                    <div>
+                      <span className={`chip ${MAU_HOP_DONG[r.trang_thai] ?? "tat"}`}>
+                        {HOP_DONG[r.trang_thai] ?? r.trang_thai}
+                      </span>
+                    </div>
                     {r.ngay_ngung && <div className="mono muted">ngừng {r.ngay_ngung}</div>}
                   </td>
                   <td className="muted">

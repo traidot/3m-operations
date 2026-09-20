@@ -6,6 +6,18 @@ export const HOP_DONG: Record<string, string> = {
   PENDING: "chưa rõ",
 };
 
+/**
+ * Màu trạng thái hợp đồng / thuê bao. Đã huỷ để ĐỎ chứ không để xám: trong bảng
+ * cước, một kỳ của thuê bao đã huỷ là kỳ không đòi được nữa — phải đập vào mắt
+ * chứ không phải thông tin phụ.
+ */
+export const MAU_HOP_DONG: Record<string, string> = {
+  ACTIVE: "ok",
+  TERMINATED: "do",
+  SUSPENDED: "cho",
+  PENDING: "tat",
+};
+
 export const LAP_DAT: Record<string, string> = {
   DONE: "lắp xong",
   SURVEY: "chưa lắp",
