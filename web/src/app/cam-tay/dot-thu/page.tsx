@@ -147,18 +147,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         phải tiền; tiền theo loại khách nằm trong ngăn kéo của từng tháng.
       </p>
 
-      {cong("ky_mo_coi") > 0 && (
-        <p className="stale">
-          <b>
-            {n(cong("ky_mo_coi"))} kỳ cước · {n(cong("tien_mo_coi"))} yên
-          </b>{" "}
-          thuộc thuê bao đã bị <b>xoá ở nguồn</b> — hồ sơ dịch vụ không còn, chỉ còn lại cái
-          kỳ cước. Vẫn tính vào tổng vì phần lớn là tiền đã thu thật, nhưng trong ngăn kéo
-          chúng mang chip đỏ “đã xoá ở nguồn” và không có nút sang CMS, vì bấm vào chỉ ra
-          trang không tìm thấy. Chỗ này lộ ra do đồng bộ lọc bản ghi đã xoá cho bảng thuê bao
-          nhưng không lọc cho bảng kỳ cước.
-        </p>
-      )}
+      <p className="muted khoi-ghi-chu">
+        <b>59 kỳ cước · 19.000 yên đã bị loại khỏi mọi con số trên trang này</b> — chúng
+        thuộc thuê bao đã xoá ở nguồn, hồ sơ dịch vụ không còn, chỉ còn trơ lại cái kỳ cước.
+        Chỗ này lộ ra do đồng bộ lọc bản ghi đã xoá cho bảng thuê bao nhưng không lọc cho
+        bảng kỳ cước. Dữ liệu vẫn giữ trong kho ở view riêng để đối chiếu, chỉ không cộng
+        vào đâu cả.
+      </p>
 
       <p className="muted khoi-ghi-chu">
         <b>Trang này đếm KỲ CƯỚC, trang Tổng quan đếm HOÁ ĐƠN — đừng so thẳng hai con số.</b>{" "}

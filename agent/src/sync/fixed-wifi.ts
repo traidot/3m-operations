@@ -212,6 +212,8 @@ export const FEE_INSTALLMENT = `
     i.createdAt             as created_at_src,
     i.createBy              as created_by_src
   from contract_fee_payment_installments i
+  -- Bảng này có xoá mềm mà lúc đầu quên lọc, 48 đợt đã xoá lọt vào kho.
+  where i.deletedAt is null
 `;
 
 export const QUERIES = {

@@ -14,7 +14,12 @@ import { QUERIES as TELECOM_QUERIES } from "./telecom.js";
  * Thiếu biến môi trường của nguồn nào thì bỏ qua nguồn đó, không coi là lỗi.
  */
 
-type Bang = { table: string; cols: string[] };
+type Bang = {
+  table: string;
+  cols: string[];
+  /** Truy vấn lấy trọn bảng, nên dòng nào kho có mà nguồn không còn thì dọn. */
+  don?: boolean;
+};
 
 type Nguon = {
   key: string;
@@ -92,6 +97,7 @@ const NGUON: Nguon[] = [
         cols: ["source_id", "fee_period_id", "contract_id", "ky", "amount",
                "paid_at", "channel", "status", "note", "created_at_src",
                "created_by_src"],
+        don: true,
       },
     },
     // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
@@ -237,6 +243,25 @@ async function syncEntity(src: ReadOnlyDb, nguon: Nguon, entity: string): Promis
        on conflict (source, source_id) do update set ${updates}, synced_at = now()`,
       params,
     );
+  }
+
+  // Dọn dòng nguồn đã xoá. Upsert chỉ ghi đè chứ không bỏ đi, nên bản ghi bị
+  // xoá ở nguồn sẽ nằm lại trong kho mãi — đã dính một lần: 48 đợt trả góp đã
+  // xoá, 83.101 yên, vẫn được cộng vào số.
+  //
+  // Chỉ dọn với thực thể nào truy vấn lấy TRỌN bảng, và chỉ khi lấy được ít
+  // nhất một dòng: query lỗi trả về rỗng mà đi dọn là xoá sạch kho.
+  if (nguon.bang[entity]!.don && rows.length > 0) {
+    const ids = rows.map((r) => r.source_id);
+    const [donDep] = await q<{ da_don: string }>(
+      `with bo as (
+         delete from ${table} where source = $1 and source_id <> all($2::text[])
+         returning 1)
+       select count(*)::text as da_don from bo`,
+      [nguon.key, ids],
+    );
+    const daDon = Number(donDep?.da_don ?? 0);
+    if (daDon > 0) console.log(`  ${entity}: dọn ${daDon} dòng đã xoá ở nguồn`);
   }
 
   // Bảng nào giữ mã khách bên nguồn thì nối luôn về party.
