@@ -11,12 +11,6 @@ import { KHO_PM, PHIEU_KHO } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Bảng này 6.852 dòng × 7 cột dày, dựng hết một lượt thì trang nặng gấp đôi màn
- * hình máy. Cắt ở đây và nói rõ đã cắt, còn muốn xem nhóm nào thì lọc.
- */
-const GIOI_HAN = 1000;
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
@@ -31,7 +25,7 @@ const PHAN: Phan[] = [
   { ma: "TRONG_KHO", ten: "trong kho", mau: "var(--ok)" },
   { ma: "TRA_NCC", ten: "trả nhà cung cấp", mau: "var(--tim)" },
   { ma: "CHI_NHA_MANG", ten: "chỉ thấy ở nhà mạng", mau: "var(--warn)" },
-  { ma: "PM_KHONG_BIET", ten: "phần mềm không có", mau: "var(--bad)" },
+  { ma: "PM_KHONG_BIET", ten: "phần mềm không có", mau: "var(--do)" },
 ];
 
 const MAU_CHIP: Record<string, string> = {
@@ -39,7 +33,7 @@ const MAU_CHIP: Record<string, string> = {
   TRONG_KHO: "ok",
   TRA_NCC: "tat",
   CHI_NHA_MANG: "cho",
-  PM_KHONG_BIET: "xau",
+  PM_KHONG_BIET: "do",
 };
 
 /** Mỗi bộ lọc là một câu hỏi người dùng thật sự hỏi, không phải một cột của view. */
@@ -324,7 +318,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               </tr>
             </thead>
             <ThanBam>
-              {rows.slice(0, GIOI_HAN).map((r) => (
+              {rows.map((r) => (
                 <tr key={r.ma}>
                   <td className="mono">{r.ma}</td>
                   <td className="muted">{r.nhom_hang ?? "—"}</td>
@@ -371,13 +365,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             </ThanBam>
           </table>
         </div>
-      )}
-
-      {rows.length > GIOI_HAN && (
-        <p className="muted">
-          Mới hiện {n(GIOI_HAN)} dòng đầu trên {n(rows.length)}. Lọc hẹp lại để xem phần còn
-          lại.
-        </p>
       )}
     </main>
   );

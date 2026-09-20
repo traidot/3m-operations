@@ -12,6 +12,9 @@
   --warn-soft: #f6eeda;
   --bad: #a8501c;
   --bad-soft: #f7e9de;
+  /* Đỏ thật, mạnh hơn --bad (vốn ngả cam). Dành cho chỗ cần đập vào mắt ngay:
+     mã có ở ngoài mà phần mềm không ghi nhận. */
+  --do: #c1121f;
   /* Hai màu phân loại, không mang nghĩa tốt/xấu — dùng cho vai trò khách. */
   --lam: #1d5d86;
   --tim: #6a4a99;
@@ -37,6 +40,7 @@
     --warn-soft: #2b2413;
     --bad: #e3a277;
     --bad-soft: #2d1e14;
+    --do: #ff6b6b;
     --lam: #7ab8dd;
     --tim: #b39ae0;
     --cam: #f0a259;
@@ -323,6 +327,7 @@ td .tag + .tag { margin-left: 4px; }
 .chip.warn { --mau-chip: var(--warn); }
 .chip.cho  { --mau-chip: var(--warn); }
 .chip.xau  { --mau-chip: var(--bad); }
+.chip.do   { --mau-chip: var(--do); }
 .chip.tat  { --mau-chip: var(--muted); }
 /* Vai trò khách: phân loại chứ không xếp hạng, nên tách khỏi dải màu cảnh báo.
    Khách lẻ chiếm 3.706/3.747 nên để mức nền, hai vai trò hiếm thì nổi lên. */
@@ -365,7 +370,7 @@ a.chip:hover { background: color-mix(in srgb, var(--mau-chip) 26%, transparent);
 /* Hàng thẻ số tổng trên đầu báo cáo. */
 .the-hang { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 20px 0 8px; }
 .the-so { background: var(--surface); border: 1px solid var(--line); border-radius: var(--bo-to); padding: 12px 14px; }
-.the-ten { color: var(--muted); font-size: 0.8rem; }
+.the-ten { color: var(--muted); font-size: 0.68rem; }
 .the-gia-tri { font-size: 1.35rem; color: var(--ink); margin-top: 2px; }
 .the-phu { color: var(--muted); font-size: 0.76rem; }
 th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
