@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
 import { ChiTietNhom, type Chieu } from "./chi-tiet";
 import { VIEC } from "./viec";
-import { KHO_PM, LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
+import { KHO_PM, LOAI_KHACH, MAU_LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
 
 const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 
@@ -25,6 +25,9 @@ const KHOI_NGOAI = [
 const chiOFile = (r: KhoMa) => r.file_co && !r.pm_co;
 
 const maKetLuan = (s: string | null) => (s ?? "").slice(0, 2);
+
+/** Thứ tự cố định để bảng không nhảy chỗ giữa hai lần tải. */
+const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", ""];
 
 /** Chiều gom số cho ngăn kéo của bước đông mã. */
 const CHIEU: Record<string, Chieu> = {
@@ -165,6 +168,69 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           />
         ))}
       </div>
+
+      <h2>{n(oKhach)} máy ở khách là của loại khách nào</h2>
+      <p className="muted">
+        Loại khách đọc từ hồ sơ cho thuê, không có thì đọc từ thuê bao. Máy không gắn dịch
+        vụ nào thì không có loại — chỉ biết ai nhận hàng trên phiếu xuất.
+      </p>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>Loại khách</th>
+              <th className="num">Máy đang giữ</th>
+              <th className="num">Đang ra cước</th>
+              <th className="num">Thuê bao đã huỷ</th>
+              <th className="num">Không gắn dịch vụ</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {LOAI.map((k) => {
+              const d = tatCa.filter(
+                (r) => r.cho_dung === "O_KHACH" && (r.loai_khach ?? "") === k,
+              );
+              if (d.length === 0) return null;
+              return (
+                <tr key={k || "khong-ro"}>
+                  <td>
+                    {k ? (
+                      <span className={`chip ${MAU_LOAI_KHACH[k] ?? "tat"}`}>
+                        {LOAI_KHACH[k] ?? k}
+                      </span>
+                    ) : (
+                      <span className="muted">không biết loại</span>
+                    )}
+                  </td>
+                  <td className="num mono">{n(d.length)}</td>
+                  <td className="num mono">
+                    {n(d.filter((r) => r.tinh_trang_cuoc === "DANG_RA_CUOC").length)}
+                  </td>
+                  <td className="num mono">
+                    {n(d.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY").length)}
+                  </td>
+                  <td className="num mono">{n(d.filter((r) => !r.co_thue_bao).length)}</td>
+                  <td className="khong-xuong-dong">
+                    {/* Bộ lọc bên danh sách nhận NHÃN tiếng Việt, không phải mã thô. */}
+                    <Link
+                      href={ds(
+                        `cd=O_KHACH&lk=${encodeURIComponent(LOAI_KHACH[k] ?? "(không biết loại)")}`,
+                      )}
+                    >
+                      xem →
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">
+        Đại lý gần như không ra cước là đúng — thu cước wifi cầm tay cho đại lý hiện không
+        thuộc diện mình quản lý.
+      </p>
 
       <h2>Phần mềm tự mâu thuẫn</h2>
       <p className="muted">

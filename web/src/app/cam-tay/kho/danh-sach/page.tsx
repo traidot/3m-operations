@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ThanBam } from "../../../than-bam";
 import { getKhoMa, type KhoMa } from "@/lib/queries";
-import { KHO_PM, LOAI_MA, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+import { KHO_PM, LOAI_KHACH, LOAI_MA, MAU_LOAI_KHACH, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 import { VIEC } from "../viec";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,12 @@ const LOC: { ma: string; ten: string; lay: (r: KhoMa) => string }[] = [
   { ma: "lm", ten: "Loại định danh", lay: (r) => LOAI_MA[r.loai_ma] ?? r.loai_ma },
   { ma: "may", ten: "Đời máy", lay: (r) => r.doi_may ?? "(không rõ)" },
   { ma: "kho", ten: "Kho theo phiếu", lay: (r) => r.warehouse_name ?? "(chưa có phiếu)" },
-  { ma: "cuoc", ten: "Tình trạng cước", lay: (r) => r.tinh_trang_cuoc ?? "(không có hồ sơ thuê)" },
+  { ma: "cuoc", ten: "Tình trạng cước", lay: (r) => r.tinh_trang_cuoc ?? "(không gắn dịch vụ)" },
+  {
+    ma: "lk",
+    ten: "Loại khách",
+    lay: (r) => (r.loai_khach ? (LOAI_KHACH[r.loai_khach] ?? r.loai_khach) : "(không biết loại)"),
+  },
   { ma: "nh", ten: "Nhóm hàng ở file", lay: (r) => r.file_nhom_hang ?? "(file không có)" },
   { ma: "vt", ten: "Vị trí theo sổ", lay: (r) => r.file_vi_tri_so ?? "(không có trong sổ)" },
   { ma: "nm", ten: "Nhà mạng", lay: (r) => r.nha_mang ?? "(không có)" },
@@ -203,6 +208,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className="muted">
                     {r.khach ?? "—"}
                     {r.ma_khach && ` · ${r.ma_khach}`}
+                    {r.loai_khach && (
+                      <div>
+                        <span className={`chip ${MAU_LOAI_KHACH[r.loai_khach] ?? "tat"}`}>
+                          {LOAI_KHACH[r.loai_khach] ?? r.loai_khach}
+                        </span>
+                      </div>
+                    )}
                     {r.nguon_khach && <div className="mono">{r.nguon_khach}</div>}
                     {/* nguon_khach đã ghi mã thuê bao rồi thì đừng in lại. */}
                     {r.thue_bao && !r.nguon_khach?.startsWith("thuê bao") && (
