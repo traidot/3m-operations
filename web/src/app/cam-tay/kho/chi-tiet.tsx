@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { NganKeo } from "../../ngan-keo";
-import { MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+import { LOAI_KHACH, MAU_LOAI_KHACH, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 import type { KhoMa } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
@@ -102,7 +102,7 @@ export function ChiTietNhom({
                 <th>Nhóm hàng</th>
                 <th>Kết luận ở file</th>
                 <th>Vị trí theo sổ / kiểm kho</th>
-                <th>Người giữ</th>
+                <th>Người giữ theo sổ</th>
               </tr>
             </thead>
             <tbody>
@@ -128,6 +128,7 @@ export function ChiTietNhom({
               <tr>
                 <th>Mã</th>
                 <th>Đời máy</th>
+                <th>Khách</th>
                 <th>Phần mềm ghi</th>
                 <th>File ghi</th>
               </tr>
@@ -138,16 +139,24 @@ export function ChiTietNhom({
                   <td className="mono">{r.ma}</td>
                   <td className="muted">{r.doi_may ?? "—"}</td>
                   <td className="muted">
+                    {r.khach ?? "—"}
+                    {r.ma_khach && <div className="mono">{r.ma_khach}</div>}
+                    {r.loai_khach ? (
+                      <div>
+                        <span className={`chip ${MAU_LOAI_KHACH[r.loai_khach] ?? "tat"}`}>
+                          {LOAI_KHACH[r.loai_khach] ?? r.loai_khach}
+                        </span>
+                      </div>
+                    ) : (
+                      r.khach && <div>chưa phân loại</div>
+                    )}
+                    {r.nguon_khach && <div className="mono">{r.nguon_khach}</div>}
+                  </td>
+                  <td className="muted">
                     {r.doc_type && (
                       <div className="mono">
                         {PHIEU_KHO[r.doc_type] ?? r.doc_type} {r.doc_date} ·{" "}
                         {r.warehouse_name ?? "không ghi kho"}
-                      </div>
-                    )}
-                    {r.khach && (
-                      <div>
-                        {r.khach}
-                        {r.ma_khach && ` · ${r.ma_khach}`}
                       </div>
                     )}
                     {r.tinh_trang_cuoc && (
@@ -156,7 +165,7 @@ export function ChiTietNhom({
                         {r.ky_cuoi && ` · kỳ cuối ${r.ky_cuoi}`}
                       </div>
                     )}
-                    {!r.doc_type && !r.khach && !r.tinh_trang_cuoc && "không có gì"}
+                    {!r.doc_type && !r.tinh_trang_cuoc && "không có gì"}
                   </td>
                   <td className="muted">
                     {r.file_co ? (
