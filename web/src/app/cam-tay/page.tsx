@@ -47,6 +47,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Wifi cầm tay</h1>
       <p className="muted">
+        Số ở đây đếm theo <b>hoá đơn</b>, tức gồm cả cọc, bán máy và phí đăng ký chứ không
+        riêng tiền cước. Muốn nhìn riêng cước thì sang{" "}
+        <a href="/cam-tay/dot-thu">Đợt thu cước</a> — bên đó đếm theo kỳ cước nên số nhỏ hơn,
+        chênh 13.000.860 trên toàn bộ lịch sử.
+      </p>
+      <p className="muted">
         Hệ telecom có hoá đơn thật nên công nợ đọc thẳng, không phải suy từ sổ thu như
         bên wifi cố định. Bảng theo tháng ghép theo <b>kỳ cước</b>, không theo ngày lập.
         Mọi con số tiền ở các thẻ dưới đây là phần mình thu:{" "}

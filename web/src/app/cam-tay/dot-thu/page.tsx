@@ -147,6 +147,27 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         phải tiền; tiền theo loại khách nằm trong ngăn kéo của từng tháng.
       </p>
 
+      {cong("ky_mo_coi") > 0 && (
+        <p className="stale">
+          <b>
+            {n(cong("ky_mo_coi"))} kỳ cước · {n(cong("tien_mo_coi"))} yên
+          </b>{" "}
+          thuộc thuê bao đã bị <b>xoá ở nguồn</b> — hồ sơ dịch vụ không còn, chỉ còn lại cái
+          kỳ cước. Vẫn tính vào tổng vì phần lớn là tiền đã thu thật, nhưng trong ngăn kéo
+          chúng mang chip đỏ “đã xoá ở nguồn” và không có nút sang CMS, vì bấm vào chỉ ra
+          trang không tìm thấy. Chỗ này lộ ra do đồng bộ lọc bản ghi đã xoá cho bảng thuê bao
+          nhưng không lọc cho bảng kỳ cước.
+        </p>
+      )}
+
+      <p className="muted khoi-ghi-chu">
+        <b>Trang này đếm KỲ CƯỚC, trang Tổng quan đếm HOÁ ĐƠN — đừng so thẳng hai con số.</b>{" "}
+        Toàn bộ hoá đơn cầm tay là 97.201.283, toàn bộ kỳ cước là 84.200.423; chênh
+        13.000.860 là phần hoá đơn không phải tiền cước — cọc, bán máy, phí đăng ký. Thêm
+        nữa 3.061 hoá đơn không ghi kỳ nên trang Tổng quan xếp chúng vào tháng phát hành,
+        còn trang này không có chúng.
+      </p>
+
       <p className="muted khoi-ghi-chu">
         Bảng dừng ở hết năm nay. Sổ bên nguồn còn kỳ tới tận 2027-09 vì cước phát hành
         trước, nhưng mấy tháng đó chỉ lác đác vài kỳ — 9 tháng, 62 kỳ, 157.416 yên — kéo dài

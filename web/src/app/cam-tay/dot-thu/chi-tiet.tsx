@@ -91,6 +91,11 @@ export async function ChiTietDot({
                 <tr key={r.fee_line_id}>
                   <td className="mono">
                     {r.subscription_id}
+                    {r.tb_da_xoa && (
+                      <div>
+                        <span className="chip do">đã xoá ở nguồn</span>
+                      </div>
+                    )}
                     {r.trang_thai_tb && (
                       <div>
                         <span className={`chip ${MAU_HOP_DONG[r.trang_thai_tb] ?? "tat"}`}>
@@ -117,6 +122,9 @@ export async function ChiTietDot({
                     <span className={`chip ${MAU_HD[r.trang_thai_hd ?? ""] ?? "tat"}`}>
                       {HOA_DON[r.trang_thai_hd ?? ""] ?? r.trang_thai_hd ?? "—"}
                     </span>
+                    {r.tra_mot_phan && (
+                      <div className="chip cho">đã nhận {n(r.tien_da_nhan)}</div>
+                    )}
                     {r.so_hoa_don && <div className="mono muted">{r.so_hoa_don}</div>}
                     {r.han_tra && <div className="mono muted">hạn {r.han_tra}</div>}
                   </td>
