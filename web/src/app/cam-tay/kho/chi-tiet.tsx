@@ -11,6 +11,37 @@ const n = (v: string | number | null) =>
  * dựng bảng của đúng nhóm đang xem chứ không phải cả 8.272 mã, nên nặng theo
  * số dòng của nhóm đó thôi.
  */
+/** Một chiều để gom số khi nhóm quá đông để liệt kê. */
+export type Chieu = { ten: string; lay: (r: KhoMa) => string };
+
+/** Bảng đếm theo một chiều, xếp nhiều trước. */
+function BangGom({ ten, lay, rows }: Chieu & { rows: KhoMa[] }) {
+  const gom = new Map<string, number>();
+  for (const r of rows) {
+    const k = lay(r);
+    gom.set(k, (gom.get(k) ?? 0) + 1);
+  }
+  const hang = [...gom.entries()].sort((a, b) => b[1] - a[1]);
+  return (
+    <>
+      <h2>{ten}</h2>
+      <table>
+        <tbody>
+          {hang.map(([k, v]) => (
+            <tr key={k}>
+              <td>{k}</td>
+              <td className="num mono">{n(v)}</td>
+              <td className="num muted mono">
+                {((v / Math.max(rows.length, 1)) * 100).toFixed(1)}%
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
 export function ChiTietNhom({
   ten,
   mo_ta,
@@ -18,6 +49,7 @@ export function ChiTietNhom({
   rows,
   dongLai,
   themLink,
+  tomTat,
 }: {
   ten: string;
   mo_ta: string;
@@ -25,6 +57,8 @@ export function ChiTietNhom({
   rows: KhoMa[];
   dongLai: string;
   themLink?: string;
+  /** Có thì gom số theo mấy chiều này thay vì liệt kê từng mã. */
+  tomTat?: Chieu[];
 }) {
   return (
     <NganKeo dongLai={dongLai}>
@@ -35,7 +69,18 @@ export function ChiTietNhom({
 
       {canh_bao && <p className="stale">{canh_bao}</p>}
 
-      {rows.length === 0 ? (
+      {tomTat ? (
+        <>
+          <p className="muted">
+            Nhóm này quá đông để liệt kê từng mã — {n(rows.length)} dòng dựng ra vừa nặng vừa
+            không đọc được gì. Gom số theo mấy chiều dưới đây; cần từng mã thì mở màn hình
+            danh sách.
+          </p>
+          {tomTat.map((c) => (
+            <BangGom key={c.ten} {...c} rows={rows} />
+          ))}
+        </>
+      ) : rows.length === 0 ? (
         <p className="empty">Không còn mã nào.</p>
       ) : (
         <div className="scroller">

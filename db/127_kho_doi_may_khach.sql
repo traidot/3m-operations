@@ -40,7 +40,7 @@ select distinct on (device_code)
  order by device_code, doc_date desc nulls last, source_id desc;
 
 /** Phiếu XUẤT gần nhất — nơi duy nhất biết máy đi tới tay ai. */
-create view v_kho_xuat_cuoi as
+create or replace view v_kho_xuat_cuoi as
 select distinct on (device_code)
        device_code, party_id, subscription_source_id, doc_date, product_name
   from stock_move_snapshot

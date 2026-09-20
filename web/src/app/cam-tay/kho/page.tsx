@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
-import { ChiTietNhom } from "./chi-tiet";
+import { ChiTietNhom, type Chieu } from "./chi-tiet";
 import { VIEC } from "./viec";
+import { KHO_PM, LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
+
+const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 
 export const dynamic = "force-dynamic";
 
@@ -20,18 +23,43 @@ const KHOI_NGOAI = [
 
 const maKetLuan = (s: string | null) => (s ?? "").slice(0, 2);
 
+/** Chiều gom số cho ngăn kéo của bước đông mã. */
+const CHIEU: Record<string, Chieu> = {
+  choDung: { ten: "Theo chỗ đứng", lay: (r) => KHO_MA[r.cho_dung] ?? r.cho_dung },
+  doiMay: { ten: "Theo đời máy", lay: (r) => r.doi_may ?? "không rõ đời" },
+  kho: { ten: "Theo kho trên phiếu gần nhất", lay: (r) => r.warehouse_name ?? "chưa có phiếu nào" },
+  cuoc: {
+    ten: "Theo tình trạng cước",
+    lay: (r) =>
+      r.tinh_trang_cuoc
+        ? (MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc)
+        : "không có hồ sơ cho thuê",
+  },
+  khach: { ten: "Theo loại khách", lay: (r) => LOAI_KHACH[r.loai_khach ?? ""] ?? "không rõ loại" },
+  file: {
+    ten: "Bản đối chiếu có nhắc tới không",
+    lay: (r) => (r.file_co ? (r.file_ket_luan ?? "có, không ghi kết luận") : "file không nhắc tới"),
+  },
+};
+
 /**
  * Bốn bước của phễu, đúng vòng nghiệp vụ: nhập về kho → vận hành trên phần mềm
  * → có khách và dịch vụ → thu được cước. Định nghĩa ở đây để thẻ và ngăn kéo
  * dùng chung một luật.
  */
-const BUOC: { ma: string; ten: string; mo_ta: string; mau: string; hop: (r: KhoMa) => boolean }[] = [
+const BUOC: {
+  ma: string; ten: string; mo_ta: string; mau: string;
+  hop: (r: KhoMa) => boolean;
+  /** Bước đông mã thì gom số theo mấy chiều này thay vì liệt kê. */
+  gom?: string[];
+}[] = [
   {
     ma: "1",
     ten: "Phần mềm biết",
     mo_ta: "mã thiết bị có chứng từ trong phần mềm",
     mau: "var(--muted)",
     hop: (r) => r.pm_co,
+    gom: ["choDung", "doiMay", "kho", "file"],
   },
   {
     ma: "2",
@@ -39,6 +67,7 @@ const BUOC: { ma: string; ten: string; mo_ta: string; mau: string; hop: (r: KhoM
     mo_ta: "phiếu gần nhất là phiếu xuất, hoặc hồ sơ cho thuê còn mở",
     mau: "var(--lam)",
     hop: (r) => r.cho_dung === "O_KHACH",
+    gom: ["cuoc", "doiMay", "khach", "file"],
   },
   {
     ma: "3",
@@ -208,7 +237,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           mo_ta={buoc.mo_ta}
           rows={tatCa.filter(buoc.hop)}
           dongLai="/cam-tay/kho"
-          themLink={ds(buoc.ma === "2" || buoc.ma === "3" || buoc.ma === "4" ? "cd=O_KHACH" : "")}
+          tomTat={buoc.gom?.map((k) => CHIEU[k]!)}
+          themLink={ds(buoc.ma === "1" ? "" : "cd=O_KHACH")}
         />
       )}
     </main>
