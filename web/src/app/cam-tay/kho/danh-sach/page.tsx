@@ -24,17 +24,15 @@ const MAU_CHIP: Record<string, string> = {
   PM_KHONG_CO: "do",
 };
 
+/** Thứ tự cố định để hàng nút không nhảy chỗ giữa hai lần tải. */
+const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", ""];
+
 /** Mỗi bộ lọc là một câu hỏi người dùng thật sự hỏi, không phải một cột của view. */
 const LOC: { ma: string; ten: string; lay: (r: KhoMa) => string }[] = [
   { ma: "lm", ten: "Loại định danh", lay: (r) => LOAI_MA[r.loai_ma] ?? r.loai_ma },
   { ma: "may", ten: "Đời máy", lay: (r) => r.doi_may ?? "(không rõ)" },
   { ma: "kho", ten: "Kho theo phiếu", lay: (r) => r.warehouse_name ?? "(chưa có phiếu)" },
   { ma: "cuoc", ten: "Tình trạng cước", lay: (r) => r.tinh_trang_cuoc ?? "(không gắn dịch vụ)" },
-  {
-    ma: "lk",
-    ten: "Loại khách",
-    lay: (r) => (r.loai_khach ? (LOAI_KHACH[r.loai_khach] ?? r.loai_khach) : "(không biết loại)"),
-  },
   { ma: "nh", ten: "Nhóm hàng ở file", lay: (r) => r.file_nhom_hang ?? "(file không có)" },
   { ma: "vt", ten: "Vị trí theo sổ", lay: (r) => r.file_vi_tri_so ?? "(không có trong sổ)" },
   { ma: "nm", ten: "Nhà mạng", lay: (r) => r.nha_mang ?? "(không có)" },
@@ -45,6 +43,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tatCa = await getKhoMa();
 
   const cd = mot(sp.cd);
+  const lk = mot(sp.lk);
   const tim = mot(sp.q).trim().toLowerCase();
   const chon = Object.fromEntries(LOC.map((l) => [l.ma, mot(sp[l.ma])]));
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
@@ -52,6 +51,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   let rows = tatCa;
   if (viec) rows = rows.filter(viec.hop);
   if (cd) rows = rows.filter((r) => r.cho_dung === cd);
+  if (lk) rows = rows.filter((r) => (r.loai_khach ?? "khong-ro") === lk);
   for (const l of LOC) {
     const v = chon[l.ma];
     if (v) rows = rows.filter((r) => l.lay(r) === v);
@@ -63,7 +63,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     );
   }
 
-  const giu = { ...chon, q: mot(sp.q) || undefined, cd: cd || undefined, viec: viec?.ma };
+  const giu = {
+    ...chon,
+    q: mot(sp.q) || undefined,
+    cd: cd || undefined,
+    lk: lk || undefined,
+    viec: viec?.ma,
+  };
   const link = (t: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries({ ...giu, ...t })) if (v) p.set(k, v);
@@ -118,6 +124,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             </select>
           </label>
           <input type="hidden" name="cd" value={cd} />
+          <input type="hidden" name="lk" value={lk} />
           <div className="actions">
             <button className="primary" type="submit">
               Lọc
@@ -146,9 +153,32 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           ))}
       </p>
 
+      <p className="actions">
+        <Link href={link({ lk: undefined })}>
+          <button type="button" className={lk === "" ? "primary" : undefined}>
+            Mọi loại khách · {n(tatCa.length)}
+          </button>
+        </Link>
+        {LOAI.map((k) => {
+          const so = tatCa.filter((r) => (r.loai_khach ?? "khong-ro") === (k || "khong-ro")).length;
+          if (so === 0) return null;
+          return (
+            <Link key={k || "khong-ro"} href={link({ lk: k || "khong-ro" })}>
+              <button
+                type="button"
+                className={lk === (k || "khong-ro") ? "primary" : undefined}
+              >
+                {k ? (LOAI_KHACH[k] ?? k) : "không rõ loại"} · {n(so)}
+              </button>
+            </Link>
+          );
+        })}
+      </p>
+
       <p className="muted">
         {n(rows.length)} mã
         {viec && ` · ${viec.ten}`}
+        {lk && ` · ${lk === "khong-ro" ? "không rõ loại" : (LOAI_KHACH[lk] ?? lk)}`}
         {cd && ` · ${CHO_DUNG[cd]}`}
         {LOC.map((l) =>
           chon[l.ma] ? (

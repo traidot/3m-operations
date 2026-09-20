@@ -213,14 +213,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td className="num mono">{n(d.filter((r) => !r.co_thue_bao).length)}</td>
                   <td className="khong-xuong-dong">
-                    {/* Bộ lọc bên danh sách nhận NHÃN tiếng Việt, không phải mã thô. */}
-                    <Link
-                      href={ds(
-                        `cd=O_KHACH&lk=${encodeURIComponent(LOAI_KHACH[k] ?? "(không biết loại)")}`,
-                      )}
-                    >
-                      xem →
-                    </Link>
+                    <Link href={ds(`cd=O_KHACH&lk=${k || "khong-ro"}`)}>xem →</Link>
                   </td>
                 </tr>
               );
