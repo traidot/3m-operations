@@ -1807,3 +1807,65 @@ export const getThueBaoNo = () =>
        from v_telecom_thue_bao_no
       order by no desc, bo_thu desc, subscription_id`,
   );
+
+export type DotThu = {
+  ky: string;
+  so_ky: string;
+  so_thue_bao: string;
+  so_may: string;
+  phai_thu: string;
+  da_thu: string;
+  dang_doi: string;
+  bo_thu: string;
+  huy_hd: string;
+  ty_le_thu: string | null;
+  ky_khach_le: string;
+  ky_ctv: string;
+  ky_dai_ly: string;
+  ky_khong_ro: string;
+  tien_khach_le: string;
+  tien_ctv: string;
+  tien_dai_ly: string;
+  ky_tuong_lai: boolean;
+};
+
+/** Đợt thu cước từng tháng của wifi cầm tay — xem db/140. */
+export const getDotThu = () =>
+  query<DotThu>(
+    `select ky, so_ky::text, so_thue_bao::text, so_may::text, phai_thu::text,
+            da_thu::text, dang_doi::text, bo_thu::text, huy_hd::text,
+            ty_le_thu::text, ky_khach_le::text, ky_ctv::text, ky_dai_ly::text,
+            ky_khong_ro::text, tien_khach_le::text, tien_ctv::text,
+            tien_dai_ly::text, ky_tuong_lai
+       from v_telecom_dot_thu order by ky desc`,
+  );
+
+export type KyCuoc = {
+  fee_line_id: string;
+  ky: string;
+  subscription_id: string;
+  ma_thiet_bi: string | null;
+  tien: string;
+  so_hoa_don: string | null;
+  trang_thai_hd: string | null;
+  ngay_lap: string | null;
+  han_tra: string | null;
+  trang_thai_tb: string | null;
+  goi: string | null;
+  khach: string;
+  ma_khach: string | null;
+  loai_khach: string | null;
+  link_cms: string | null;
+};
+
+/** Từng kỳ cước của một tháng, cho ngăn kéo. */
+export const getKyCuocThang = (ky: string) =>
+  query<KyCuoc>(
+    `select fee_line_id, ky, subscription_id, ma_thiet_bi, tien::text, so_hoa_don,
+            trang_thai_hd, ngay_lap::text, han_tra::text, trang_thai_tb, goi,
+            khach, ma_khach, loai_khach, link_cms
+       from v_telecom_ky_cuoc where ky = $1
+      order by case trang_thai_hd when 'UNPAYABLE' then 1 when 'ISSUED' then 2 else 3 end,
+               tien desc, subscription_id`,
+    [ky],
+  );
