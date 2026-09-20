@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
-import { KHO_PM, LOAI_KHACH, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+import { KHO_PM, LOAI_KHACH, LOAI_MA, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 
 const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 const so = (v: string | null) => (v === null ? null : Number(v));
@@ -52,6 +52,7 @@ export async function GET() {
     const ws = wb.addWorksheet(p.ten, { views: [{ state: "frozen", ySplit: 1 }] });
     ws.columns = [
       { header: "Mã thiết bị", key: "ma", width: 18 },
+      { header: "Loại định danh", key: "loai_ma", width: 22 },
       { header: "Đời máy", key: "doi_may", width: 26 },
       { header: "PM: chỗ đứng", key: "cho_dung", width: 20 },
       { header: "PM: phiếu gần nhất", key: "phieu", width: 14 },
@@ -76,6 +77,7 @@ export async function GET() {
     for (const r of rows.filter(p.hop)) {
       ws.addRow({
         ma: r.ma,
+        loai_ma: LOAI_MA[r.loai_ma] ?? r.loai_ma,
         doi_may: r.doi_may,
         cho_dung: KHO_MA[r.cho_dung] ?? r.cho_dung,
         phieu: r.doc_type ? (PHIEU_KHO[r.doc_type] ?? r.doc_type) : null,

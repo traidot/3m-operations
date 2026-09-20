@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChiTietNhom, type Chieu } from "../chi-tiet";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
-import { KHO_PM, LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
+import { KHO_PM, LOAI_KHACH, LOAI_MA, MAY_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,7 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 
 const CHIEU: Record<string, Chieu> = {
+  loaiMa: { ten: "Theo loại định danh", lay: (r) => LOAI_MA[r.loai_ma] ?? r.loai_ma },
   choDung: { ten: "Theo chỗ đứng", lay: (r) => KHO_MA[r.cho_dung] ?? r.cho_dung },
   doiMay: { ten: "Theo đời máy", lay: (r) => r.doi_may ?? "không rõ đời" },
   kho: {
@@ -59,7 +60,7 @@ const PHAN: {
     mau: "var(--do)",
     canh_bao:
       "Đã quét 11 cột chứa mã thiết bị trên 59 bảng bên nguồn, kể cả dòng đã xoá mềm. Nhóm này chỉ tồn tại trên bản đối chiếu làm tay, không có gì để đối chứng.",
-    gom: ["ketLuanFile", "nhomFile"],
+    gom: ["loaiMa", "ketLuanFile", "nhomFile"],
     kem: true,
     chiFile: true,
     hop: (r) => r.file_co && !r.pm_co,
@@ -69,7 +70,7 @@ const PHAN: {
     ten: "Cả hai bên có",
     mo_ta: "cùng một mã xuất hiện ở cả phần mềm lẫn bản đối chiếu",
     mau: "var(--ok)",
-    gom: ["choDung", "cuoc", "viTriSo", "doiMay"],
+    gom: ["loaiMa", "choDung", "cuoc", "viTriSo", "doiMay"],
     kem: false,
     hop: (r) => r.file_co && r.pm_co,
   },
@@ -80,7 +81,7 @@ const PHAN: {
     mau: "var(--lam)",
     canh_bao:
       "97% nhóm này là H1 và U3 — hai đời máy mà danh sách nhóm hàng của file (U20, MR1, WIMAX, SB, Datacall) không hề có. Nói cách khác file thiếu hẳn lô H1 và U3, chứ không phải bỏ sót lẻ tẻ. Và 1.198 cái trong số đó đang nằm ở tay khách.",
-    gom: ["choDung", "doiMay", "kho", "cuoc"],
+    gom: ["loaiMa", "choDung", "doiMay", "kho", "cuoc"],
     kem: true,
     hop: (r) => r.pm_co && !r.file_co,
   },
@@ -158,6 +159,50 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <Link href="/cam-tay/kho/danh-sach">
           <button type="button">Danh sách đầy đủ {n(tatCa.length)} mã</button>
         </Link>
+      </p>
+
+      <h2>Theo loại định danh</h2>
+      <p className="muted">
+        Cột mã không đồng nhất: máy wifi dùng <b>IMEI 15 số</b>, SIM dùng <b>số điện thoại</b>
+        {" "}(nguồn viết 10 số hoặc 11 số có 0 đầu, file luôn viết 10 số), một ít SIM lại dùng
+        {" "}<b>ICCID 19–20 số</b>. Mọi chỗ nối đều bỏ số 0 đầu hai phía — đã kiểm là không mã
+        nào có hai số 0 đầu, và 8 nhóm bị gộp đều đúng là một số viết hai kiểu.
+      </p>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>Loại định danh</th>
+              <th className="num">Tổng</th>
+              <th className="num">Cả hai bên</th>
+              <th className="num">Chỉ file</th>
+              <th className="num">Chỉ phần mềm</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.keys(LOAI_MA)
+              .filter((k) => tatCa.some((r) => r.loai_ma === k))
+              .map((k) => {
+                const d = tatCa.filter((r) => r.loai_ma === k);
+                return (
+                  <tr key={k}>
+                    <td>{LOAI_MA[k]}</td>
+                    <td className="num mono">{n(d.length)}</td>
+                    <td className="num mono">{n(d.filter((r) => r.pm_co && r.file_co).length)}</td>
+                    <td className="num mono">{n(d.filter((r) => r.file_co && !r.pm_co).length)}</td>
+                    <td className="num mono">{n(d.filter((r) => r.pm_co && !r.file_co).length)}</td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </table>
+      </div>
+      <p className="stale">
+        <b>19 mã ICCID không khớp được cái nào</b> — 4 cái file gọi SIM bằng ICCID trong khi
+        phần mềm gọi bằng số điện thoại, 15 cái ngược lại. Không có bảng nào nối hai định
+        danh nên không vá được bằng truy vấn. Thêm nữa nguồn tự làm hỏng một ICCID: file ghi
+        8981200724307099648, nguồn ghi 8981200724307100000 — năm số cuối thành 0, dấu hiệu đi
+        qua số thực; và nguồn còn 88981030000067947629 hai mươi số, gần như chắc gõ thừa số 8.
       </p>
 
       <p className="muted khoi-ghi-chu">

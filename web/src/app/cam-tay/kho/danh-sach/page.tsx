@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ThanBam } from "../../../than-bam";
 import { getKhoMa, type KhoMa } from "@/lib/queries";
-import { KHO_PM, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+import { KHO_PM, LOAI_MA, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 import { VIEC } from "../viec";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,7 @@ const MAU_CHIP: Record<string, string> = {
 
 /** Mỗi bộ lọc là một câu hỏi người dùng thật sự hỏi, không phải một cột của view. */
 const LOC: { ma: string; ten: string; lay: (r: KhoMa) => string }[] = [
+  { ma: "lm", ten: "Loại định danh", lay: (r) => LOAI_MA[r.loai_ma] ?? r.loai_ma },
   { ma: "may", ten: "Đời máy", lay: (r) => r.doi_may ?? "(không rõ)" },
   { ma: "kho", ten: "Kho theo phiếu", lay: (r) => r.warehouse_name ?? "(chưa có phiếu)" },
   { ma: "cuoc", ten: "Tình trạng cước", lay: (r) => r.tinh_trang_cuoc ?? "(không có hồ sơ thuê)" },
@@ -171,7 +172,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <ThanBam>
               {rows.map((r) => (
                 <tr key={r.ma_chuan}>
-                  <td className="mono">{r.ma}</td>
+                  <td className="mono">
+                    {r.ma}
+                    <div className="muted">{LOAI_MA[r.loai_ma] ?? r.loai_ma}</div>
+                  </td>
                   <td className="muted">{r.doi_may ?? "—"}</td>
                   <td>
                     <span className={`chip ${MAU_CHIP[r.cho_dung] ?? "tat"}`}>

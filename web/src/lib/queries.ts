@@ -1735,6 +1735,7 @@ export const getKhoLanNhap = async () => {
 export type KhoMa = {
   ma_chuan: string;
   ma: string;
+  loai_ma: string;
   pm_co: boolean;
   cho_dung: string;
   doi_may: string | null;
@@ -1765,7 +1766,7 @@ export type KhoMa = {
 /** Mọi mã thiết bị hai phía biết, không bên nào làm chuẩn — xem db/129. */
 export const getKhoMa = () =>
   query<KhoMa>(
-    `select ma_chuan, ma, pm_co, cho_dung, doi_may, doc_type, reason_type,
+    `select ma_chuan, ma, loai_ma, pm_co, cho_dung, doi_may, doc_type, reason_type,
             warehouse_name, doc_date::text, trang_thai_may, tinh_trang_cuoc,
             ky_cuoi, coc::text, trang_thai_coc, chua_thu::text,
             khach, ma_khach, loai_khach, nguon_khach, nha_mang, vendor,

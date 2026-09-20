@@ -13,16 +13,10 @@
 -- Sai 114 máy. Đưa nhánh trạng thái thuê bao lên trước: huỷ thì là huỷ, bất kể
 -- kỳ cuối rơi vào tháng nào.
 
--- Chèn cột vào giữa nên phải drop; `create or replace view` chỉ cho thêm cột ở
--- cuối, không cho đổi tên hay chèn.
--- v_kho_thieu_o_file đọc v_telecom_may nên phải gỡ trước; 127 dựng lại nó.
-drop view if exists v_kho_ma;
-drop view if exists v_kho_phan_mem;
-drop view if exists v_kho_doi_chieu;
-drop view if exists v_kho_thieu_o_file;
-drop view if exists v_telecom_may;
-
-create view v_telecom_may as
+-- Chỉ đổi biểu thức CASE, danh sách cột giữ nguyên, nên replace được. Quan
+-- trọng: KHÔNG drop, vì bốn view kho đang đọc v_telecom_may, drop là chúng đi
+-- theo và migration sau đó gãy.
+create or replace view v_telecom_may as
 with luot as (
   select distinct on (imei)
          imei, source_id as may_id, status, deposit, deposit_status,

@@ -249,6 +249,17 @@ export const KHO_PM: Record<string, string> = {
   PM_KHONG_BIET: "phần mềm không có mã này",
 };
 
+/**
+ * Mã thiết bị không cùng một loại định danh — nhìn một cột số mà tưởng đồng
+ * nhất là nguồn của mọi lỗi đối chiếu. Suy từ độ dài, xem db/131.
+ */
+export const LOAI_MA: Record<string, string> = {
+  IMEI: "IMEI · máy wifi",
+  SO_DIEN_THOAI: "số điện thoại · SIM",
+  ICCID: "ICCID · SIM",
+  KHAC: "không rõ loại",
+};
+
 export const PHIEU_KHO: Record<string, string> = {
   INVENTORY_IN: "phiếu nhập",
   INVENTORY_OUT: "phiếu xuất",
