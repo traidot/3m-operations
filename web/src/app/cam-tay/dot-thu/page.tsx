@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Đợt thu cước wifi cầm tay</h1>
       <p className="muted">
-        Mỗi tháng một đợt, từ <b>{rows.at(-1)?.ky}</b> tới <b>{rows[0]?.ky}</b> —{" "}
+        Mỗi tháng một đợt, từ <b>{rows.at(-1)?.ky}</b> tới hết năm nay (<b>{rows[0]?.ky}</b>) —{" "}
         {n(cong("so_ky"))} kỳ cước, {n(cong("phai_thu"))} yên phải thu,{" "}
         {n(cong("da_thu"))} đã thu. Tiền đếm theo <b>kỳ cước</b> chứ không theo máy: có kỳ
         nối vào hai mã thiết bị vì thuê bao đổi máy giữa chừng, đếm theo máy là nhân đôi.
@@ -145,6 +145,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         Tháng đánh dấu <b>kỳ tương lai</b> là cước đã phát hành trước cho tháng chưa tới —
         tỉ lệ thu thấp ở đó là bình thường, không phải nợ. Cột ba loại khách đếm số kỳ, không
         phải tiền; tiền theo loại khách nằm trong ngăn kéo của từng tháng.
+      </p>
+
+      <p className="muted khoi-ghi-chu">
+        Bảng dừng ở hết năm nay. Sổ bên nguồn còn kỳ tới tận 2027-09 vì cước phát hành
+        trước, nhưng mấy tháng đó chỉ lác đác vài kỳ — 9 tháng, 62 kỳ, 157.416 yên — kéo dài
+        bảng ra mà không nói lên điều gì.
       </p>
 
       {ky && (
