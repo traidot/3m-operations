@@ -148,7 +148,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
 
       <p className="muted khoi-ghi-chu">
-        <b>59 kỳ cước · 19.000 yên đã bị loại khỏi mọi con số trên trang này</b> — chúng
+        <b>60 kỳ cước · 23.000 yên đã bị loại khỏi mọi con số trên trang này</b> — chúng
         thuộc thuê bao đã xoá ở nguồn, hồ sơ dịch vụ không còn, chỉ còn trơ lại cái kỳ cước.
         Chỗ này lộ ra do đồng bộ lọc bản ghi đã xoá cho bảng thuê bao nhưng không lọc cho
         bảng kỳ cước. Dữ liệu vẫn giữ trong kho ở view riêng để đối chiếu, chỉ không cộng
