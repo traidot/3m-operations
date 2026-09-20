@@ -1776,3 +1776,34 @@ export const getThuNgoaiKy = () =>
             exists (select 1 from v_fixed_monthly_total t where t.ky = n.ky) as co_trong_bang
        from v_fixed_thu_ngoai_ky n order by n.ky`,
   );
+
+export type ThueBaoNo = {
+  subscription_id: string;
+  trang_thai: string;
+  goi: string | null;
+  gia_thang: string | null;
+  ngay_kich_hoat: string | null;
+  ngay_ngung: string | null;
+  khach: string;
+  ma_khach: string | null;
+  loai_khach: string | null;
+  so_hd_doi: string;
+  no: string;
+  so_hd_bo: string;
+  bo_thu: string;
+  da_thu: string;
+  qua_han_lau_nhat: string | null;
+  so_may: string;
+  link_cms: string | null;
+};
+
+/** Một dòng một thuê bao cầm tay, kèm nợ và tiền bỏ thu — xem db/139. */
+export const getThueBaoNo = () =>
+  query<ThueBaoNo>(
+    `select subscription_id, trang_thai, goi, gia_thang::text,
+            ngay_kich_hoat::text, ngay_ngung::text, khach, ma_khach, loai_khach,
+            so_hd_doi::text, no::text, so_hd_bo::text, bo_thu::text, da_thu::text,
+            qua_han_lau_nhat::text, so_may::text, link_cms
+       from v_telecom_thue_bao_no
+      order by no desc, bo_thu desc, subscription_id`,
+  );
