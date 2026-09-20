@@ -1759,3 +1759,20 @@ export const getKhoMa = () =>
                              when 'CHI_NHA_MANG' then 3 when 'TRA_NCC' then 4 else 5 end,
                ma`,
   );
+
+export type ThuNgoaiKy = {
+  ky: string;
+  so_dong: string;
+  so_hop_dong: string;
+  tien: string;
+  la_thu_truoc: boolean;
+  co_trong_bang: boolean;
+};
+
+/** Tiền đã thu cho kỳ ngoài khoảng tính cước — xem db/138. */
+export const getThuNgoaiKy = () =>
+  query<ThuNgoaiKy>(
+    `select n.ky, n.so_dong::text, n.so_hop_dong::text, n.tien::text, n.la_thu_truoc,
+            exists (select 1 from v_fixed_monthly_total t where t.ky = n.ky) as co_trong_bang
+       from v_fixed_thu_ngoai_ky n order by n.ky`,
+  );

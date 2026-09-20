@@ -8,6 +8,7 @@ import {
   getCoverage,
   getMonthlyByStatus,
   getMonthlyTotal,
+  getThuNgoaiKy,
   getPendingPeriods,
   type FixedThangChay,
   type MonthlyBilling,
@@ -25,13 +26,14 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [total, byStatus, [coverage], arrears, pending, chay] = await Promise.all([
+  const [total, byStatus, [coverage], arrears, pending, chay, thuNgoaiKy] = await Promise.all([
     getMonthlyTotal(),
     getMonthlyByStatus(),
     getCoverage(),
     getArrears(),
     getPendingPeriods(),
     getFixedThangChay(),
+    getThuNgoaiKy(),
   ]);
 
   const theoThang = new Map(chay.map((c) => [c.ky, c]));
@@ -265,6 +267,60 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           linkNhom={(k) => link({ thang: moThang, nhom: k })}
         />
       )}
+    
+      {thuNgoaiKy.length > 0 && (
+        <>
+          <h2>Tiền đã thu cho kỳ ngoài khoảng tính cước</h2>
+          <p className="muted">
+            Bảng trên đi từ những kỳ <b>đáng lẽ phải thu</b>, nên tiền thu cho kỳ không nằm
+            trong tập đó không có chỗ nào để rơi vào. Cộng cả hai mới ra đủ số đã thu.{" "}
+            <b>
+              {n(
+                String(
+                  thuNgoaiKy
+                    .filter((r) => !r.co_trong_bang)
+                    .reduce((s, r) => s + Number(r.tien), 0),
+                ),
+              )}{" "}
+              yên
+            </b>{" "}
+            trong đây thuộc kỳ chưa có dòng nào ở bảng trên — tiền đã vào mà không màn hình
+            nào đếm.
+          </p>
+          <div className="scroller">
+            <table className="bang-thang">
+              <thead>
+                <tr>
+                  <th>Kỳ</th>
+                  <th className="num">Tiền</th>
+                  <th className="num">Số lần thu</th>
+                  <th className="num">Hợp đồng</th>
+                  <th>Loại</th>
+                </tr>
+              </thead>
+              <tbody>
+                {thuNgoaiKy.map((r) => (
+                  <tr key={r.ky}>
+                    <td className="mono">{r.ky}</td>
+                    <td className="num mono">{n(r.tien)}</td>
+                    <td className="num mono muted">{n(r.so_dong)}</td>
+                    <td className="num mono muted">{n(r.so_hop_dong)}</td>
+                    <td>
+                      <span className={`chip ${r.la_thu_truoc ? "ok" : "cho"}`}>
+                        {r.la_thu_truoc ? "thu trước cho kỳ tương lai" : "kỳ đã qua"}
+                      </span>
+                      {!r.co_trong_bang && (
+                        <span className="chip do">bảng trên không có kỳ này</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
     </main>
   );
 }
