@@ -2,8 +2,10 @@ import Link from "next/link";
 import { NganKeo } from "../../ngan-keo";
 import { LOAI_KHACH, MAU_LOAI_KHACH, MAU_MAY_CUOC, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 
+const KHONG_RO = "khong-ro";
+
 /** Thứ tự cố định để nút lọc không nhảy chỗ giữa hai lần tải. */
-const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", ""];
+const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", KHONG_RO];
 import type { KhoMa } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
@@ -72,13 +74,18 @@ export function ChiTietNhom({
   kemDanhSach?: boolean;
   /** Đường dẫn của chính ngăn kéo này, để nút lọc giữ nguyên nhóm đang xem. */
   baseHref?: string;
-  /** Loại khách đang lọc; rỗng là không lọc. */
+  /** Loại khách đang lọc: mã thô, "khong-ro" cho máy chưa phân loại, rỗng là không lọc. */
   lk?: string;
 }) {
   // Lọc ngay trong ngăn kéo: nhóm nào cũng đông và cùng một việc thì đại lý với
   // khách lẻ là hai cách xử lý khác nhau.
-  const dem = (k: string) => rows.filter((r) => (r.loai_khach ?? "") === k).length;
-  const hien = lk === undefined || lk === "" ? rows : rows.filter((r) => (r.loai_khach ?? "") === lk);
+  //
+  // Máy chưa phân loại phải có mã riêng chứ không dùng chuỗi rỗng: rỗng đã là mã
+  // của "tất cả", nên nút "không rõ loại" đọc ra đúng bằng tổng và bấm vào thì
+  // không lọc gì.
+  const ma = (r: KhoMa) => r.loai_khach ?? KHONG_RO;
+  const dem = (k: string) => rows.filter((r) => ma(r) === k).length;
+  const hien = lk ? rows.filter((r) => ma(r) === lk) : rows;
   const nut = (k: string, nhan: string) => {
     const p = new URLSearchParams(baseHref?.split("?")[1] ?? "");
     if (k) p.set("lk", k);
@@ -86,7 +93,7 @@ export function ChiTietNhom({
     return (
       <Link key={k || "tat-ca"} href={`${baseHref?.split("?")[0]}?${p.toString()}`}>
         <button type="button" className={lk === k ? "primary" : undefined}>
-          {nhan} · {k ? dem(k) : rows.length}
+          {nhan} · {n(k ? dem(k) : rows.length)}
         </button>
       </Link>
     );
@@ -105,7 +112,7 @@ export function ChiTietNhom({
         <p className="actions">
           {nut("", "tất cả")}
           {LOAI.filter((k) => dem(k) > 0).map((k) =>
-            nut(k, k ? (LOAI_KHACH[k] ?? k) : "không rõ loại"),
+            nut(k, k === KHONG_RO ? "không rõ loại" : (LOAI_KHACH[k] ?? k)),
           )}
         </p>
       )}
