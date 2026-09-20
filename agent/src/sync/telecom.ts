@@ -118,13 +118,21 @@ export const PAYMENT = `
   select
     p.id::text                                   as source_id,
     p."customerId"::text                         as source_customer_id,
+    -- Cấn trừ là quan hệ nhiều-nhiều: 1.800 lượt thu cấn vào từ hai hoá đơn
+    -- trở lên. Ở đây chỉ giữ được MỘT, nên ưu tiên dòng cấn trừ còn sống và
+    -- hoá đơn còn sống. Không lọc thì 507 lượt thu trỏ vào hoá đơn đã xoá
+    -- trong khi vẫn còn hoá đơn sống để trỏ.
     (select i."subscriptionId"::text
        from payment_reconciliation pr
        join invoice i on i.id = pr."invoiceId"
-      where pr."paymentId" = p.id and i."subscriptionId" is not null
+      where pr."paymentId" = p.id and pr."deletedAt" is null
+        and i."deletedAt" is null and i."subscriptionId" is not null
       order by pr.id limit 1)                    as subscription_source_id,
-    (select pr."invoiceId"::text from payment_reconciliation pr
-      where pr."paymentId" = p.id order by pr.id limit 1) as invoice_source_id,
+    (select pr."invoiceId"::text
+       from payment_reconciliation pr
+       join invoice i on i.id = pr."invoiceId"
+      where pr."paymentId" = p.id and pr."deletedAt" is null and i."deletedAt" is null
+      order by pr.id limit 1)                    as invoice_source_id,
     p.amount                                     as amount,
     p."paymentMethod"::text                      as channel,
     p."transactionCode"                          as reference,
@@ -133,6 +141,19 @@ export const PAYMENT = `
     p."authorId"::text                           as created_by_src
   from payment p
   where p."deletedAt" is null
+`;
+
+/** Cấn trừ lượt thu với hoá đơn. Lọc dòng đã xoá, giữ đủ quan hệ nhiều-nhiều. */
+export const PAYMENT_RECONCILE = `
+  select
+    pr.id::text            as source_id,
+    pr."paymentId"::text   as payment_source_id,
+    pr."invoiceId"::text   as invoice_source_id,
+    pr.amount              as amount,
+    pr."createdAt"         as created_at_src,
+    pr."authorId"::text    as created_by_src
+  from payment_reconciliation pr
+  where pr."deletedAt" is null
 `;
 
 /**
@@ -281,6 +302,7 @@ export const QUERIES = {
   subscription: SUBSCRIPTION,
   invoice: INVOICE,
   payment: PAYMENT,
+  payment_reconcile: PAYMENT_RECONCILE,
   device: DEVICE,
   subscription_device: SUBSCRIPTION_DEVICE,
   stock_move: STOCK_MOVE,

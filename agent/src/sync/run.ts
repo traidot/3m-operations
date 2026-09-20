@@ -154,6 +154,12 @@ const NGUON: Nguon[] = [
         cols: ["source_id", "device_code", "state", "vendor"],
         don: true,
       },
+      payment_reconcile: {
+        table: "payment_reconcile_snapshot",
+        cols: ["source_id", "payment_source_id", "invoice_source_id", "amount",
+               "created_at_src", "created_by_src"],
+        don: true,
+      },
       subscription_device: {
         table: "subscription_device_snapshot",
         cols: ["source_id", "subscription_source_id", "imei", "started_on", "ended_on",
@@ -169,7 +175,8 @@ const NGUON: Nguon[] = [
       staff: { table: "staff_snapshot", cols: STAFF_COLS, don: true },
     },
     thu_tu: ["staff", "customer", "subscription", "invoice", "payment", "device",
-             "subscription_device", "fee_line", "stock_move", "provider_device"],
+             "subscription_device", "fee_line", "payment_reconcile", "stock_move",
+             "provider_device"],
   },
 ];
 
