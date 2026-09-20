@@ -50,6 +50,31 @@ const LOC: { ma: string; ten: string; lay: (r: KhoDoiChieu) => string }[] = [
   { ma: "nm", ten: "Nhà mạng", lay: (r) => r.pm_nha_mang ?? "(không có)" },
 ];
 
+/**
+ * Phần ngoài phần mềm không phải một đống đồng nhất mà là ba khối khác hẳn nhau
+ * về việc phải làm, nên tách theo số thứ tự kết luận của file.
+ */
+const KHOI_NGOAI: { ma: string; ten: string; giai_thich: string; hop: (k: string) => boolean }[] = [
+  {
+    ma: "da_ra_khoi",
+    ten: "Đã ra khỏi công ty",
+    giai_thich: "trả lại nhà cung cấp — về rồi trả luôn, không qua phần mềm đầu nào",
+    hop: (k) => k === "01",
+  },
+  {
+    ma: "sim_dung",
+    ten: "SIM đã dừng",
+    giai_thich: "đã huỷ hoặc đã trả lại nhà mạng theo rà soát, phần mềm chưa từng có",
+    hop: (k) => k === "05" || k === "06",
+  },
+  {
+    ma: "con_lai",
+    ten: "Còn lại, phải xử lý",
+    giai_thich: "có trong sổ hoặc thấy khi kiểm kho mà phần mềm không có mã",
+    hop: (k) => !["01", "05", "06"].includes(k),
+  },
+];
+
 /** Nhãn cho bộ lọc kết luận: hiện cả câu chứ không phải mỗi số thứ tự. */
 const nhanKetLuan = (rows: KhoDoiChieu[], gia: string) =>
   rows.find((r) => maKetLuan(r.ket_luan) === gia)?.ket_luan ?? gia;
@@ -66,7 +91,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tim = mot(sp.q).trim().toLowerCase();
   const chon = Object.fromEntries(LOC.map((l) => [l.ma, mot(sp[l.ma])]));
 
+  const trong = tatCa.filter((r) => r.pm_ket_luan !== "PM_KHONG_BIET");
+  const ngoai = tatCa.filter((r) => r.pm_ket_luan === "PM_KHONG_BIET");
+  const phan = mot(sp.phan);
+
   let rows = tatCa;
+  if (phan === "trong") rows = trong;
+  if (phan === "ngoai") rows = ngoai;
   if (pm) rows = rows.filter((r) => r.pm_ket_luan === pm);
   for (const l of LOC) {
     const v = chon[l.ma];
@@ -80,10 +111,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   }
 
   const dem = (ma: string) => tatCa.filter((r) => r.pm_ket_luan === ma).length;
-  const coLoc = pm !== "" || tim !== "" || LOC.some((l) => chon[l.ma]);
+  const coLoc = pm !== "" || tim !== "" || phan !== "" || LOC.some((l) => chon[l.ma]);
 
   // Giữ nguyên các bộ lọc khác khi bấm vào một bộ lọc.
-  const giu = { ...chon, q: mot(sp.q) || undefined, pm: pm || undefined };
+  const giu = {
+    ...chon,
+    q: mot(sp.q) || undefined,
+    pm: pm || undefined,
+    phan: phan || undefined,
+  };
   const link = (t: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries({ ...giu, ...t })) if (v) p.set(k, v);
@@ -159,6 +195,67 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-gia-tri mono bad">{n(thieu.length)}</div>
           <div className="the-phu">mã phần mềm có phiếu kho mà file bỏ sót</div>
         </div>
+      </div>
+
+      <h2>Hai phần</h2>
+      <div className="the-hang gon">
+        <Link className="the-so" href={link({ phan: "trong", pm: undefined })}>
+          <div className="the-ten">Trong phần mềm</div>
+          <div className="the-gia-tri mono">{n(trong.length)}</div>
+          <div className="the-phu">
+            {((trong.length / Math.max(tatCa.length, 1)) * 100).toFixed(0)}% — phần mềm nói
+            được mã này đang ở đâu
+          </div>
+        </Link>
+        <Link className="the-so" href={link({ phan: "ngoai", pm: undefined })}>
+          <div className="the-ten">Ngoài phần mềm</div>
+          <div className="the-gia-tri mono bad">{n(ngoai.length)}</div>
+          <div className="the-phu">
+            {((ngoai.length / Math.max(tatCa.length, 1)) * 100).toFixed(0)}% — không có ở bất
+            kỳ bảng nào bên nguồn
+          </div>
+        </Link>
+      </div>
+
+      <h3>Phần ngoài phần mềm gồm những gì</h3>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>Khối</th>
+              <th className="num">Số mã</th>
+              <th>Nhóm hàng</th>
+              <th className="num">Có trong sổ</th>
+              <th className="num">Thấy khi kiểm kho</th>
+              <th className="num">Có ghi người giữ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {KHOI_NGOAI.map((k) => {
+              const d = ngoai.filter((r) => k.hop(maKetLuan(r.ket_luan)));
+              const hang = [...new Set(d.map((r) => r.nhom_hang ?? "?"))].sort();
+              return (
+                <tr key={k.ma}>
+                  <td>
+                    {k.ten}
+                    <div className="muted">{k.giai_thich}</div>
+                  </td>
+                  <td className="num mono">{n(d.length)}</td>
+                  <td className="muted">{hang.join(", ") || "—"}</td>
+                  <td className="num mono">
+                    {n(d.filter((r) => r.vi_tri_so !== null).length)}
+                  </td>
+                  <td className="num mono">
+                    {n(d.filter((r) => r.vi_tri_kiem_kho !== null).length)}
+                  </td>
+                  <td className="num mono">
+                    {n(d.filter((r) => r.nguoi_giu !== null).length)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       <h2>Cơ cấu theo kết luận ở file</h2>
@@ -274,6 +371,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             );
           })}
           <input type="hidden" name="pm" value={pm} />
+          <input type="hidden" name="phan" value={phan} />
           <div className="actions">
             <button className="primary" type="submit">
               Lọc
@@ -286,9 +384,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </form>
 
       <p className="actions">
-        <Link href={link({ pm: undefined })}>
-          <button type="button" className={pm === "" ? "primary" : undefined}>
-            Mọi kết luận · {n(tatCa.length)}
+        <Link href={link({ pm: undefined, phan: undefined })}>
+          <button type="button" className={pm === "" && phan === "" ? "primary" : undefined}>
+            Tất cả · {n(tatCa.length)}
+          </button>
+        </Link>
+        <Link href={link({ phan: "ngoai", pm: undefined })}>
+          <button type="button" className={phan === "ngoai" ? "primary" : undefined}>
+            ngoài phần mềm · {n(ngoai.length)}
           </button>
         </Link>
         {PHAN.map((p) => (
@@ -302,6 +405,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <p className="muted">
         {n(rows.length)} mã
+        {phan === "trong" && " · trong phần mềm"}
+        {phan === "ngoai" && " · ngoài phần mềm"}
         {pm && ` · ${KHO_PM[pm]}`}
         {LOC.map((l) =>
           chon[l.ma] ? (
