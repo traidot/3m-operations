@@ -331,7 +331,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   );
 }
 
-/** Bảng việc cần xử lý của một nhóm; bấm một dòng thì mở ngăn kéo ngay tại chỗ. */
+/**
+ * Bảng việc cần xử lý của một nhóm; bấm một dòng thì mở ngăn kéo ngay tại chỗ.
+ *
+ * Tách sẵn theo loại khách vì cùng một việc mà đại lý hay khách lẻ là hai câu
+ * chuyện khác nhau — ví dụ "thuê bao huỷ mà máy chưa về" ở đại lý thì đòi cả lô,
+ * ở khách lẻ thì đòi từng cái.
+ */
 function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
   return (
     <div className="scroller">
@@ -340,21 +346,42 @@ function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
           <tr>
             <th className="num">Số mã</th>
             <th>Việc</th>
+            {LOAI.map((k) => (
+              <th key={k || "khong-ro"} className="num">
+                {k ? (
+                  <span className={`chip ${MAU_LOAI_KHACH[k] ?? "tat"}`}>
+                    {LOAI_KHACH[k] ?? k}
+                  </span>
+                ) : (
+                  "không rõ"
+                )}
+              </th>
+            ))}
             <th />
           </tr>
         </thead>
         <tbody>
           {VIEC.filter((v) => v.nhom === nhom).map((v) => {
-            const so = tatCa.filter(v.hop).length;
+            const d = tatCa.filter(v.hop);
             return (
               <tr key={v.ma}>
-                <td className={`num mono${so > 0 && v.nang ? " bad" : ""}`}>{n(so)}</td>
+                <td className={`num mono${d.length > 0 && v.nang ? " bad" : ""}`}>
+                  {n(d.length)}
+                </td>
                 <td>
                   {v.ten}
                   <div className="muted">{v.vi_sao}</div>
                 </td>
+                {LOAI.map((k) => {
+                  const so = d.filter((r) => (r.loai_khach ?? "") === k).length;
+                  return (
+                    <td key={k || "khong-ro"} className={`num mono${so === 0 ? " muted" : ""}`}>
+                      {so === 0 ? "—" : n(so)}
+                    </td>
+                  );
+                })}
                 <td className="khong-xuong-dong">
-                  {so > 0 && <Link href={`/cam-tay/kho?viec=${v.ma}`}>xem →</Link>}
+                  {d.length > 0 && <Link href={`/cam-tay/kho?viec=${v.ma}`}>xem →</Link>}
                 </td>
               </tr>
             );
