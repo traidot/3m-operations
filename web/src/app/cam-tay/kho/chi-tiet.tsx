@@ -51,6 +51,7 @@ export function ChiTietNhom({
   themLink,
   tomTat,
   chiFile,
+  kemDanhSach,
 }: {
   ten: string;
   mo_ta: string;
@@ -62,6 +63,8 @@ export function ChiTietNhom({
   tomTat?: Chieu[];
   /** Nhóm mà phần mềm không có mã nào: bỏ cột phần mềm vì chắc chắn rỗng. */
   chiFile?: boolean;
+  /** Có tóm tắt rồi mà vẫn muốn liệt kê tiếp bên dưới. */
+  kemDanhSach?: boolean;
 }) {
   return (
     <NganKeo dongLai={dongLai}>
@@ -72,18 +75,23 @@ export function ChiTietNhom({
 
       {canh_bao && <p className="stale">{canh_bao}</p>}
 
-      {tomTat ? (
+      {tomTat && (
         <>
-          <p className="muted">
-            Nhóm này quá đông để liệt kê từng mã — {n(rows.length)} dòng dựng ra vừa nặng vừa
-            không đọc được gì. Gom số theo mấy chiều dưới đây; cần từng mã thì mở màn hình
-            danh sách.
-          </p>
+          {!kemDanhSach && (
+            <p className="muted">
+              Nhóm này quá đông để liệt kê từng mã — {n(rows.length)} dòng dựng ra vừa nặng
+              vừa không đọc được gì. Gom số theo mấy chiều dưới đây; cần từng mã thì mở màn
+              hình danh sách.
+            </p>
+          )}
           {tomTat.map((c) => (
             <BangGom key={c.ten} {...c} rows={rows} />
           ))}
+          {kemDanhSach && <h2>Từng mã</h2>}
         </>
-      ) : rows.length === 0 ? (
+      )}
+
+      {tomTat && !kemDanhSach ? null : rows.length === 0 ? (
         <p className="empty">Không còn mã nào.</p>
       ) : chiFile ? (
         <div className="scroller">

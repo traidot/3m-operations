@@ -387,6 +387,16 @@ a.pheu-o:hover { border-color: var(--ok); }
 .pheu-thanh { position: relative; height: 6px; border-radius: 3px; background: var(--line); margin: 6px 0 4px; }
 .pheu-thanh span { display: block; height: 6px; border-radius: 3px; min-width: 3px; }
 .pheu-o .muted { font-size: 0.74rem; }
+
+/* Dải ba khúc cho hai tập chồng nhau: khúc giữa là phần chung, ngoặc trên là
+   một bên, ngoặc dưới là bên kia. Dễ đọc hơn hai vòng tròn Venn vì ba con số
+   chênh nhau nhiều, vẽ vòng tròn theo diện tích thì mảng nhỏ biến mất. */
+.dai { margin: 18px 0 8px; }
+.dai-than { display: flex; height: 22px; border-radius: 4px; overflow: hidden; }
+.dai-than span { display: block; }
+.dai-ngoac { display: flex; font-size: 0.76rem; color: var(--muted); }
+.dai-ngoac span { border: 1px solid var(--line-strong); border-bottom: none; border-radius: 4px 4px 0 0; padding: 2px 8px; text-align: center; white-space: nowrap; overflow: hidden; }
+.dai-ngoac.duoi span { border: 1px solid var(--line-strong); border-top: none; border-radius: 0 0 4px 4px; }
 th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .ly-do { background: var(--surface-2); border-radius: var(--bo); padding: 10px 14px; font-size: 0.88rem; margin: 10px 0; }
 .ngan-keo td a { white-space: nowrap; }
