@@ -1872,7 +1872,10 @@ export const getKyCuocThang = (ky: string) =>
             trang_thai_hd, ngay_lap::text, han_tra::text, trang_thai_tb, goi,
             tb_da_xoa, tra_mot_phan, tien_da_nhan::text,
             khach, ma_khach, loai_khach, link_cms
-       from v_telecom_ky_cuoc where ky = $1
+       from v_telecom_ky_cuoc
+      where ky = $1
+        -- Thuê bao đã xoá ở nguồn thì không tính vào đâu cả, kể cả danh sách.
+        and not tb_da_xoa
       order by case trang_thai_hd when 'UNPAYABLE' then 1 when 'ISSUED' then 2 else 3 end,
                tien desc, subscription_id`,
     [ky],
