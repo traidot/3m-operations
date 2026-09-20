@@ -1880,3 +1880,27 @@ export const getKyCuocThang = (ky: string) =>
                tien desc, subscription_id`,
     [ky],
   );
+
+export type ThuChuaCanTru = {
+  payment_id: string;
+  khach: string;
+  ma_khach: string | null;
+  loai_khach: string | null;
+  amount: string;
+  channel: string | null;
+  reference: string | null;
+  paid_at: string;
+  thang: string;
+  so_ngay_treo: string;
+  ly_do: string;
+  link_cms: string | null;
+};
+
+/** Lượt thu cầm tay chưa gán được vào hoá đơn nào — xem db/146, db/147. */
+export const getThuChuaCanTru = () =>
+  query<ThuChuaCanTru>(
+    `select payment_id, khach, ma_khach, loai_khach, amount::text, channel,
+            reference, paid_at::text, thang, so_ngay_treo::text, ly_do, link_cms
+       from v_telecom_thu_chua_can_tru
+      order by so_ngay_treo desc, amount desc`,
+  );

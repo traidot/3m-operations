@@ -289,6 +289,16 @@ export const LOAI_MA: Record<string, string> = {
   KHAC: "không rõ loại",
 };
 
+/** Kênh khách trả tiền bên cầm tay, đọc thẳng từ payment.paymentMethod. */
+export const KENH_THU: Record<string, string> = {
+  GMO_CONVINIENCE_STORE: "cửa hàng tiện lợi (GMO)",
+  YOUCHO_ARAI: "Yucho — Arai",
+  YOUCHO_SON: "Yucho — Sơn",
+  SBI: "SBI",
+  ACB: "ACB",
+  CASH: "tiền mặt",
+};
+
 export const PHIEU_KHO: Record<string, string> = {
   INVENTORY_IN: "phiếu nhập",
   INVENTORY_OUT: "phiếu xuất",

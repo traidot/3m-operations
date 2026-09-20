@@ -29,6 +29,7 @@ const MENU: NhomMenu[] = [
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
       { ten: "Cước theo dịch vụ", href: "/cam-tay/dich-vu" },
       { ten: "Đợt thu cước", href: "/cam-tay/dot-thu" },
+      { ten: "Tiền treo chưa gán", href: "/cam-tay/chua-can-tru" },
       { ten: "Huỷ thuê bao", href: "/cam-tay/huy" },
       { ten: "Máy cho thuê", href: "/cam-tay/may" },
       { ten: "Đối chiếu kho", href: "/cam-tay/kho" },
