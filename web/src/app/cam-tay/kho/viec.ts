@@ -64,7 +64,7 @@ export const VIEC: Viec[] = [
   {
     ma: "thu_hoi_van_o_khach",
     ten: "File xếp thu hồi ↔ phần mềm nói còn ở khách",
-    vi_sao: "sổ đã đưa vào danh sách đòi máy, phần mềm không có phiếu nhập về",
+    vi_sao: "file xếp mã này vào mục thu hồi, nhưng phần mềm không có phiếu nhập về",
     nhom: "so",
     nang: false,
     hop: (r) => r.file_vi_tri_so === "DS thu hồi" && r.cho_dung === "O_KHACH",
@@ -72,7 +72,7 @@ export const VIEC: Viec[] = [
   {
     ma: "dung_ma_trong_kho",
     ten: "File nói đang dùng ↔ phần mềm nói đã về kho",
-    vi_sao: "sổ ghi khách đang giữ, phần mềm có phiếu nhập kho",
+    vi_sao: "file ghi khách đang giữ, nhưng phần mềm có phiếu nhập kho",
     nhom: "so",
     nang: true,
     hop: (r) =>

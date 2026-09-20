@@ -18,7 +18,7 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 const KHOI_NGOAI = [
   { ma: "ra-khoi", ten: "Đã ra khỏi công ty", y: "trả lại nhà cung cấp", hop: (k: string) => k === "01" },
   { ma: "sim-dung", ten: "SIM đã dừng", y: "đã huỷ hoặc trả lại nhà mạng", hop: (k: string) => k === "05" || k === "06" },
-  { ma: "con-lai", ten: "Còn lại, phải xử lý", y: "sổ có hoặc kiểm kho thấy", hop: (k: string) => !["01", "05", "06"].includes(k) },
+  { ma: "con-lai", ten: "Còn lại, phải xử lý", y: "file xếp vào một mục, hoặc lần kiểm kho thấy tận mắt", hop: (k: string) => !["01", "05", "06"].includes(k) },
 ];
 
 /** Mã chỉ nằm trên file, phần mềm không có ở bất kỳ bảng nào. */
@@ -145,6 +145,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Kho wifi cầm tay</h1>
 
       <p className="muted">
+        Chỉ có <b>hai nguồn</b>: phần mềm wifi cầm tay, và một file Excel tổng hợp làm tay ở
+        ngoài. Trong file đó có một cột xếp mỗi mã vào một <b>mục</b> — Khách lẻ + CTV, Đại
+        lý, Dùng chờ cố định, Chờ kích hoạt, DS thu hồi — chỗ nào trên màn hình nhắc tới
+        “mục” là nói về cột đó, không phải dữ liệu của phần mềm.
+      </p>
+
+      <p className="muted">
         Phễu dưới đây đi từ <b>hiện trạng phần mềm</b>. Bản đối chiếu làm tay đặt bên cạnh
         như một lời khai thứ hai chứ không phải thước đo — chưa ai chứng minh nó đúng.
         {lan && (
@@ -251,7 +258,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <tr>
               <th className="num">Số mã</th>
               <th>Khối</th>
-              <th className="num">Có trong sổ</th>
+              <th className="num">File có xếp mục</th>
               <th className="num">Kiểm kho thấy</th>
               <th className="num">Ghi người giữ</th>
             </tr>

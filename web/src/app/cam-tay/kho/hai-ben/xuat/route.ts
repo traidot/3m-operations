@@ -71,8 +71,8 @@ export async function GET() {
       { header: "PM: nhà mạng", key: "nha_mang", width: 14 },
       { header: "File: nhóm hàng", key: "f_nhom", width: 16 },
       { header: "File: kết luận", key: "f_ket_luan", width: 44 },
-      { header: "File: vị trí trong sổ", key: "f_vi_tri", width: 20 },
-      { header: "File: kiểm kho 15/09", key: "f_kiem_kho", width: 20 },
+      { header: "File: mục xếp vào", key: "f_vi_tri", width: 20 },
+      { header: "File: kiểm kho", key: "f_kiem_kho", width: 20 },
       { header: "File: người giữ", key: "f_nguoi_giu", width: 28 },
       { header: "Link CMS", key: "link", width: 70 },
     ];

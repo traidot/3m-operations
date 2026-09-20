@@ -78,7 +78,7 @@ export function ChiTietNhom({
   baseHref?: string;
   /** Loại khách đang lọc: mã thô, "khong-ro" cho máy chưa phân loại, rỗng là không lọc. */
   lk?: string;
-  /** Vị trí theo sổ đang lọc; rỗng là không lọc. */
+  /** Mục mà file xếp mã vào, đang lọc; rỗng là không lọc. */
   vt?: string;
 }) {
   // Lọc ngay trong ngăn kéo: nhóm nào cũng đông và cùng một việc thì đại lý với
@@ -139,13 +139,19 @@ export function ChiTietNhom({
       )}
 
       {baseHref && new Set(rows.map(viTri)).size > 1 && (
+        <p className="muted">
+          Hàng dưới lọc theo <b>mục mà file Excel xếp mã vào</b> — đó là một cột nằm trong
+          chính file đối chiếu, không phải dữ liệu của phần mềm.
+        </p>
+      )}
+      {baseHref && new Set(rows.map(viTri)).size > 1 && (
         <p className="actions">
-          {nut("vt", "", "mọi vị trí theo sổ", vt, theoLk.length)}
+          {nut("vt", "", "mọi mục trong file", vt, theoLk.length)}
           {[...new Set(rows.map(viTri))].sort().map((k) => {
             const so = theoLk.filter((r) => viTri(r) === k).length;
             return so === 0
               ? null
-              : nut("vt", k, k === KHONG_SO ? "không có trong sổ" : k, vt, so);
+              : nut("vt", k, k === KHONG_SO ? "file không xếp mục" : k, vt, so);
           })}
         </p>
       )}
@@ -176,8 +182,8 @@ export function ChiTietNhom({
                 <th>Mã</th>
                 <th>Nhóm hàng</th>
                 <th>Kết luận ở file</th>
-                <th>Vị trí theo sổ / kiểm kho</th>
-                <th>Người giữ theo sổ</th>
+                <th>File xếp vào mục</th>
+                <th>Người giữ file ghi</th>
               </tr>
             </thead>
             <tbody>
@@ -187,7 +193,7 @@ export function ChiTietNhom({
                   <td className="muted">{r.file_nhom_hang ?? "—"}</td>
                   <td className="muted">{r.file_ket_luan ?? "—"}</td>
                   <td className="muted">
-                    {r.file_vi_tri_so ?? "không có trong sổ"}
+                    {r.file_vi_tri_so ?? "file không xếp mục"}
                     {r.file_kiem_kho && <div>kiểm kho: {r.file_kiem_kho}</div>}
                   </td>
                   <td className="muted">{r.file_nguoi_giu ?? "—"}</td>
@@ -256,7 +262,7 @@ export function ChiTietNhom({
                     {r.file_co ? (
                       <>
                         <div>{r.file_ket_luan}</div>
-                        <div>{r.file_vi_tri_so ?? "không có trong sổ"}</div>
+                        <div>{r.file_vi_tri_so ?? "file không xếp mục"}</div>
                         {r.file_kiem_kho && <div>kiểm kho: {r.file_kiem_kho}</div>}
                         {r.file_nguoi_giu && <div>{r.file_nguoi_giu}</div>}
                       </>

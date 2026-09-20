@@ -37,10 +37,10 @@ const CHIEU: Record<string, Chieu> = {
     ten: "Theo loại khách",
     lay: (r) => LOAI_KHACH[r.loai_khach ?? ""] ?? "không rõ loại",
   },
-  nguoiGiuFile: { ten: "Theo người giữ ghi ở sổ", lay: (r) => r.file_nguoi_giu ?? "sổ không ghi" },
+  nguoiGiuFile: { ten: "Theo người giữ file ghi", lay: (r) => r.file_nguoi_giu ?? "file không ghi" },
   nhomFile: { ten: "Theo nhóm hàng ở file", lay: (r) => r.file_nhom_hang ?? "—" },
   ketLuanFile: { ten: "Theo kết luận ở file", lay: (r) => r.file_ket_luan ?? "—" },
-  viTriSo: { ten: "Theo vị trí trong sổ", lay: (r) => r.file_vi_tri_so ?? "không có trong sổ" },
+  viTriSo: { ten: "Theo mục file xếp vào", lay: (r) => r.file_vi_tri_so ?? "file không xếp mục" },
 };
 
 /**
@@ -133,8 +133,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     <main>
       <h1>Hai bên biết những gì</h1>
       <p className="muted">
-        <Link href="/cam-tay/kho">← Về tổng quan kho</Link> · Bản đối chiếu làm tay và phần
-        mềm chồng lên nhau ở giữa, mỗi bên còn một mảng riêng. Hợp hai bên là{" "}
+        <Link href="/cam-tay/kho">← Về tổng quan kho</Link> · Hai nguồn: <b>phần mềm</b> và
+        một <b>file Excel tổng hợp làm tay</b>. Chúng chồng lên nhau ở giữa, mỗi bên còn một
+        mảng riêng. Hợp hai bên là{" "}
         <b>{n(tatCa.length)}</b> mã thiết bị — không bên nào một mình nắm đủ.
         {lan && (
           <>

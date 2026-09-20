@@ -34,7 +34,7 @@ const LOC: { ma: string; ten: string; lay: (r: KhoMa) => string }[] = [
   { ma: "kho", ten: "Kho theo phiếu", lay: (r) => r.warehouse_name ?? "(chưa có phiếu)" },
   { ma: "cuoc", ten: "Tình trạng cước", lay: (r) => r.tinh_trang_cuoc ?? "(không gắn dịch vụ)" },
   { ma: "nh", ten: "Nhóm hàng ở file", lay: (r) => r.file_nhom_hang ?? "(file không có)" },
-  { ma: "vt", ten: "Vị trí theo sổ", lay: (r) => r.file_vi_tri_so ?? "(không có trong sổ)" },
+  { ma: "vt", ten: "File xếp vào mục", lay: (r) => r.file_vi_tri_so ?? "(file không xếp mục)" },
   { ma: "nm", ten: "Nhà mạng", lay: (r) => r.nha_mang ?? "(không có)" },
 ];
 
@@ -93,7 +93,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <form method="get">
         <div className="formgrid">
           <label>
-            Mã máy, khách, người giữ hoặc vị trí theo sổ
+            Mã máy, khách, người giữ hoặc mục trong file
             <input type="text" name="q" defaultValue={mot(sp.q)} placeholder="IMEI, tên…" />
           </label>
           {LOC.map((l) => {
@@ -266,7 +266,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {r.file_co ? (
                       <>
                         {r.file_ket_luan}
-                        <div>{r.file_vi_tri_so ?? "không có trong sổ"}</div>
+                        <div>{r.file_vi_tri_so ?? "file không xếp mục"}</div>
                         {r.file_kiem_kho && <div>kiểm kho: {r.file_kiem_kho}</div>}
                         {r.file_nguoi_giu && <div>{r.file_nguoi_giu}</div>}
                       </>
