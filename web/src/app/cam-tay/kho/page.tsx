@@ -138,6 +138,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const buoc = BUOC.find((b) => b.ma === mot(sp.buoc));
   const khoi = KHOI_NGOAI.find((k) => k.ma === mot(sp.khoi));
   const lk = mot(sp.lk);
+  const vt = mot(sp.vt);
 
   return (
     <main>
@@ -298,6 +299,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           dongLai="/cam-tay/kho"
           baseHref={`/cam-tay/kho?viec=${viec.ma}`}
           lk={lk}
+          vt={vt}
           themLink={ds(`viec=${viec.ma}`)}
         />
       )}
@@ -311,6 +313,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           dongLai="/cam-tay/kho"
           baseHref={`/cam-tay/kho?khoi=${khoi.ma}`}
           lk={lk}
+          vt={vt}
           chiFile
         />
       )}
@@ -323,6 +326,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           dongLai="/cam-tay/kho"
           baseHref={`/cam-tay/kho?buoc=${buoc.ma}`}
           lk={lk}
+          vt={vt}
           tomTat={buoc.gom?.map((k) => CHIEU[k]!)}
           themLink={ds(buoc.ma === "1" ? "" : "cd=O_KHACH")}
         />

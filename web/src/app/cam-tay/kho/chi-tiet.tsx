@@ -3,6 +3,7 @@ import { NganKeo } from "../../ngan-keo";
 import { LOAI_KHACH, MAU_LOAI_KHACH, MAU_MAY_CUOC, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 
 const KHONG_RO = "khong-ro";
+const KHONG_SO = "khong-co-trong-so";
 
 /** Thứ tự cố định để nút lọc không nhảy chỗ giữa hai lần tải. */
 const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", KHONG_RO];
@@ -59,6 +60,7 @@ export function ChiTietNhom({
   kemDanhSach,
   baseHref,
   lk,
+  vt,
 }: {
   ten: string;
   mo_ta: string;
@@ -76,6 +78,8 @@ export function ChiTietNhom({
   baseHref?: string;
   /** Loại khách đang lọc: mã thô, "khong-ro" cho máy chưa phân loại, rỗng là không lọc. */
   lk?: string;
+  /** Vị trí theo sổ đang lọc; rỗng là không lọc. */
+  vt?: string;
 }) {
   // Lọc ngay trong ngăn kéo: nhóm nào cũng đông và cùng một việc thì đại lý với
   // khách lẻ là hai cách xử lý khác nhau.
@@ -84,16 +88,30 @@ export function ChiTietNhom({
   // của "tất cả", nên nút "không rõ loại" đọc ra đúng bằng tổng và bấm vào thì
   // không lọc gì.
   const ma = (r: KhoMa) => r.loai_khach ?? KHONG_RO;
-  const dem = (k: string) => rows.filter((r) => ma(r) === k).length;
-  const hien = lk ? rows.filter((r) => ma(r) === lk) : rows;
-  const nut = (k: string, nhan: string) => {
+  const viTri = (r: KhoMa) => r.file_vi_tri_so ?? KHONG_SO;
+
+  // Hai bộ lọc chồng nhau, mỗi bộ đếm trên phần đã lọc bởi bộ kia — bấm rồi mà
+  // số vẫn là số cũ thì không biết còn lại bao nhiêu.
+  const theoLk = lk ? rows.filter((r) => ma(r) === lk) : rows;
+  const theoVt = vt ? rows.filter((r) => viTri(r) === vt) : rows;
+  const hien = theoVt.filter((r) => !lk || ma(r) === lk);
+
+  const nut = (
+    khoa: "lk" | "vt",
+    k: string,
+    nhan: string,
+    dang: string | undefined,
+    so: number,
+  ) => {
     const p = new URLSearchParams(baseHref?.split("?")[1] ?? "");
-    if (k) p.set("lk", k);
-    else p.delete("lk");
+    if (k) p.set(khoa, k);
+    else p.delete(khoa);
+    if (khoa === "lk" && vt) p.set("vt", vt);
+    if (khoa === "vt" && lk) p.set("lk", lk);
     return (
-      <Link key={k || "tat-ca"} href={`${baseHref?.split("?")[0]}?${p.toString()}`}>
-        <button type="button" className={lk === k ? "primary" : undefined}>
-          {nhan} · {n(k ? dem(k) : rows.length)}
+      <Link key={khoa + k} href={`${baseHref?.split("?")[0]}?${p.toString()}`}>
+        <button type="button" className={dang === k ? "primary" : undefined}>
+          {nhan} · {n(so)}
         </button>
       </Link>
     );
@@ -110,10 +128,25 @@ export function ChiTietNhom({
 
       {baseHref && rows.some((r) => r.loai_khach) && (
         <p className="actions">
-          {nut("", "tất cả")}
-          {LOAI.filter((k) => dem(k) > 0).map((k) =>
-            nut(k, k === KHONG_RO ? "không rõ loại" : (LOAI_KHACH[k] ?? k)),
-          )}
+          {nut("lk", "", "mọi loại khách", lk, theoVt.length)}
+          {LOAI.map((k) => {
+            const so = theoVt.filter((r) => ma(r) === k).length;
+            return so === 0
+              ? null
+              : nut("lk", k, k === KHONG_RO ? "không rõ loại" : (LOAI_KHACH[k] ?? k), lk, so);
+          })}
+        </p>
+      )}
+
+      {baseHref && new Set(rows.map(viTri)).size > 1 && (
+        <p className="actions">
+          {nut("vt", "", "mọi vị trí theo sổ", vt, theoLk.length)}
+          {[...new Set(rows.map(viTri))].sort().map((k) => {
+            const so = theoLk.filter((r) => viTri(r) === k).length;
+            return so === 0
+              ? null
+              : nut("vt", k, k === KHONG_SO ? "không có trong sổ" : k, vt, so);
+          })}
         </p>
       )}
 

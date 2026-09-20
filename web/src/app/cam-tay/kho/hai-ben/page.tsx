@@ -127,6 +127,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const so = PHAN.map((p) => tatCa.filter(p.hop).length);
   const mo = PHAN.find((p) => p.ma === mot(sp.xem));
   const lk = mot(sp.lk);
+  const vt = mot(sp.vt);
 
   return (
     <main>
@@ -274,6 +275,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           dongLai="/cam-tay/kho/hai-ben"
           baseHref={`/cam-tay/kho/hai-ben?xem=${mo.ma}`}
           lk={lk}
+          vt={vt}
           tomTat={mo.gom.map((k) => CHIEU[k]!)}
           kemDanhSach={mo.kem}
           chiFile={mo.chiFile}
