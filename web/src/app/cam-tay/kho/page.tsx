@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
-import { ChiTietViec } from "./chi-tiet";
+import { ChiTietNhom } from "./chi-tiet";
 import { VIEC } from "./viec";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +19,42 @@ const KHOI_NGOAI = [
 ];
 
 const maKetLuan = (s: string | null) => (s ?? "").slice(0, 2);
+
+/**
+ * Bốn bước của phễu, đúng vòng nghiệp vụ: nhập về kho → vận hành trên phần mềm
+ * → có khách và dịch vụ → thu được cước. Định nghĩa ở đây để thẻ và ngăn kéo
+ * dùng chung một luật.
+ */
+const BUOC: { ma: string; ten: string; mo_ta: string; mau: string; hop: (r: KhoMa) => boolean }[] = [
+  {
+    ma: "1",
+    ten: "Phần mềm biết",
+    mo_ta: "mã thiết bị có chứng từ trong phần mềm",
+    mau: "var(--muted)",
+    hop: (r) => r.pm_co,
+  },
+  {
+    ma: "2",
+    ten: "Đang ở khách",
+    mo_ta: "phiếu gần nhất là phiếu xuất, hoặc hồ sơ cho thuê còn mở",
+    mau: "var(--lam)",
+    hop: (r) => r.cho_dung === "O_KHACH",
+  },
+  {
+    ma: "3",
+    ten: "Có hồ sơ thuê bao",
+    mo_ta: "máy ở khách và có bản ghi cho thuê, nên biết cọc và kỳ cước",
+    mau: "var(--lam)",
+    hop: (r) => r.cho_dung === "O_KHACH" && r.trang_thai_may !== null,
+  },
+  {
+    ma: "4",
+    ten: "Đang thu được cước",
+    mo_ta: "máy ở khách và tháng này có kỳ cước",
+    mau: "var(--ok)",
+    hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "DANG_RA_CUOC",
+  },
+];
 
 /** Một bước của phễu: thanh dài theo tỉ lệ so với bước đầu. */
 function Buoc({
@@ -55,8 +91,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const trongKho = dem((r) => r.cho_dung === "TRONG_KHO");
   const fileRieng = dem((r) => r.file_co && !r.pm_co);
 
+  const PHU = [
+    "mã thiết bị có chứng từ trong phần mềm",
+    `còn ${n(trongKho)} mã trong kho`,
+    `${n(oKhach - coThueBao)} máy ở khách chỉ có phiếu xuất, không có hồ sơ`,
+    `${n(oKhach - dangThu)} máy ở khách mà tháng này không ra cước`,
+  ];
+
   const ds = (q: string) => `/cam-tay/kho/danh-sach${q ? `?${q}` : ""}`;
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
+  const buoc = BUOC.find((b) => b.ma === mot(sp.buoc));
 
   return (
     <main>
@@ -76,30 +120,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
 
       <div className="pheu">
-        <Buoc
-          so={pmCo} tong={pmCo} mau="var(--muted)"
-          ten="1 · Phần mềm biết"
-          phu={`mã thiết bị có chứng từ trong phần mềm`}
-          href={ds("")}
-        />
-        <Buoc
-          so={oKhach} tong={pmCo} mau="var(--lam)"
-          ten="2 · Đang ở khách"
-          phu={`còn ${n(trongKho)} mã trong kho`}
-          href={ds("cd=O_KHACH")}
-        />
-        <Buoc
-          so={coThueBao} tong={pmCo} mau="var(--lam)"
-          ten="3 · Có hồ sơ thuê bao"
-          phu={`${n(oKhach - coThueBao)} máy ở khách chỉ có phiếu xuất, không có hồ sơ`}
-          href={ds("viec=khach_khong_ho_so")}
-        />
-        <Buoc
-          so={dangThu} tong={pmCo} mau="var(--ok)"
-          ten="4 · Đang thu được cước"
-          phu={`${n(oKhach - dangThu)} máy ở khách mà tháng này không ra cước`}
-          href={ds("cd=O_KHACH&cuoc=DANG_RA_CUOC")}
-        />
+        {BUOC.map((b, i) => (
+          <Buoc
+            key={b.ma}
+            so={dem(b.hop)}
+            tong={pmCo}
+            mau={b.mau}
+            ten={`${b.ma} · ${b.ten}`}
+            phu={PHU[i]!}
+            href={`/cam-tay/kho?buoc=${b.ma}`}
+          />
+        ))}
       </div>
 
       <h2>Phần mềm tự mâu thuẫn</h2>
@@ -157,7 +188,28 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
 
       {viec && (
-        <ChiTietViec viec={viec} rows={tatCa.filter(viec.hop)} dongLai="/cam-tay/kho" />
+        <ChiTietNhom
+          ten={viec.ten}
+          mo_ta={viec.vi_sao}
+          canh_bao={
+            viec.nhom === "so"
+              ? "Lệch ở đây chưa kết luận được bên nào sai — file là bản tổng hợp làm tay ở ngoài, chưa ai chứng minh nó đúng. Hai cột dưới là hai lời khai, không phải đúng với sai."
+              : undefined
+          }
+          rows={tatCa.filter(viec.hop)}
+          dongLai="/cam-tay/kho"
+          themLink={ds(`viec=${viec.ma}`)}
+        />
+      )}
+
+      {buoc && (
+        <ChiTietNhom
+          ten={`Bước ${buoc.ma} · ${buoc.ten}`}
+          mo_ta={buoc.mo_ta}
+          rows={tatCa.filter(buoc.hop)}
+          dongLai="/cam-tay/kho"
+          themLink={ds(buoc.ma === "2" || buoc.ma === "3" || buoc.ma === "4" ? "cd=O_KHACH" : "")}
+        />
       )}
     </main>
   );

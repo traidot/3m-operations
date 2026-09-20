@@ -2,38 +2,38 @@ import Link from "next/link";
 import { NganKeo } from "../../ngan-keo";
 import { MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 import type { KhoMa } from "@/lib/queries";
-import type { Viec } from "./viec";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
 /**
- * Ngăn kéo cho một việc cần xử lý. Chỉ dựng bảng của đúng nhóm đang xem chứ
- * không phải cả 8.272 mã, nên nặng theo số dòng của việc đó thôi.
+ * Ngăn kéo cho một nhóm mã — một bước của phễu hoặc một việc cần xử lý. Chỉ
+ * dựng bảng của đúng nhóm đang xem chứ không phải cả 8.272 mã, nên nặng theo
+ * số dòng của nhóm đó thôi.
  */
-export function ChiTietViec({
-  viec,
+export function ChiTietNhom({
+  ten,
+  mo_ta,
+  canh_bao,
   rows,
   dongLai,
+  themLink,
 }: {
-  viec: Viec;
+  ten: string;
+  mo_ta: string;
+  canh_bao?: string;
   rows: KhoMa[];
   dongLai: string;
+  themLink?: string;
 }) {
   return (
     <NganKeo dongLai={dongLai}>
-      <h1>{viec.ten}</h1>
+      <h1>{ten}</h1>
       <p className="muted">
-        {viec.vi_sao}. {n(rows.length)} mã.
+        {mo_ta}. {n(rows.length)} mã.
       </p>
 
-      {viec.nhom === "so" && (
-        <p className="stale">
-          Lệch ở đây <b>chưa kết luận được bên nào sai</b> — file là bản tổng hợp làm tay ở
-          ngoài, chưa ai chứng minh nó đúng. Hai cột dưới là hai lời khai, không phải đúng
-          với sai.
-        </p>
-      )}
+      {canh_bao && <p className="stale">{canh_bao}</p>}
 
       {rows.length === 0 ? (
         <p className="empty">Không còn mã nào.</p>
@@ -93,11 +93,13 @@ export function ChiTietViec({
         </div>
       )}
 
-      <div className="actions">
-        <Link href={`/cam-tay/kho/danh-sach?viec=${viec.ma}`}>
-          <button type="button">Mở trong màn hình danh sách →</button>
-        </Link>
-      </div>
+      {themLink && (
+        <div className="actions">
+          <Link href={themLink}>
+            <button type="button">Mở trong màn hình danh sách →</button>
+          </Link>
+        </div>
+      )}
     </NganKeo>
   );
 }
