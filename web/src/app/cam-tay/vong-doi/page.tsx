@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChiTietNhom } from "../kho/chi-tiet";
 import { ChiTietThueBao } from "./thue-bao";
 import { getKhoMa, getThueBaoNo, type KhoMa, type ThueBaoNo } from "@/lib/queries";
+import { LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,23 @@ type DongTb = {
 type Khau = { so: string; ten: string; dong: (DongMay | DongTb)[] };
 
 const so = (v: string | null) => Number(v ?? 0);
+
+/** Thứ tự cố định để cột không nhảy chỗ giữa hai lần tải. */
+const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY"] as const;
+
+/**
+ * Mục mà file Excel xếp mã vào. In kèm dưới mấy dòng rò để biết đống đó gồm
+ * những gì — 561 máy chưa mở dịch vụ mà 148 cái là máy cho mượn chờ lắp cố
+ * định thì đó là đúng nghiệp vụ, không phải rò.
+ */
+function gomMuc(rows: KhoMa[]) {
+  const m = new Map<string, number>();
+  for (const r of rows) {
+    const k = r.file_vi_tri_so ?? "file không xếp mục";
+    m.set(k, (m.get(k) ?? 0) + 1);
+  }
+  return [...m.entries()].sort((a, b) => b[1] - a[1]);
+}
 
 const KHAU: Khau[] = [
   {
@@ -196,6 +214,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <tr>
                   <th className="num">Số lượng</th>
                   <th>Chỉ số</th>
+                  {LOAI.map((l) => (
+                    <th key={l} className="num">
+                      <span className={`chip ${MAU_LOAI_KHACH[l] ?? "tat"}`}>
+                        {LOAI_KHACH[l] ?? l}
+                      </span>
+                    </th>
+                  ))}
+                  <th className="num">Không rõ</th>
                   <th className="num">Tiền</th>
                   <th />
                 </tr>
@@ -218,6 +244,34 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       <td>
                         {d.ro && <span className="chip do">rò</span>} {d.ten}
                         <div className="muted">{d.y}</div>
+                        {d.don === "may" && d.ro && (
+                          <div className="muted">
+                            file xếp vào:{" "}
+                            {gomMuc(rows as KhoMa[])
+                              .map(([k, v]) => `${k} ${n(v)}`)
+                              .join(" · ")}
+                          </div>
+                        )}
+                      </td>
+                      {LOAI.map((l) => (
+                        <td key={l} className="num mono muted">
+                          {k.so === "1"
+                            ? "—"
+                            : n(
+                                (rows as { loai_khach: string | null }[]).filter(
+                                  (r) => r.loai_khach === l,
+                                ).length,
+                              )}
+                        </td>
+                      ))}
+                      <td className="num mono muted">
+                        {k.so === "1"
+                          ? "—"
+                          : n(
+                              (rows as { loai_khach: string | null }[]).filter(
+                                (r) => r.loai_khach === null,
+                              ).length,
+                            )}
                       </td>
                       <td className="num mono">
                         {tien === null || tien === 0 ? (
