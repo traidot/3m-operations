@@ -171,6 +171,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h2>Cơ cấu theo nhóm hàng</h2>
       <ChongNgang nhom={coCau((r) => r.nhom_hang ?? "(trống)")} phan={PHAN} rongNhan={140} />
 
+      <h2>Cơ cấu theo đời máy phần mềm ghi</h2>
+      <p className="muted">
+        Đời máy lấy từ hồ sơ cho thuê; máy chưa từng cho thuê thì lấy sản phẩm ghi trên
+        dòng phiếu kho. Nhờ vậy biết được đời máy của{" "}
+        <b>{n(tatCa.filter((r) => r.pm_doi_may !== null).length)}</b> trên{" "}
+        {n(tatCa.filter((r) => r.pm_ket_luan !== "PM_KHONG_BIET").length)} mã phần mềm có —
+        trước đây chỉ 2.052 vì kho đầy máy chưa xuất bao giờ nên không có hồ sơ thuê nào.
+      </p>
+      <ChongNgang
+        nhom={coCau((r) => r.pm_doi_may ?? "(phần mềm không có mã)")}
+        phan={PHAN}
+        rongNhan={200}
+      />
+
       <h2>Cơ cấu theo kho ghi trên phiếu gần nhất</h2>
       <ChongNgang nhom={coCau((r) => r.pm_kho ?? "(chưa có phiếu nào)")} phan={PHAN} rongNhan={200} />
 
@@ -353,12 +367,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td className="muted">
                     {r.pm_doi_may ?? "—"}
+                    {r.doi_may_tu_phieu && <div className="chip cho">theo phiếu kho</div>}
                     {r.pm_khach && (
                       <div>
                         {r.pm_khach}
                         {r.pm_ma_khach && ` · ${r.pm_ma_khach}`}
                       </div>
                     )}
+                    {r.nguon_khach && <div className="mono">{r.nguon_khach}</div>}
                   </td>
                 </tr>
               ))}

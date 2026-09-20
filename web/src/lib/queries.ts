@@ -1661,10 +1661,12 @@ export type KhoDoiChieu = {
   danh_sach_so: string | null;
   pm_imei: string | null;
   pm_doi_may: string | null;
+  doi_may_tu_phieu: boolean;
   pm_trang_thai_may: string | null;
   pm_tinh_trang_cuoc: string | null;
   pm_khach: string | null;
   pm_ma_khach: string | null;
+  nguon_khach: string | null;
   pm_phieu: string | null;
   pm_ly_do: string | null;
   pm_kho: string | null;
@@ -1679,8 +1681,9 @@ export const getKhoDoiChieu = () =>
   query<KhoDoiChieu>(
     `select ma, ma_chuan, nhom_hang, ket_luan, vi_tri_so, vi_tri_kiem_kho,
             nguoi_giu, coc::text, so_dong_so::text, danh_sach_so,
-            pm_imei, pm_doi_may, pm_trang_thai_may, pm_tinh_trang_cuoc,
-            pm_khach, pm_ma_khach, pm_phieu, pm_ly_do, pm_kho,
+            pm_imei, pm_doi_may, doi_may_tu_phieu, pm_trang_thai_may,
+            pm_tinh_trang_cuoc, pm_khach, pm_ma_khach, nguon_khach,
+            pm_phieu, pm_ly_do, pm_kho,
             pm_ngay_phieu::text, pm_nha_mang, pm_vendor, pm_ket_luan
        from v_kho_doi_chieu
       order by case pm_ket_luan when 'O_KHACH' then 1 when 'TRONG_KHO' then 2

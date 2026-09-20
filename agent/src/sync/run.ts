@@ -129,8 +129,9 @@ const NGUON: Nguon[] = [
       stock_move: {
         table: "stock_move_snapshot",
         cols: ["source_id", "doc_source_id", "doc_code", "device_code", "doc_type",
-               "business_type", "reason_type", "warehouse_code", "warehouse_name",
-               "doc_date", "subscription_source_id", "source_customer_id", "vendor_name"],
+               "business_type", "reason_type", "product_name", "product_type",
+               "warehouse_code", "warehouse_name", "doc_date",
+               "subscription_source_id", "source_customer_id", "vendor_name"],
       },
       provider_device: {
         table: "provider_device_snapshot",

@@ -191,6 +191,8 @@ export const STOCK_MOVE = `
     d."documentType"::text                       as doc_type,
     d."businessType"::text                       as business_type,
     d."reasonType"::text                         as reason_type,
+    pr.name                                      as product_name,
+    pr.type::text                                as product_type,
     w.code                                       as warehouse_code,
     w.name                                       as warehouse_name,
     d."documentDate"::date                       as doc_date,
@@ -201,6 +203,10 @@ export const STOCK_MOVE = `
   join inventory_document d on d.id = i."inventoryDocumentId" and d."deletedAt" is null
   left join warehouse w on w.id = d."warehouseId"
   left join vendor v on v.id = d."vendorId"
+  -- Sản phẩm ghi ngay trên dòng phiếu: đây là chỗ DUY NHẤT biết đời máy của
+  -- 1.736 mã còn nằm trong kho, vì chúng chưa từng cho thuê nên không có
+  -- order_item nào để suy ra.
+  left join product pr on pr.id = i."productId"
   where i."deletedAt" is null
 `;
 
