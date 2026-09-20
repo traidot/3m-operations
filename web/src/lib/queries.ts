@@ -1708,3 +1708,23 @@ export const getKhoThieuOFile = () =>
        from v_kho_thieu_o_file
       order by doc_date desc nulls last, device_code`,
   );
+
+export type KhoLanNhap = {
+  id: string;
+  ten_file: string;
+  sua_luc: string | null;
+  nhap_luc: string;
+  so_ma: string;
+  so_dong_so: string;
+  so_ma_trung: string;
+};
+
+/** Lần nhập file đối chiếu đang dùng — xem db/126. */
+export const getKhoLanNhap = async () => {
+  const [row] = await query<KhoLanNhap>(
+    `select id::text, ten_file, sua_luc::text, nhap_luc::text, so_ma::text,
+            so_dong_so::text, so_ma_trung::text
+       from v_kho_lan_nhap`,
+  );
+  return row ?? null;
+};

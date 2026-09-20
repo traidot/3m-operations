@@ -1,3 +1,5 @@
+import { statSync } from "node:fs";
+import { basename } from "node:path";
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
 
@@ -116,8 +118,22 @@ async function main() {
     ]);
   }
 
+  // Ngày sửa file gần với ngày chốt số hơn là ngày bấm nhập — bản đối chiếu kho
+  // chỉ đúng tại thời điểm chốt nên phải ghi lại, không thì nhìn số trên màn
+  // hình không biết là kiểm kho hôm nào.
+  const suaLuc = statSync(file).mtime;
+
   // Nhập lại là thay hẳn bản cũ: file đối chiếu ra bản mới thì bản cũ hết dùng,
-  // giữ lại chỉ làm lẫn hai lần kiểm kho khác ngày.
+  // giữ lại chỉ làm lẫn hai lần kiểm kho khác ngày. Riêng thông tin LẦN NHẬP thì
+  // giữ hết để còn biết lần trước nhập hôm nào.
+  await q("update stock_audit_import set dang_dung = false where dang_dung");
+  const [lan] = await q<{ id: string }>(
+    `insert into stock_audit_import (ten_file, sua_luc, so_ma, so_dong_so, so_ma_trung)
+     values ($1, $2, $3, $4, $5) returning id`,
+    [basename(file), suaLuc, thay.size, so_.length, trung.length],
+  );
+  const importId = lan!.id;
+
   await q("truncate stock_audit_row");
   await q("truncate stock_audit_book restart identity");
 
@@ -125,17 +141,18 @@ async function main() {
     (t) => `insert into stock_audit_row
       (ma, ma_chuan, nhom_hang, ghi_chu_nhap, ket_luan, vi_tri_so, ds_chua,
        khach_theo_so, vi_tri_kiem_kho, nguoi_giu, trang_thai_sim,
-       ngay_thue_gan_nhat, coc, tt_thu_hoi, tt_hoan_coc)
+       ngay_thue_gan_nhat, coc, tt_thu_hoi, tt_hoan_coc, import_id)
       values ${t}`,
-    [...thay.values()],
+    [...thay.values()].map((r) => [...r, importId]),
   );
   await ghiLo(
     (t) => `insert into stock_audit_book
-      (danh_sach, dong_goc, ma, ma_chuan, san_pham, khach, trang_thai, nhom_cot)
+      (danh_sach, dong_goc, ma, ma_chuan, san_pham, khach, trang_thai, nhom_cot, import_id)
       values ${t}`,
-    so_,
+    so_.map((r) => [...r, importId]),
   );
 
+  console.log(`file: ${basename(file)} (sửa lúc ${suaLuc.toLocaleString("vi-VN")})`);
   console.log(`mã nhập về: ${thay.size}`);
   console.log(`dòng sổ quản lý: ${so_.length}`);
   if (trung.length > 0) {
