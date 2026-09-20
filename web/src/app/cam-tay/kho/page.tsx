@@ -142,7 +142,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         của mã, vì kho có 68 mã SIM để số 0 còn file thì không.
       </p>
 
-      <div className="the-hang">
+      <div className="the-hang gon">
         {PHAN.map((p) => (
           <Link key={p.ma} className="the-so" href={link({ pm: p.ma })}>
             <div className="the-ten">{KHO_PM[p.ma]}</div>

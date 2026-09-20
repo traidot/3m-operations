@@ -370,9 +370,12 @@ a.chip:hover { background: color-mix(in srgb, var(--mau-chip) 26%, transparent);
 /* Hàng thẻ số tổng trên đầu báo cáo. */
 .the-hang { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 20px 0 8px; }
 .the-so { background: var(--surface); border: 1px solid var(--line); border-radius: var(--bo-to); padding: 12px 14px; }
-.the-ten { color: var(--muted); font-size: 0.68rem; }
+.the-ten { color: var(--muted); font-size: 0.8rem; }
 .the-gia-tri { font-size: 1.35rem; color: var(--ink); margin-top: 2px; }
 .the-phu { color: var(--muted); font-size: 0.76rem; }
+/* Hàng thẻ gọn: dùng khi một hàng phải chứa sáu thẻ trở lên và nhãn thì dài,
+   như bên đối chiếu kho. Chỉ thu nhãn, giữ nguyên cỡ con số. */
+.the-hang.gon .the-ten { font-size: 0.68rem; }
 th.nhom { text-align: center; border-bottom: 1px solid var(--line-strong); }
 .ly-do { background: var(--surface-2); border-radius: var(--bo); padding: 10px 14px; font-size: 0.88rem; margin: 10px 0; }
 .ngan-keo td a { white-space: nowrap; }
