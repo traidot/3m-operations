@@ -137,6 +137,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
   const buoc = BUOC.find((b) => b.ma === mot(sp.buoc));
   const khoi = KHOI_NGOAI.find((k) => k.ma === mot(sp.khoi));
+  const lk = mot(sp.lk);
 
   return (
     <main>
@@ -302,6 +303,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           }
           rows={tatCa.filter(viec.hop)}
           dongLai="/cam-tay/kho"
+          baseHref={`/cam-tay/kho?viec=${viec.ma}`}
+          lk={lk}
           themLink={ds(`viec=${viec.ma}`)}
         />
       )}
@@ -313,6 +316,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           canh_bao="Toàn bộ nhóm này chỉ tồn tại trên bản đối chiếu làm tay. Phần mềm không có mã ở bất kỳ bảng nào, nên không có gì để đối chứng — đúng hay sai phải đi kiểm thực tế."
           rows={tatCa.filter((r) => chiOFile(r) && khoi.hop(maKetLuan(r.file_ket_luan)))}
           dongLai="/cam-tay/kho"
+          baseHref={`/cam-tay/kho?khoi=${khoi.ma}`}
+          lk={lk}
           chiFile
         />
       )}
@@ -323,6 +328,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           mo_ta={buoc.mo_ta}
           rows={tatCa.filter(buoc.hop)}
           dongLai="/cam-tay/kho"
+          baseHref={`/cam-tay/kho?buoc=${buoc.ma}`}
+          lk={lk}
           tomTat={buoc.gom?.map((k) => CHIEU[k]!)}
           themLink={ds(buoc.ma === "1" ? "" : "cd=O_KHACH")}
         />

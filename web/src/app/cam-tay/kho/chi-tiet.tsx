@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { NganKeo } from "../../ngan-keo";
 import { LOAI_KHACH, MAU_LOAI_KHACH, MAU_MAY_CUOC, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
+
+/** Thứ tự cố định để nút lọc không nhảy chỗ giữa hai lần tải. */
+const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", ""];
 import type { KhoMa } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
@@ -52,6 +55,8 @@ export function ChiTietNhom({
   tomTat,
   chiFile,
   kemDanhSach,
+  baseHref,
+  lk,
 }: {
   ten: string;
   mo_ta: string;
@@ -65,33 +70,63 @@ export function ChiTietNhom({
   chiFile?: boolean;
   /** Có tóm tắt rồi mà vẫn muốn liệt kê tiếp bên dưới. */
   kemDanhSach?: boolean;
+  /** Đường dẫn của chính ngăn kéo này, để nút lọc giữ nguyên nhóm đang xem. */
+  baseHref?: string;
+  /** Loại khách đang lọc; rỗng là không lọc. */
+  lk?: string;
 }) {
+  // Lọc ngay trong ngăn kéo: nhóm nào cũng đông và cùng một việc thì đại lý với
+  // khách lẻ là hai cách xử lý khác nhau.
+  const dem = (k: string) => rows.filter((r) => (r.loai_khach ?? "") === k).length;
+  const hien = lk === undefined || lk === "" ? rows : rows.filter((r) => (r.loai_khach ?? "") === lk);
+  const nut = (k: string, nhan: string) => {
+    const p = new URLSearchParams(baseHref?.split("?")[1] ?? "");
+    if (k) p.set("lk", k);
+    else p.delete("lk");
+    return (
+      <Link key={k || "tat-ca"} href={`${baseHref?.split("?")[0]}?${p.toString()}`}>
+        <button type="button" className={lk === k ? "primary" : undefined}>
+          {nhan} · {k ? dem(k) : rows.length}
+        </button>
+      </Link>
+    );
+  };
   return (
     <NganKeo dongLai={dongLai}>
       <h1>{ten}</h1>
       <p className="muted">
-        {mo_ta}. {n(rows.length)} mã.
+        {mo_ta}. {n(hien.length)} mã
+        {hien.length !== rows.length && ` trên tổng ${n(rows.length)}`}.
       </p>
 
       {canh_bao && <p className="stale">{canh_bao}</p>}
+
+      {baseHref && rows.some((r) => r.loai_khach) && (
+        <p className="actions">
+          {nut("", "tất cả")}
+          {LOAI.filter((k) => dem(k) > 0).map((k) =>
+            nut(k, k ? (LOAI_KHACH[k] ?? k) : "không rõ loại"),
+          )}
+        </p>
+      )}
 
       {tomTat && (
         <>
           {!kemDanhSach && (
             <p className="muted">
-              Nhóm này quá đông để liệt kê từng mã — {n(rows.length)} dòng dựng ra vừa nặng
+              Nhóm này quá đông để liệt kê từng mã — {n(hien.length)} dòng dựng ra vừa nặng
               vừa không đọc được gì. Gom số theo mấy chiều dưới đây; cần từng mã thì mở màn
               hình danh sách.
             </p>
           )}
           {tomTat.map((c) => (
-            <BangGom key={c.ten} {...c} rows={rows} />
+            <BangGom key={c.ten} {...c} rows={hien} />
           ))}
           {kemDanhSach && <h2>Từng mã</h2>}
         </>
       )}
 
-      {tomTat && !kemDanhSach ? null : rows.length === 0 ? (
+      {tomTat && !kemDanhSach ? null : hien.length === 0 ? (
         <p className="empty">Không còn mã nào.</p>
       ) : chiFile ? (
         <div className="scroller">
@@ -106,7 +141,7 @@ export function ChiTietNhom({
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {hien.map((r) => (
                 <tr key={r.ma_chuan}>
                   <td className="mono">{r.ma}</td>
                   <td className="muted">{r.file_nhom_hang ?? "—"}</td>
@@ -135,7 +170,7 @@ export function ChiTietNhom({
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {hien.map((r) => (
                 <tr key={r.ma_chuan}>
                   <td className="mono">{r.ma}</td>
                   <td className="muted">{r.doi_may ?? "—"}</td>
