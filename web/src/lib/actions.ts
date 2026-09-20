@@ -52,47 +52,6 @@ export async function rejectMerge(formData: FormData) {
   revalidatePath("/duyet-trung");
 }
 
-const LoanInput = z.object({
-  device_imei: z
-    .string()
-    .trim()
-    .regex(/^[0-9]{14,16}$/, "IMEI phải là 14 đến 16 chữ số"),
-  install_ref: z.string().trim().max(100).nullish(),
-  issued_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày giao không hợp lệ"),
-  due_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Hạn thu hồi không hợp lệ"),
-  note: z.string().trim().max(500).nullish(),
-});
-
-export async function createLoan(formData: FormData) {
-  const input = LoanInput.parse({
-    device_imei: formData.get("device_imei"),
-    install_ref: formData.get("install_ref") || null,
-    issued_on: formData.get("issued_on"),
-    due_on: formData.get("due_on"),
-    note: formData.get("note") || null,
-  });
-
-  if (input.due_on < input.issued_on) {
-    throw new Error("Hạn thu hồi không được trước ngày giao");
-  }
-
-  await query(
-    `insert into loan_record (device_imei, install_ref, issued_on, due_on, note, entered_by)
-     values ($1, $2, $3::date, $4::date, $5, $6)`,
-    [input.device_imei, input.install_ref, input.issued_on, input.due_on, input.note, who(formData)],
-  );
-  revalidatePath("/may-muon");
-}
-
-export async function returnLoan(formData: FormData) {
-  const id = Uuid.parse(formData.get("id"));
-  await query(
-    "update loan_record set returned_on = current_date where id = $1 and returned_on is null",
-    [id],
-  );
-  revalidatePath("/may-muon");
-}
-
 /** Ai thao tác. Basic auth chỉ có một tài khoản dùng chung nên tạm ghi vậy. */
 function who(formData: FormData): string {
   const raw = formData.get("by");

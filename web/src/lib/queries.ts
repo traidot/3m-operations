@@ -32,18 +32,6 @@ export type MergeCandidate = {
   do_giong: string;
 };
 
-export type Loan = {
-  id: string;
-  device_imei: string;
-  install_ref: string | null;
-  issued_on: string;
-  due_on: string;
-  returned_on: string | null;
-  note: string | null;
-  entered_by: string;
-  ngay_qua_han: number;
-};
-
 export const getFindings = () =>
   query<Finding>(
     `select id, rule_key, severity, title, evidence, action, metabase_url,
@@ -66,16 +54,6 @@ export const getMergeCandidates = () =>
     `select party_a::text, party_b::text, ten_a, ten_b,
             dien_thoai_a, dien_thoai_b, do_giong::text
        from v_merge_candidate order by do_giong desc limit 100`,
-  );
-
-export const getLoans = () =>
-  query<Loan>(
-    `select l.id::text, l.device_imei, l.install_ref,
-            l.issued_on::text, l.due_on::text, l.returned_on::text,
-            l.note, l.entered_by,
-            greatest(current_date - l.due_on, 0) as ngay_qua_han
-       from loan_record l
-      order by (l.returned_on is not null), l.issued_on desc`,
   );
 
 export type MonthlyBilling = {
