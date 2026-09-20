@@ -45,12 +45,13 @@ export const VIEC: Viec[] = [
     hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
   },
   {
-    ma: "khach_khong_ho_so",
-    ten: "Máy ở khách mà không có hồ sơ cho thuê",
-    vi_sao: "chỉ có phiếu xuất, không có bản ghi cho thuê nên không biết cọc và kỳ cước",
+    ma: "khach_khong_dich_vu",
+    ten: "Máy ở khách mà không có dịch vụ nào",
+    vi_sao:
+      "có phiếu xuất nhưng không gắn thuê bao nào, nên không có kỳ cước và không ai đòi tiền",
     nhom: "pm",
-    nang: false,
-    hop: (r) => r.cho_dung === "O_KHACH" && r.trang_thai_may === null,
+    nang: true,
+    hop: (r) => r.cho_dung === "O_KHACH" && !r.co_thue_bao,
   },
   {
     ma: "chi_nha_mang",

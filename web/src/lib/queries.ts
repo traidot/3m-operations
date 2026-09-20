@@ -1744,6 +1744,8 @@ export type KhoMa = {
   warehouse_name: string | null;
   doc_date: string | null;
   trang_thai_may: string | null;
+  co_thue_bao: boolean;
+  thue_bao: string | null;
   tinh_trang_cuoc: string | null;
   ky_cuoi: string | null;
   coc: string | null;
@@ -1767,7 +1769,8 @@ export type KhoMa = {
 export const getKhoMa = () =>
   query<KhoMa>(
     `select ma_chuan, ma, loai_ma, pm_co, cho_dung, doi_may, doc_type, reason_type,
-            warehouse_name, doc_date::text, trang_thai_may, tinh_trang_cuoc,
+            warehouse_name, doc_date::text, trang_thai_may, co_thue_bao,
+            thue_bao, tinh_trang_cuoc,
             ky_cuoi, coc::text, trang_thai_coc, chua_thu::text,
             khach, ma_khach, loai_khach, nguon_khach, nha_mang, vendor,
             file_co, file_nhom_hang, file_ket_luan, file_vi_tri_so,

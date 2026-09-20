@@ -74,10 +74,10 @@ const BUOC: {
   },
   {
     ma: "3",
-    ten: "Có hồ sơ thuê bao",
-    mo_ta: "máy ở khách và có bản ghi cho thuê, nên biết cọc và kỳ cước",
+    ten: "Có gắn dịch vụ",
+    mo_ta: "máy ở khách và có thuê bao — hồ sơ cho thuê hoặc bản ghi gắn thuê bao",
     mau: "var(--lam)",
-    hop: (r) => r.cho_dung === "O_KHACH" && r.trang_thai_may !== null,
+    hop: (r) => r.cho_dung === "O_KHACH" && r.co_thue_bao,
   },
   {
     ma: "4",
@@ -118,7 +118,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   // tay ở ngoài, lấy nó làm gốc thì mặc nhiên coi nó đúng.
   const pmCo = dem((r) => r.pm_co);
   const oKhach = dem((r) => r.cho_dung === "O_KHACH");
-  const coThueBao = dem((r) => r.cho_dung === "O_KHACH" && r.trang_thai_may !== null);
+  const coThueBao = dem((r) => r.cho_dung === "O_KHACH" && r.co_thue_bao);
   const dangThu = dem((r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "DANG_RA_CUOC");
   const trongKho = dem((r) => r.cho_dung === "TRONG_KHO");
   const fileRieng = dem((r) => r.file_co && !r.pm_co);
@@ -126,7 +126,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const PHU = [
     "mã thiết bị có chứng từ trong phần mềm",
     `còn ${n(trongKho)} mã trong kho`,
-    `${n(oKhach - coThueBao)} máy ở khách chỉ có phiếu xuất, không có hồ sơ`,
+    `${n(oKhach - coThueBao)} máy ở khách mà không gắn thuê bao nào`,
     `${n(oKhach - dangThu)} máy ở khách mà tháng này không ra cước`,
   ];
 

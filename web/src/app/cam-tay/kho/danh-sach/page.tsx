@@ -204,6 +204,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {r.khach ?? "—"}
                     {r.ma_khach && ` · ${r.ma_khach}`}
                     {r.nguon_khach && <div className="mono">{r.nguon_khach}</div>}
+                    {/* nguon_khach đã ghi mã thuê bao rồi thì đừng in lại. */}
+                    {r.thue_bao && !r.nguon_khach?.startsWith("thuê bao") && (
+                      <div className="mono">thuê bao {r.thue_bao}</div>
+                    )}
                     {r.tinh_trang_cuoc && (
                       <div>
                         {MAY_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc}
