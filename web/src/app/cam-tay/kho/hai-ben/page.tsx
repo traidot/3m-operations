@@ -149,6 +149,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         ))}
       </div>
 
+      <p className="actions">
+        <a href="/cam-tay/kho/hai-ben/xuat">
+          <button type="button" className="primary">
+            Xuất Excel cả ba phần
+          </button>
+        </a>
+        <Link href="/cam-tay/kho/danh-sach">
+          <button type="button">Danh sách đầy đủ {n(tatCa.length)} mã</button>
+        </Link>
+      </p>
+
       <p className="muted khoi-ghi-chu">
         Phép trừ dễ đọc nhầm: <b>file − chỉ-file = cả-hai</b>, ra {n(so[1]!)}, nhưng đó là
         phần <i>chung</i> chứ không phải toàn bộ phần mềm đang quản lý. Phần mềm quản lý{" "}
