@@ -333,6 +333,11 @@ td .tag + .tag { margin-left: 4px; }
    Khách lẻ chiếm 3.706/3.747 nên để mức nền, hai vai trò hiếm thì nổi lên. */
 .chip.cam    { --mau-chip: var(--cam); }
 .chip.ctv    { --mau-chip: var(--lam); }
+/* Loại thiết bị: máy wifi cam, SIM tím. Cũng là phân loại chứ không xếp hạng,
+   nhưng phải khác hẳn dải màu vai trò khách vì hai thứ đứng cạnh nhau trên cùng
+   một hàng tiêu đề. */
+.chip.may-wifi { --mau-chip: var(--cam); }
+.chip.sim      { --mau-chip: var(--tim); }
 .chip.dai-ly { --mau-chip: var(--tim); }
 /* Chip bấm được: bỏ gạch chân của link, đậm màu lên khi rê chuột. */
 a.chip { text-decoration: none; transition: background-color 0.12s; }

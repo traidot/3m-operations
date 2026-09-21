@@ -311,8 +311,8 @@ export const NHOM_TB: Record<string, string> = {
 };
 
 export const MAU_NHOM_TB: Record<string, string> = {
-  MAY_WIFI: "cam",
-  SIM: "lam",
+  MAY_WIFI: "may-wifi",
+  SIM: "sim",
   KHONG_RO: "tat",
 };
 
