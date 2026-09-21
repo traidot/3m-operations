@@ -1907,3 +1907,56 @@ export const getThuChuaCanTru = () =>
        from v_telecom_thu_chua_can_tru
       order by so_ngay_treo desc, amount desc`,
   );
+
+export type DotThuCoDinh = {
+  source_id: string;
+  ky: string;
+  thang_tien_ve: string;
+  ngay_thu: string | null;
+  tai_khoan: string;
+  so_tien: string;
+  ma_hd: string | null;
+  dia_chi: string | null;
+  cuoc_thang: string | null;
+  trang_thai_hop_dong: string | null;
+  trang_thai_dot: string | null;
+  trang_thai_phieu: string | null;
+  phieu_da_xoa: boolean;
+  vao_bao_cao_cuoc: boolean;
+  cho_duyet: boolean;
+  can_tru_coc: boolean;
+};
+
+/**
+ * Đợt thu cước cố định của một tháng, lấy theo CẢ HAI trục rồi mới lọc ở màn
+ * hình: kỳ cước bằng tháng đó, HOẶC tiền về trong tháng đó. Một truy vấn cho
+ * cả hai khối vì phần lớn dòng thuộc cả hai — xem db/153.
+ */
+export const getDotThuCoDinhThang = (thang: string) =>
+  query<DotThuCoDinh>(
+    `select source_id, ky, thang_tien_ve, ngay_thu::text, tai_khoan, so_tien::text,
+            ma_hd, dia_chi, cuoc_thang::text, trang_thai_hop_dong,
+            trang_thai_dot, trang_thai_phieu, phieu_da_xoa, vao_bao_cao_cuoc,
+            cho_duyet, can_tru_coc
+       from v_fixed_dot_thu
+      where ky = $1 or thang_tien_ve = $1
+      order by ky, ngay_thu nulls last, ma_hd`,
+    [thang],
+  );
+
+/**
+ * Lúc đồng bộ gần nhất của sổ thu cố định. Màn hình phải ghi mốc này: số ở đây
+ * so với CMS chỉ khớp nếu cùng thời điểm, mà bên đó nhân viên vẫn đang nhập.
+ */
+export const getDotThuChotLuc = () =>
+  query<{ chot_luc: string | null }>(
+    `select max(synced_at)::text as chot_luc from fixed_fee_installment where source = 'FIXED'`,
+  );
+
+/** Các tháng có số liệu, mới nhất trước — để dựng nút chọn tháng. */
+export const getThangCoSoLieu = () =>
+  query<{ thang: string }>(
+    `select distinct ky as thang from v_fixed_dot_thu
+      union select distinct thang_tien_ve from v_fixed_dot_thu
+      order by 1 desc`,
+  );

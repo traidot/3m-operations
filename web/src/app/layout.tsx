@@ -40,6 +40,7 @@ const MENU: NhomMenu[] = [
     nhom: "Wifi cố định",
     muc: [
       { ten: "Báo cáo", href: "/thang" },
+      { ten: "Kỳ cước và dòng tiền", href: "/dong-tien" },
       { ten: "Hợp đồng", href: "/hop-dong" },
       { ten: "Lắp đặt", href: "/lap-dat" },
       { ten: "Cước", href: "/cuoc" },
