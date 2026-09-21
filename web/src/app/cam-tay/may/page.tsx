@@ -3,7 +3,7 @@ import { ThanBam } from "../../than-bam";
 import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
-import { COC, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
+import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +52,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
   // Đời máy là danh sách động (18 sản phẩm bên nguồn) nên để select, không phải nút.
   const doiMay = [...new Set(tatCa.map((r) => r.model).filter((v): v is string => !!v))].sort();
+  const lk = mot(sp.lk);
+  if (lk) rows = rows.filter((r) => (r.loai_khach ?? "khong-ro") === lk);
   const may = mot(sp.may);
   if (may) rows = rows.filter((r) => (may === "(trống)" ? !r.model : r.model === may));
 
@@ -137,6 +139,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             IMEI, mã khách, tên khách hoặc mã thuê bao
             <input type="text" name="q" defaultValue={mot(sp.q)} placeholder="IMEI, KH…" />
           </label>
+          <input type="hidden" name="lk" value={lk} />
           <label>
             Loại máy
             <select name="may" defaultValue={may}>
@@ -165,13 +168,38 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </form>
 
       <p className="actions">
-        <Link href={link({ q: mot(sp.q) || undefined, may: may || undefined })}>
+        <Link href={link({ q: mot(sp.q) || undefined, may: may || undefined, loc: loc || undefined })}>
+          <button type="button" className={lk === "" ? "primary" : undefined}>
+            Mọi loại khách · {n(String(tatCa.length))}
+          </button>
+        </Link>
+        {["CUSTOMER", "COLLABORATOR", "AGENCY", "khong-ro"].map((k) => {
+          const so = tatCa.filter((r) => (r.loai_khach ?? "khong-ro") === k).length;
+          if (so === 0) return null;
+          return (
+            <Link
+              key={k}
+              href={link({
+                lk: k, q: mot(sp.q) || undefined,
+                may: may || undefined, loc: loc || undefined,
+              })}
+            >
+              <button type="button" className={lk === k ? "primary" : undefined}>
+                {k === "khong-ro" ? "không rõ loại" : (LOAI_KHACH[k] ?? k)} · {n(String(so))}
+              </button>
+            </Link>
+          );
+        })}
+      </p>
+
+      <p className="actions">
+        <Link href={link({ q: mot(sp.q) || undefined, may: may || undefined, lk: lk || undefined })}>
           <button type="button" className={loc === "" ? "primary" : undefined}>
             Tất cả · {n(String(tatCa.length))}
           </button>
         </Link>
         {Object.entries(LOC).map(([ma, { ten, hop }]) => (
-          <Link key={ma} href={link({ loc: ma, q: mot(sp.q) || undefined, may: may || undefined })}>
+          <Link key={ma} href={link({ loc: ma, q: mot(sp.q) || undefined, may: may || undefined, lk: lk || undefined })}>
             <button type="button" className={loc === ma ? "primary" : undefined}>
               {ten} · {n(String(tatCa.filter(hop).length))}
             </button>
@@ -183,6 +211,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         {n(String(rows.length))} máy
         {loc && ` · ${LOC[loc]!.ten}`}
         {may && ` · ${may}`}
+        {lk && ` · ${lk === "khong-ro" ? "không rõ loại" : (LOAI_KHACH[lk] ?? lk)}`}
         {tim && ` · tìm “${mot(sp.q)}”`}
       </p>
 
@@ -212,7 +241,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               {rows.map((r) => (
                 <tr
                   key={r.imei}
-                  data-href={link({ loc: loc || undefined, q: mot(sp.q) || undefined, may: may || undefined, xem: r.imei })}
+                  data-href={link({ loc: loc || undefined, q: mot(sp.q) || undefined, may: may || undefined, lk: lk || undefined, xem: r.imei })}
                   className={moMay === r.imei ? "dang-mo" : undefined}
                 >
                   <td className="mono">{r.imei}</td>
@@ -239,15 +268,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     </div>
                   </td>
                   <td>
-                    {r.thue_bao_hien_tai ? (
-                      <>
-                        <span className="hai-dong">{r.khach}</span>
-                        <div>
-                          <ChipLoaiKhach ma={r.loai_khach} />
-                        </div>
-                      </>
-                    ) : (
-                      <span className="muted">chưa gắn thuê bao</span>
+                    <span className="hai-dong">{r.khach}</span>
+                    {r.ma_khach && <div className="mono muted">{r.ma_khach}</div>}
+                    <div>
+                      <ChipLoaiKhach ma={r.loai_khach} />
+                    </div>
+                    {!r.thue_bao_hien_tai && (
+                      <div className="muted">chưa gắn thuê bao</div>
                     )}
                   </td>
                   <td className="num mono">
@@ -293,7 +320,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       {moMay && (
         <ChiTietMay
           imei={moMay}
-          dongLai={link({ loc: loc || undefined, q: mot(sp.q) || undefined, may: may || undefined })}
+          dongLai={link({ loc: loc || undefined, q: mot(sp.q) || undefined, may: may || undefined, lk: lk || undefined })}
         />
       )}
     </main>
