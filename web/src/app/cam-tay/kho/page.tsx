@@ -2,7 +2,9 @@ import Link from "next/link";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
 import { ChiTietNhom, type Chieu } from "./chi-tiet";
 import { VIEC } from "./viec";
-import { KHO_PM, LOAI_KHACH, MAU_LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
+import {
+  KHO_PM, LOAI_KHACH, MAU_LOAI_KHACH, MAU_NHOM_TB, MAY_CUOC, NHOM_TB,
+} from "@/lib/nhan";
 
 const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 
@@ -28,6 +30,9 @@ const maKetLuan = (s: string | null) => (s ?? "").slice(0, 2);
 
 /** Thứ tự cố định để bảng không nhảy chỗ giữa hai lần tải. */
 const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", ""];
+
+/** Máy wifi phải đòi về, SIM thì huỷ ở nhà mạng là xong — hai việc khác nhau. */
+const NHOM = ["MAY_WIFI", "SIM"] as const;
 
 /** Chiều gom số cho ngăn kéo của bước đông mã. */
 const CHIEU: Record<string, Chieu> = {
@@ -359,6 +364,11 @@ function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
           <tr>
             <th className="num">Số mã</th>
             <th>Việc</th>
+            {NHOM.map((k) => (
+              <th key={k} className="num">
+                <span className={`chip ${MAU_NHOM_TB[k] ?? "tat"}`}>{NHOM_TB[k]}</span>
+              </th>
+            ))}
             {LOAI.map((k) => (
               <th key={k || "khong-ro"} className="num">
                 {k ? (
@@ -385,6 +395,11 @@ function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
                   {v.ten}
                   <div className="muted">{v.vi_sao}</div>
                 </td>
+                {NHOM.map((k) => (
+                  <td key={k} className="num mono muted">
+                    {n(d.filter((r) => r.nhom_tb === k).length)}
+                  </td>
+                ))}
                 {LOAI.map((k) => {
                   const so = d.filter((r) => (r.loai_khach ?? "") === k).length;
                   return (
