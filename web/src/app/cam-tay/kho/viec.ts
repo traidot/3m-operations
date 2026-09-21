@@ -16,6 +16,8 @@ export type Viec = {
   vi_sao: string;
   nhom: "pm" | "so";
   nang: boolean;
+  /** Việc này là đi ĐÒI MÁY VỀ — SIM thì không ai đòi, nên trừ khỏi cần xử lý. */
+  thu_hoi?: boolean;
   hop: (r: KhoMa) => boolean;
 };
 
@@ -42,6 +44,7 @@ export const VIEC: Viec[] = [
     vi_sao: "dịch vụ dừng rồi nhưng không có phiếu nhập nào, cọc còn treo",
     nhom: "pm",
     nang: false,
+    thu_hoi: true,
     hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
   },
   {
@@ -67,6 +70,7 @@ export const VIEC: Viec[] = [
     vi_sao: "file xếp mã này vào mục thu hồi, nhưng phần mềm không có phiếu nhập về",
     nhom: "so",
     nang: false,
+    thu_hoi: true,
     hop: (r) => r.file_vi_tri_so === "DS thu hồi" && r.cho_dung === "O_KHACH",
   },
   {

@@ -26,6 +26,8 @@ type DongMay = {
   ten: string;
   y: string;
   ro?: boolean;
+  /** Việc đi ĐÒI MÁY VỀ — SIM thì không ai đòi, nên trừ khỏi cần xử lý. */
+  thu_hoi?: boolean;
   don: "may";
   hop: (r: KhoMa) => boolean;
   tien?: (r: KhoMa) => number;
@@ -177,7 +179,7 @@ const KHAU: Khau[] = [
         tien: (r) => so(r.no), nhan_tien: "đang đòi",
       },
       {
-        ma: "huy-chua-thu-may", don: "may", ro: true,
+        ma: "huy-chua-thu-may", don: "may", ro: true, thu_hoi: true,
         ten: "Huỷ rồi mà máy chưa về",
         y: "không có phiếu nhập nào, cọc còn treo",
         hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
@@ -299,13 +301,22 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                             )}
                       </td>
                       <td className={`num mono${d.ro ? " bad" : " muted"}`}>
-                        {d.ro
-                          ? n(
-                              (rows as { loai_khach: string | null }[]).filter(
-                                (r) => r.loai_khach !== "AGENCY",
+                        {d.ro ? (
+                          <>
+                            {n(
+                              (rows as { loai_khach: string | null; nhom_tb?: string }[]).filter(
+                                (r) =>
+                                  r.loai_khach !== "AGENCY" &&
+                                  !("thu_hoi" in d && d.thu_hoi && r.nhom_tb === "SIM"),
                               ).length,
-                            )
-                          : "—"}
+                            )}
+                            {"thu_hoi" in d && d.thu_hoi && (
+                              <div className="muted">đã trừ SIM</div>
+                            )}
+                          </>
+                        ) : (
+                          "—"
+                        )}
                       </td>
                       <td className="num mono">
                         {tien === null || tien === 0 ? (
