@@ -26,7 +26,10 @@ type DongMay = {
   ten: string;
   y: string;
   ro?: boolean;
-  /** Việc đi ĐÒI MÁY VỀ — SIM thì không ai đòi, nên trừ khỏi cần xử lý. */
+  /**
+   * Việc LẤY MÁY VỀ KHO. SIM không cần lấy về — xuất kho là xong, không có bước
+   * nhập lại — nên trừ SIM khỏi số cần xử lý.
+   */
   thu_hoi?: boolean;
   don: "may";
   hop: (r: KhoMa) => boolean;
@@ -52,7 +55,7 @@ const so = (v: string | null) => Number(v ?? 0);
 /** Thứ tự cố định để cột không nhảy chỗ giữa hai lần tải. */
 const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY"] as const;
 
-/** Máy wifi phải đòi về, SIM thì huỷ là xong — tách ra mới biết việc nào thật. */
+/** Máy wifi phải lấy về kho, SIM thì xuất kho là xong — hai việc khác nhau. */
 const NHOM = ["MAY_WIFI", "SIM"] as const;
 
 /**
@@ -210,9 +213,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <p className="muted">
         Hai cột <b>máy wifi</b> và <b>SIM</b> quyết định việc phải làm ở khâu 5: máy wifi ở
-        khách mà dịch vụ dừng thì <b>phải đòi về</b> — nó là tài sản, có cọc. SIM thì huỷ ở
-        nhà mạng là xong, không ai đi đòi cái SIM. Dòng nào đếm thuê bao thì hai cột này để
-        gạch, vì thuê bao không có loại thiết bị.
+        khách mà dịch vụ dừng thì <b>phải lấy về kho</b> — nó là tài sản, có cọc, có vòng
+        đời nhập rồi lại xuất. <b>SIM thì không cần lấy về kho: xuất kho là xong, không có
+        bước nhập lại.</b> Dòng nào đếm thuê bao thì hai cột này để gạch, vì thuê bao không
+        có loại thiết bị.
       </p>
 
       {KHAU.map((k) => (
@@ -311,7 +315,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                               ).length,
                             )}
                             {"thu_hoi" in d && d.thu_hoi && (
-                              <div className="muted">đã trừ SIM</div>
+                              <div className="muted">đã trừ SIM — SIM không phải lấy về kho</div>
                             )}
                           </>
                         ) : (

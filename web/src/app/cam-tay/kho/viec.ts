@@ -16,7 +16,10 @@ export type Viec = {
   vi_sao: string;
   nhom: "pm" | "so";
   nang: boolean;
-  /** Việc này là đi ĐÒI MÁY VỀ — SIM thì không ai đòi, nên trừ khỏi cần xử lý. */
+  /**
+   * Việc này là LẤY MÁY VỀ KHO. SIM không cần lấy về — xuất kho là xong, không
+   * có bước nhập lại — nên trừ SIM khỏi số cần xử lý.
+   */
   thu_hoi?: boolean;
   hop: (r: KhoMa) => boolean;
 };

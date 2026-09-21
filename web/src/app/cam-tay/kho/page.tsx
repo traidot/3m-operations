@@ -236,8 +236,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </div>
       <p className="muted">
         <b>Cái gì thuộc đại lý thì không tính vào việc cần xử lý</b> — đại lý tự vận hành và
-        tự thu của khách họ. <b>Việc đi đòi máy về thì trừ thêm SIM</b>: SIM huỷ ở nhà mạng
-        là xong, không ai đi đòi cái SIM. Vẫn hiện đủ số để biết, nhưng cột “Cần xử lý” ở
+        tự thu của khách họ. <b>Việc lấy máy về kho thì trừ thêm SIM</b>: SIM không cần lấy về kho,
+        xuất kho là xong, không có bước nhập lại. Vẫn hiện đủ số để biết, nhưng cột “Cần xử lý” ở
         hai bảng dưới đã trừ những phần đó ra.
       </p>
 
@@ -415,7 +415,7 @@ function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
                         r.loai_khach !== "AGENCY" && !(v.thu_hoi && r.nhom_tb === "SIM"),
                     ).length,
                   )}
-                  {v.thu_hoi && <div className="muted">đã trừ SIM</div>}
+                  {v.thu_hoi && <div className="muted">đã trừ SIM — SIM không phải lấy về kho</div>}
                 </td>
                 <td className="khong-xuong-dong">
                   {d.length > 0 && <Link href={`/cam-tay/kho?viec=${v.ma}`}>xem →</Link>}
