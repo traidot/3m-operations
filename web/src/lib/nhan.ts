@@ -299,6 +299,23 @@ export const KENH_THU: Record<string, string> = {
   CASH: "tiền mặt",
 };
 
+/**
+ * Máy wifi hay SIM. Quan trọng vì việc phải làm khác hẳn: máy wifi ở khách mà
+ * dịch vụ dừng thì PHẢI ĐÒI VỀ — nó là tài sản, có cọc. SIM thì huỷ ở nhà mạng
+ * là xong, không ai đi đòi cái sim về.
+ */
+export const NHOM_TB: Record<string, string> = {
+  MAY_WIFI: "máy wifi",
+  SIM: "SIM",
+  KHONG_RO: "không rõ",
+};
+
+export const MAU_NHOM_TB: Record<string, string> = {
+  MAY_WIFI: "cam",
+  SIM: "lam",
+  KHONG_RO: "tat",
+};
+
 export const PHIEU_KHO: Record<string, string> = {
   INVENTORY_IN: "phiếu nhập",
   INVENTORY_OUT: "phiếu xuất",

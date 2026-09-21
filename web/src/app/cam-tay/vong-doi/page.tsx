@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChiTietNhom } from "../kho/chi-tiet";
 import { ChiTietThueBao } from "./thue-bao";
 import { getKhoMa, getThueBaoNo, type KhoMa, type ThueBaoNo } from "@/lib/queries";
-import { LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
+import { LOAI_KHACH, MAU_LOAI_KHACH, MAU_NHOM_TB, NHOM_TB } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +49,9 @@ const so = (v: string | null) => Number(v ?? 0);
 
 /** Thứ tự cố định để cột không nhảy chỗ giữa hai lần tải. */
 const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY"] as const;
+
+/** Máy wifi phải đòi về, SIM thì huỷ là xong — tách ra mới biết việc nào thật. */
+const NHOM = ["MAY_WIFI", "SIM"] as const;
 
 /**
  * Mục mà file Excel xếp mã vào. In kèm dưới mấy dòng rò để biết đống đó gồm
@@ -203,6 +206,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         để xem danh sách, không nhảy trang.
       </p>
 
+      <p className="muted">
+        Hai cột <b>máy wifi</b> và <b>SIM</b> quyết định việc phải làm ở khâu 5: máy wifi ở
+        khách mà dịch vụ dừng thì <b>phải đòi về</b> — nó là tài sản, có cọc. SIM thì huỷ ở
+        nhà mạng là xong, không ai đi đòi cái SIM. Dòng nào đếm thuê bao thì hai cột này để
+        gạch, vì thuê bao không có loại thiết bị.
+      </p>
+
       {KHAU.map((k) => (
         <section key={k.so}>
           <h2>
@@ -214,6 +224,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <tr>
                   <th className="num">Số lượng</th>
                   <th>Chỉ số</th>
+                  {NHOM.map((k) => (
+                    <th key={k} className="num">
+                      <span className={`chip ${MAU_NHOM_TB[k] ?? "tat"}`}>{NHOM_TB[k]}</span>
+                    </th>
+                  ))}
                   {LOAI.map((l) => (
                     <th key={l} className="num">
                       <span className={`chip ${MAU_LOAI_KHACH[l] ?? "tat"}`}>
@@ -253,6 +268,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                           </div>
                         )}
                       </td>
+                      {NHOM.map((k) => (
+                        <td key={k} className="num mono muted">
+                          {d.don === "may"
+                            ? n((rows as KhoMa[]).filter((r) => r.nhom_tb === k).length)
+                            : "—"}
+                        </td>
+                      ))}
                       {LOAI.map((l) => (
                         <td key={l} className="num mono muted">
                           {k.so === "1"
@@ -291,6 +313,67 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     </tr>
                   );
                 })}
+                {/* Các dòng trong một khâu CHỒNG nhau — "trong kho mà chưa từng
+                    cho thuê" nằm trong "đang nằm trong kho" — nên tổng phải là
+                    HỢP, không phải phép cộng. Cộng thẳng là đếm hai lần. */}
+                {(() => {
+                  const hop = k.dong.some((d) => d.don === "may")
+                    ? may.filter((r) =>
+                        k.dong.some((d) => d.don === "may" && (d.hop as (x: KhoMa) => boolean)(r)),
+                      )
+                    : null;
+                  const hopTb = k.dong.some((d) => d.don === "tb")
+                    ? tb.filter((r) =>
+                        k.dong.some((d) => d.don === "tb" && (d.hop as (x: ThueBaoNo) => boolean)(r)),
+                      )
+                    : null;
+                  const dem = (l: string) =>
+                    (hop?.filter((r) => r.loai_khach === l).length ?? 0) +
+                    (hopTb?.filter((r) => r.loai_khach === l).length ?? 0);
+                  return (
+                    <tr>
+                      <td className="num mono">
+                        <b>{n((hop?.length ?? 0) + (hopTb?.length ?? 0))}</b>
+                        <div className="muted">
+                          {[hop && `${n(hop.length)} máy`, hopTb && `${n(hopTb.length)} thuê bao`]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
+                      </td>
+                      <td>
+                        <b>Tổng khâu {k.so}</b>
+                        <div className="muted">
+                          đếm mỗi mã một lần — các dòng trên chồng nhau nên đây là hợp, không
+                          phải phép cộng
+                        </div>
+                      </td>
+                      {NHOM.map((nh) => (
+                        <td key={nh} className="num mono">
+                          {hop ? <b>{n(hop.filter((r) => r.nhom_tb === nh).length)}</b> : "—"}
+                        </td>
+                      ))}
+                      {LOAI.map((l) => (
+                        <td key={l} className="num mono">
+                          {k.so === "1" ? "—" : <b>{n(dem(l))}</b>}
+                        </td>
+                      ))}
+                      <td className="num mono">
+                        {k.so === "1" ? (
+                          "—"
+                        ) : (
+                          <b>
+                            {n(
+                              (hop?.filter((r) => r.loai_khach === null).length ?? 0) +
+                                (hopTb?.filter((r) => r.loai_khach === null).length ?? 0),
+                            )}
+                          </b>
+                        )}
+                      </td>
+                      <td className="num mono muted">—</td>
+                      <td />
+                    </tr>
+                  );
+                })()}
               </tbody>
             </table>
           </div>
