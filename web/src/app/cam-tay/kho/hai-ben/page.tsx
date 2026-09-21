@@ -83,10 +83,10 @@ const PHAN: {
   {
     ma: "chi-pm",
     ten: "Chỉ phần mềm có",
-    mo_ta: "phần mềm có chứng từ, bản đối chiếu không nhắc tới",
+    mo_ta: "phần mềm có chứng từ, file không liệt kê — phần lớn là cố ý",
     mau: "var(--lam)",
     canh_bao:
-      "97% nhóm này là H1 và U3 — hai đời máy mà danh sách nhóm hàng của file (U20, MR1, WIMAX, SB, Datacall) không hề có. Nói cách khác file thiếu hẳn lô H1 và U3, chứ không phải bỏ sót lẻ tẻ. Và 1.198 cái trong số đó đang nằm ở tay khách.",
+      "Nhóm này KHÔNG phải lỗi. Kế toán đã xác nhận: cục H1 và U3 ngừng dùng, tháng 1 đổi cho khách từ H1 sang U20 rồi xuất hết H1 ra khỏi diện theo dõi — nên file đối chiếu không liệt kê. Sim data 1 năm thì mua về bán thẳng, không qua kho. Còn đúng 1 sim Softbank lẽ ra phải có mà file ghi bằng mã ICCID chứ không phải số điện thoại nên không dò được — cái đó là chưa thấy thông tin, không phải mất.",
     gom: ["khach", "loaiMa", "choDung", "doiMay", "kho", "cuoc"],
     kem: true,
     hop: (r) => r.pm_co && !r.file_co,

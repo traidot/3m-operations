@@ -90,8 +90,9 @@ export const VIEC: Viec[] = [
   },
   {
     ma: "pm_co_file_khong",
-    ten: "Phần mềm có mã ↔ file không nhắc tới",
-    vi_sao: "phần mềm có chứng từ, bản đối chiếu bỏ sót",
+    ten: "Phần mềm có mã ↔ file không liệt kê",
+    vi_sao:
+      "phần lớn là cố ý: H1 và U3 đã ngừng dùng nên xuất khỏi diện theo dõi, sim data 1 năm mua về bán thẳng không qua kho",
     nhom: "so",
     nang: false,
     hop: (r) => r.pm_co && !r.file_co,
