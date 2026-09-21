@@ -269,6 +269,10 @@ summary:hover { color: var(--ok); }
 .ngan-keo h1 { margin-top: 24px; }
 .ngan-keo h2:first-of-type { margin-top: 20px; }
 tr.dang-mo { background: var(--surface-2); }
+/* Dòng tổng cuối bảng: tách khỏi phần thân bằng một vạch, không bấm được. */
+tr.hang-tong td { border-top: 2px solid var(--line-strong); font-weight: 600; cursor: default; }
+tr.hang-tong:hover { background: none; }
+
 /* Bảng tháng ở trang Cước: dòng tháng bấm được, dòng trạng thái bên dưới thì không. */
 .bang-thang tbody > tr:not(.sub) { cursor: pointer; }
 .bang-thang tbody > tr:not(.sub):hover { background: var(--surface); }

@@ -2,6 +2,15 @@ import ExcelJS from "exceljs";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
 import { KHO_PM, LOAI_KHACH, LOAI_MA, MAY_CUOC, PHIEU_KHO } from "@/lib/nhan";
 
+/** Cùng cách xếp nhóm với màn hình /cam-tay/kho/hai-ben. */
+const NHOM_KHACH: { ten: string; hop: (r: KhoMa) => boolean }[] = [
+  { ten: LOAI_KHACH.CUSTOMER!, hop: (r) => r.loai_khach === "CUSTOMER" },
+  { ten: LOAI_KHACH.COLLABORATOR!, hop: (r) => r.loai_khach === "COLLABORATOR" },
+  { ten: LOAI_KHACH.AGENCY!, hop: (r) => r.loai_khach === "AGENCY" },
+  { ten: "chưa giao cho ai", hop: (r) => r.pm_co && !r.loai_khach },
+  { ten: "chỉ có trên file", hop: (r) => !r.pm_co },
+];
+
 const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 const so = (v: string | null) => (v === null ? null : Number(v));
 
@@ -47,6 +56,37 @@ export async function GET() {
   ]) {
     tq.addRow(r);
   }
+
+  const kh = wb.addWorksheet("Theo người đang giữ", { views: [{ state: "frozen", ySplit: 1 }] });
+  kh.columns = [
+    { header: "Người đang giữ", key: "nhom", width: 22 },
+    { header: "Tổng", key: "tong", width: 10, style: { numFmt: "#,##0" } },
+    ...PHAN.map((p) => ({ header: p.ten, key: p.ten, width: 17, style: { numFmt: "#,##0" } })),
+    { header: "Trong đó SIM", key: "sim", width: 14, style: { numFmt: "#,##0" } },
+    { header: "Ở khách", key: "o_khach", width: 11, style: { numFmt: "#,##0" } },
+    { header: "Trong kho", key: "trong_kho", width: 11, style: { numFmt: "#,##0" } },
+    { header: "Cước chưa thu", key: "chua_thu", width: 15, style: { numFmt: "#,##0" } },
+    { header: "Cọc đang giữ", key: "coc", width: 14, style: { numFmt: "#,##0" } },
+  ];
+  kh.getRow(1).font = { bold: true };
+  const hang = (ten: string, hop: (r: KhoMa) => boolean) => {
+    const d = rows.filter(hop);
+    const dem = (h: (r: KhoMa) => boolean) => d.filter(h).length;
+    const tien = (lay: (r: KhoMa) => string | null) =>
+      d.reduce((t, r) => t + Number(lay(r) ?? 0), 0);
+    return {
+      nhom: ten,
+      tong: d.length,
+      ...Object.fromEntries(PHAN.map((p) => [p.ten, dem(p.hop)])),
+      sim: dem((r) => r.nhom_tb === "SIM"),
+      o_khach: dem((r) => r.cho_dung === "O_KHACH"),
+      trong_kho: dem((r) => r.cho_dung === "TRONG_KHO"),
+      chua_thu: tien((r) => r.chua_thu),
+      coc: tien((r) => r.coc),
+    };
+  };
+  for (const g of NHOM_KHACH) kh.addRow(hang(g.ten, g.hop));
+  kh.addRow(hang("Tổng", () => true)).font = { bold: true };
 
   for (const p of PHAN) {
     const ws = wb.addWorksheet(p.ten, { views: [{ state: "frozen", ySplit: 1 }] });

@@ -3,10 +3,22 @@ import { ChiTietNhom, type Chieu } from "../chi-tiet";
 import { getKhoLanNhap, getKhoMa, type KhoMa } from "@/lib/queries";
 import { KHO_PM, LOAI_KHACH, LOAI_MA, MAU_LOAI_KHACH, MAY_CUOC } from "@/lib/nhan";
 
-const KHONG_RO = "khong-ro";
-
-/** Thứ tự cố định để bảng không nhảy chỗ giữa hai lần tải. */
-const LOAI = ["CUSTOMER", "COLLABORATOR", "AGENCY", KHONG_RO];
+/**
+ * Xếp mã theo người đang giữ. Hai nhóm cuối không phải "không rõ loại" mà là
+ * hai tình trạng khác hẳn nhau, gộp lại thì đọc ra số vô nghĩa:
+ *  - phần mềm có mã nhưng chưa giao cho ai — gần như đều đang nằm trong kho
+ *  - mã chỉ có trên file, không có gì bên nguồn để tra khách
+ */
+const NHOM_KHACH: { ma: string; ten: string; mau?: string; hop: (r: KhoMa) => boolean }[] = [
+  { ma: "CUSTOMER", ten: LOAI_KHACH.CUSTOMER!, mau: MAU_LOAI_KHACH.CUSTOMER,
+    hop: (r) => r.loai_khach === "CUSTOMER" },
+  { ma: "COLLABORATOR", ten: LOAI_KHACH.COLLABORATOR!, mau: MAU_LOAI_KHACH.COLLABORATOR,
+    hop: (r) => r.loai_khach === "COLLABORATOR" },
+  { ma: "AGENCY", ten: LOAI_KHACH.AGENCY!, mau: MAU_LOAI_KHACH.AGENCY,
+    hop: (r) => r.loai_khach === "AGENCY" },
+  { ma: "chua-giao", ten: "chưa giao cho ai", hop: (r) => r.pm_co && !r.loai_khach },
+  { ma: "chi-file", ten: "chỉ có trên file", hop: (r) => !r.pm_co },
+];
 
 export const dynamic = "force-dynamic";
 
@@ -125,6 +137,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const [tatCa, lan] = await Promise.all([getKhoMa(), getKhoLanNhap()]);
 
   const so = PHAN.map((p) => tatCa.filter(p.hop).length);
+  // Đại lý ngoài phạm vi: họ tự quản máy của họ, nên số cần lo phải trừ ra.
+  const daiLy = tatCa.filter((r) => r.loai_khach === "AGENCY");
+  const oKhachCanLo = tatCa.filter(
+    (r) => r.cho_dung === "O_KHACH" && r.loai_khach && r.loai_khach !== "AGENCY",
+  ).length;
   const mo = PHAN.find((p) => p.ma === mot(sp.xem));
   const lk = mot(sp.lk);
   const vt = mot(sp.vt);
@@ -206,51 +223,70 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </tbody>
         </table>
       </div>
-      <h2>Theo loại khách</h2>
+      <h2>Theo người đang giữ</h2>
       <p className="muted">
-        Loại khách chỉ đọc được ở phía phần mềm — nhóm chỉ-có-trên-file không có mã nào bên
-        nguồn nên không có khách để phân loại.
+        Khách chỉ đọc được ở phía phần mềm. Hai dòng cuối không phải &ldquo;không rõ
+        loại&rdquo;: một là mã phần mềm có mà chưa giao cho ai — gần như đều đang nằm trong
+        kho; một là mã chỉ tồn tại trên file, không có gì bên nguồn để tra khách.
       </p>
       <div className="scroller">
         <table className="bang-thang">
           <thead>
             <tr>
-              <th>Loại khách</th>
+              <th>Người đang giữ</th>
               <th className="num">Tổng</th>
               {PHAN.map((p) => (
                 <th key={p.ma} className="num">
                   {p.ten}
                 </th>
               ))}
+              <th className="num">Trong đó SIM</th>
+              <th className="num">Ở khách</th>
+              <th className="num">Trong kho</th>
+              <th className="num">Cước chưa thu</th>
+              <th className="num">Cọc đang giữ</th>
             </tr>
           </thead>
           <tbody>
-            {LOAI.map((k) => {
-              const d = tatCa.filter((r) => (r.loai_khach ?? KHONG_RO) === k);
+            {[...NHOM_KHACH, { ma: "tong", ten: "Tổng", hop: () => true }].map((k) => {
+              const d = tatCa.filter(k.hop);
               if (d.length === 0) return null;
+              const tien = (lay: (r: KhoMa) => string | null) =>
+                d.reduce((s, r) => s + Number(lay(r) ?? 0), 0);
+              const dem = (hop: (r: KhoMa) => boolean) => d.filter(hop).length;
               return (
-                <tr key={k}>
+                <tr key={k.ma} className={k.ma === "tong" ? "hang-tong" : undefined}>
                   <td>
-                    {k === KHONG_RO ? (
-                      <span className="muted">không rõ loại</span>
+                    {k.mau ? (
+                      <span className={`chip ${k.mau}`}>{k.ten}</span>
+                    ) : k.ma === "tong" ? (
+                      <b>{k.ten}</b>
                     ) : (
-                      <span className={`chip ${MAU_LOAI_KHACH[k] ?? "tat"}`}>
-                        {LOAI_KHACH[k] ?? k}
-                      </span>
+                      <span className="muted">{k.ten}</span>
                     )}
                   </td>
                   <td className="num mono">{n(d.length)}</td>
                   {PHAN.map((p) => (
                     <td key={p.ma} className="num mono">
-                      {n(d.filter(p.hop).length)}
+                      {n(dem(p.hop))}
                     </td>
                   ))}
+                  <td className="num mono muted">{n(dem((r) => r.nhom_tb === "SIM"))}</td>
+                  <td className="num mono">{n(dem((r) => r.cho_dung === "O_KHACH"))}</td>
+                  <td className="num mono">{n(dem((r) => r.cho_dung === "TRONG_KHO"))}</td>
+                  <td className="num mono">{n(tien((r) => r.chua_thu))}</td>
+                  <td className="num mono">{n(tien((r) => r.coc))}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+      <p className="muted">
+        <b>Đại lý thì mình không phải lo</b> — họ tự quản máy của họ. Trừ {n(daiLy.length)} mã
+        đó ra, phần thuộc phạm vi của mình còn <b>{n(tatCa.length - daiLy.length)}</b> mã, trong
+        đó <b>{n(oKhachCanLo)}</b> mã đang ở tay khách lẻ và cộng tác viên.
+      </p>
 
       <p className="stale">
         <b>19 mã ICCID không khớp được cái nào</b> — 4 cái file gọi SIM bằng ICCID trong khi
