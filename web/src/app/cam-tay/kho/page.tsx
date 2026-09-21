@@ -230,8 +230,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </table>
       </div>
       <p className="muted">
-        Đại lý gần như không ra cước là đúng — thu cước wifi cầm tay cho đại lý hiện không
-        thuộc diện mình quản lý.
+        <b>Cái gì thuộc đại lý thì không tính vào việc cần xử lý</b> — đại lý tự vận hành và
+        tự thu của khách họ. Vẫn hiện đủ số để biết, nhưng cột “Cần xử lý” ở hai bảng dưới
+        đã trừ đại lý ra.
       </p>
 
       <h2>Phần mềm tự mâu thuẫn</h2>
@@ -391,6 +392,9 @@ function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
                     </td>
                   );
                 })}
+                <td className={`num mono${v.nang ? " bad" : ""}`}>
+                  {n(d.filter((r) => r.loai_khach !== "AGENCY").length)}
+                </td>
                 <td className="khong-xuong-dong">
                   {d.length > 0 && <Link href={`/cam-tay/kho?viec=${v.ma}`}>xem →</Link>}
                 </td>

@@ -237,6 +237,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     </th>
                   ))}
                   <th className="num">Không rõ</th>
+                  <th className="num" title="Đã trừ đại lý — đại lý tự vận hành, không thuộc phạm vi mình theo dõi">
+                    Cần xử lý
+                  </th>
                   <th className="num">Tiền</th>
                   <th />
                 </tr>
@@ -294,6 +297,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                                 (r) => r.loai_khach === null,
                               ).length,
                             )}
+                      </td>
+                      <td className={`num mono${d.ro ? " bad" : " muted"}`}>
+                        {d.ro
+                          ? n(
+                              (rows as { loai_khach: string | null }[]).filter(
+                                (r) => r.loai_khach !== "AGENCY",
+                              ).length,
+                            )
+                          : "—"}
                       </td>
                       <td className="num mono">
                         {tien === null || tien === 0 ? (
@@ -369,6 +381,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                           </b>
                         )}
                       </td>
+                      <td className="num mono muted">—</td>
                       <td className="num mono muted">—</td>
                       <td />
                     </tr>
