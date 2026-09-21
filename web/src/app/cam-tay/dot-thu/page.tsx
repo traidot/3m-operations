@@ -148,6 +148,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
 
       <p className="muted khoi-ghi-chu">
+        <b>134 kỳ cước · 463.782 yên cũng bị loại</b> vì kỳ đó đã lập lại hoá đơn: hoá đơn
+        cũ hỏng, hoá đơn mới đã thu, nhưng dòng cước của hoá đơn cũ vẫn nằm trong sổ. Đếm cả
+        hai thì vừa thổi phồng phải thu vừa báo nhầm là không đòi được.
+      </p>
+
+      <p className="muted khoi-ghi-chu">
         <b>60 kỳ cước · 23.000 yên đã bị loại khỏi mọi con số trên trang này</b> — chúng
         thuộc thuê bao đã xoá ở nguồn, hồ sơ dịch vụ không còn, chỉ còn trơ lại cái kỳ cước.
         Chỗ này lộ ra do đồng bộ lọc bản ghi đã xoá cho bảng thuê bao nhưng không lọc cho

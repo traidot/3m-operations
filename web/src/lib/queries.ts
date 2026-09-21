@@ -1875,8 +1875,10 @@ export const getKyCuocThang = (ky: string) =>
             khach, ma_khach, loai_khach, link_cms
        from v_telecom_ky_cuoc
       where ky = $1
-        -- Thuê bao đã xoá ở nguồn thì không tính vào đâu cả, kể cả danh sách.
+        -- Thuê bao đã xoá ở nguồn, và kỳ đã lập lại hoá đơn, thì không tính vào
+        -- đâu cả — kể cả danh sách.
         and not tb_da_xoa
+        and not bi_thay_the
       order by case trang_thai_hd when 'UNPAYABLE' then 1 when 'ISSUED' then 2 else 3 end,
                tien desc, subscription_id`,
     [ky],
