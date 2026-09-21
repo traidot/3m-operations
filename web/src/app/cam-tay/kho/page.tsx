@@ -96,6 +96,22 @@ const BUOC: {
   },
 ];
 
+/**
+ * Đời máy của một kho, viết gọn: kho chỉ có một đời thì ghi thẳng tên, kho pha
+ * nhiều đời thì hai đời nhiều nhất rồi đếm phần còn lại.
+ */
+function doiMayGon(rows: KhoMa[]) {
+  const gom = new Map<string, number>();
+  for (const r of rows) {
+    const k = r.doi_may ?? "không rõ đời";
+    gom.set(k, (gom.get(k) ?? 0) + 1);
+  }
+  const xep = [...gom].sort((a, b) => b[1] - a[1]);
+  if (xep.length === 1) return `chỉ ${xep[0]![0]}`;
+  const dau = xep.slice(0, 2).map(([k, v]) => `${k} ${n(v)}`).join(" · ");
+  return xep.length > 2 ? `${dau} · +${xep.length - 2} đời khác` : dau;
+}
+
 /** Một bước của phễu: thanh dài theo tỉ lệ so với bước đầu. */
 function Buoc({
   so, tong, ten, phu, mau, href,
@@ -137,6 +153,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     `${n(oKhach - coThueBao)} máy ở khách mà không gắn thuê bao nào`,
     `${n(oKhach - dangThu)} máy ở khách mà tháng này không ra cước`,
   ];
+
+  // Gom mã còn trong kho theo kho trên phiếu gần nhất, xếp kho đông trước.
+  const gomKho = new Map<string, KhoMa[]>();
+  for (const r of tatCa.filter((r) => r.cho_dung === "TRONG_KHO")) {
+    const ten = r.warehouse_name ?? "(phiếu không ghi kho)";
+    gomKho.set(ten, [...(gomKho.get(ten) ?? []), r]);
+  }
+  const KHO = [...gomKho]
+    .map(([ten, rows]) => ({ ten, rows }))
+    .sort((a, b) => b.rows.length - a.rows.length);
 
   const ds = (q: string) => `/cam-tay/kho/danh-sach${q ? `?${q}` : ""}`;
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
@@ -182,6 +208,83 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           />
         ))}
       </div>
+
+      <h2>{n(trongKho)} mã đang trong kho — nằm ở kho nào</h2>
+      <p className="muted">
+        Kho đọc từ <b>phiếu kho gần nhất</b> của mã đó. Nên lưu ý: {n(oKhach)} máy đang ở
+        khách cũng mang tên Takadanobaba, vì đó là kho <i>xuất hàng đi</i> chứ không phải chỗ
+        máy đang nằm — bảng này chỉ đếm mã thật sự còn trong kho.
+      </p>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>Kho</th>
+              <th className="num">Đang giữ</th>
+              <th className="num">
+                <span className={`chip ${MAU_NHOM_TB.MAY_WIFI}`}>{NHOM_TB.MAY_WIFI}</span>
+              </th>
+              <th className="num">
+                <span className={`chip ${MAU_NHOM_TB.SIM}`}>{NHOM_TB.SIM}</span>
+              </th>
+              <th>Đời máy</th>
+              <th className="num">Có trên file</th>
+              <th className="num">File không nhắc</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {KHO.map(({ ten, rows }) => {
+              const thieu = rows.filter((r) => !r.file_co).length;
+              return (
+              <tr key={ten}>
+                <td>{ten}</td>
+                <td className="num mono">{n(rows.length)}</td>
+                <td className="num mono muted">
+                  {n(rows.filter((r) => r.nhom_tb === "MAY_WIFI").length)}
+                </td>
+                <td className="num mono muted">
+                  {n(rows.filter((r) => r.nhom_tb === "SIM").length)}
+                </td>
+                <td className="muted">{doiMayGon(rows)}</td>
+                <td className="num mono">{n(rows.length - thieu)}</td>
+                <td className={`num mono${thieu > 0 ? " bad" : " muted"}`}>
+                  {thieu === 0 ? "—" : n(thieu)}
+                </td>
+                <td className="khong-xuong-dong">
+                  <Link href={ds(`cd=TRONG_KHO&kho=${encodeURIComponent(ten)}`)}>xem →</Link>
+                </td>
+              </tr>
+              );
+            })}
+            <tr className="hang-tong">
+              <td>
+                <b>Tổng</b>
+              </td>
+              <td className="num mono">{n(trongKho)}</td>
+              <td className="num mono muted">
+                {n(dem((r) => r.cho_dung === "TRONG_KHO" && r.nhom_tb === "MAY_WIFI"))}
+              </td>
+              <td className="num mono muted">
+                {n(dem((r) => r.cho_dung === "TRONG_KHO" && r.nhom_tb === "SIM"))}
+              </td>
+              <td />
+              <td className="num mono">
+                {n(dem((r) => r.cho_dung === "TRONG_KHO" && r.file_co))}
+              </td>
+              <td className="num mono">
+                {n(dem((r) => r.cho_dung === "TRONG_KHO" && !r.file_co))}
+              </td>
+              <td />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">
+        Ngoài kho còn {n(dem((r) => r.cho_dung === "CHI_NHA_MANG"))} mã chỉ thấy ở nhà mạng
+        (không có phiếu kho nào) và {n(dem((r) => r.cho_dung === "TRA_NCC"))} mã đã trả nhà
+        cung cấp — hai nhóm này không nằm trong bảng trên.
+      </p>
 
       <h2>{n(oKhach)} máy ở khách là của loại khách nào</h2>
       <p className="muted">
