@@ -138,7 +138,7 @@ const NGUON: Nguon[] = [
       device: {
         table: "device_snapshot",
         cols: [...DEVICE_COLS, "deposit", "deposit_status", "rented_on", "returned_on",
-               "device_type", "sales_type"],
+               "device_type", "sales_type", "cho_muon_cd"],
         don: true,
       },
       stock_move: {

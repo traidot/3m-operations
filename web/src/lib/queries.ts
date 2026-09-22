@@ -1575,6 +1575,7 @@ export type TelecomMay = {
   tien_hut_uoc: string;
   nhom_may: string | null;
   nhom_khach: string | null;
+  cho_muon: boolean;
 };
 
 /** Máy cho thuê wifi cầm tay, một dòng một máy — xem db/119, db/120. */
@@ -1587,7 +1588,7 @@ export const getTelecomMay = () =>
             phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
             chua_ra_cuoc, link_cms, tinh_trang_cuoc, thue_bao_gan_cuoi,
             trang_thai_tb_gan_cuoi, thang_hut::text, tien_hut_uoc::text,
-            nhom_may, nhom_khach
+            nhom_may, nhom_khach, cho_muon
        from v_telecom_may
       order by case tinh_trang_cuoc
                  when 'HUT_CUOC' then 1 when 'TB_DA_XOA' then 2
@@ -1614,7 +1615,7 @@ export const getTelecomMayMot = async (imei: string) => {
             phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
             chua_ra_cuoc, link_cms, tinh_trang_cuoc, thue_bao_gan_cuoi,
             trang_thai_tb_gan_cuoi, thang_hut::text, tien_hut_uoc::text,
-            nhom_may, nhom_khach
+            nhom_may, nhom_khach, cho_muon
        from v_telecom_may where imei = $1`,
     [imei],
   );

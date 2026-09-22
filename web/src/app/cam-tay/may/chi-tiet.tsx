@@ -4,9 +4,6 @@ import { Chip } from "../../chip";
 import { getTelecomMayKy, getTelecomMayMot } from "@/lib/queries";
 import { COC, DICH_VU, HOA_DON, MAY, MAY_CUOC } from "@/lib/nhan";
 
-/** Nhóm khách của loại đơn "cho mượn cục wifi khi khách chờ lắp wifi cố định". */
-export const NHOM_CHO_MUON = "NHÓM KHÁCH HÀNG WF CỐ ĐỊNH";
-
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
 function O({ ten, gia_tri, children }: { ten: string; gia_tri?: string; children?: React.ReactNode }) {
@@ -72,19 +69,19 @@ export async function ChiTietMay({ imei, dongLai }: { imei: string; dongLai: str
               {n(may.thang_hut)} tháng. Cọc {n(may.coc)} yên đang treo.
             </p>
           )}
-          {may.tinh_trang_cuoc === "CHUA_GAN" && may.nhom_khach === NHOM_CHO_MUON && (
+          {may.tinh_trang_cuoc === "CHUA_GAN" && may.cho_muon && (
             <p className="muted">
-              Máy <b>cho mượn trong lúc khách chờ lắp wifi cố định</b> — khách thuộc nhóm
-              {" "}{may.nhom_khach}. Loại đơn này không bán dịch vụ nên không sinh thuê bao và
+              Đơn hàng bật cờ <b>&ldquo;cho mượn cục wifi khi khách chờ lắp wifi cố
+              định&rdquo;</b> — loại đơn này không bán dịch vụ nên không sinh thuê bao và
               không ra cước; <b>đúng nghiệp vụ, không phải thiếu sót</b>. Việc duy nhất là
               đòi máy về sau khi lắp xong; cọc {n(may.coc)} yên đang giữ.
             </p>
           )}
-          {may.tinh_trang_cuoc === "CHUA_GAN" && may.nhom_khach !== NHOM_CHO_MUON && (
+          {may.tinh_trang_cuoc === "CHUA_GAN" && !may.cho_muon && (
             <p className="stale">
-              Máy đưa ra ngoài mà chưa gắn thuê bao lần nào, và khách <b>không</b> thuộc nhóm
-              wifi cố định ({may.nhom_khach ?? "không rõ nhóm"}) nên không giải thích được
-              bằng việc cho mượn chờ lắp. Cọc {n(may.coc)} yên đang giữ — cần hỏi lại.
+              Máy đưa ra ngoài mà chưa gắn thuê bao lần nào, và đơn hàng <b>không</b> bật cờ
+              cho mượn chờ lắp wifi cố định — nên chưa giải thích được. Khách thuộc nhóm{" "}
+              {may.nhom_khach ?? "không rõ"}, cọc {n(may.coc)} yên đang giữ. Cần hỏi lại.
             </p>
           )}
           {may.tinh_trang_cuoc === "TB_DA_XOA" && (

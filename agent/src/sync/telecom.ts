@@ -178,10 +178,16 @@ export const DEVICE = `
     d."returnDepositStatus"::text                as deposit_status,
     d."rentalDate"::date                         as rented_on,
     d."returnDate"::date                         as returned_on,
+    -- Đơn "cho mượn cục wifi khi khách chờ lắp wifi cố định": máy đưa khách
+    -- dùng tạm, không bán dịch vụ nên không sinh thuê bao. Cờ nằm ở đơn hàng
+    -- chứ không phải ở thuê bao: subscription."lendForFixedWifi" là false ở
+    -- toàn bộ thuê bao nên đọc bên đó ra kết quả sai.
+    coalesce(o."lendForFixedWifi", false)        as cho_muon_cd,
     d."updatedAt"                                as updated_at_src
   from rental_device d
   left join order_item oi on oi.id = d."orderItemId"
   left join product p on p.id = oi."productId"
+  left join "order" o on o.id = oi."orderId" and o."deletedAt" is null
   where d."deletedAt" is null
 `;
 

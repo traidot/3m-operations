@@ -4,7 +4,6 @@ import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
-import { NHOM_CHO_MUON } from "./chi-tiet";
 
 const KHONG_NHOM = "(không ghi nhóm)";
 
@@ -32,6 +31,14 @@ const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
   },
   dang_ra_cuoc: { ten: "đang ra cước", hop: (r) => r.tinh_trang_cuoc === "DANG_RA_CUOC" },
   con_no: { ten: "còn nợ cước", hop: (r) => Number(r.chua_thu) > 0 },
+  cho_muon: {
+    ten: "cho mượn chờ lắp cố định",
+    hop: (r) => r.cho_muon,
+  },
+  chua_gan_la: {
+    ten: "chưa gắn thuê bao, không phải cho mượn",
+    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
+  },
   chua_tra: { ten: "chưa trả máy", hop: (r) => r.trang_thai === "NOT_RETURNED" },
   da_tra: { ten: "đã trả", hop: (r) => r.trang_thai === "RETURNED" },
 };
@@ -137,10 +144,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         {n(String(cong(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && r.trang_thai_coc === "PENDING"), "coc")))}{" "}
         yên cọc vẫn đang treo; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy chưa mở dịch vụ
         lần nào — trong đó{" "}
-        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.nhom_khach === NHOM_CHO_MUON).length))}{" "}
-        máy là <b>cho mượn trong lúc khách chờ lắp wifi cố định</b>, đúng nghiệp vụ chứ không
-        phải thiếu dịch vụ, chỉ còn{" "}
-        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.nhom_khach !== NHOM_CHO_MUON).length))}{" "}
+        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.cho_muon).length))}{" "}
+        máy là đơn <b>cho mượn trong lúc khách chờ lắp wifi cố định</b>, đúng nghiệp vụ chứ
+        không phải thiếu dịch vụ, chỉ còn{" "}
+        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon).length))}{" "}
         máy là chưa giải thích được; <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn
         thuê bao nhưng hồ sơ thuê bao đã bị xoá bên nguồn.
       </p>
