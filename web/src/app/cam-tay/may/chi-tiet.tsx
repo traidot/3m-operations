@@ -85,9 +85,10 @@ export async function ChiTietMay({ imei, dongLai }: { imei: string; dongLai: str
             </p>
           )}
           {may.tinh_trang_cuoc === "TB_DA_XOA" && (
-            <p className="stale">
-              Máy có gắn thuê bao nhưng hồ sơ thuê bao đó đã bị xoá bên nguồn, nên không đọc
-              được trạng thái dịch vụ. Máy vẫn ở ngoài, cọc {n(may.coc)} yên đang giữ.
+            <p className="muted">
+              Hồ sơ thuê bao của máy này đã bị xoá bên CMS nên không đọc được trạng thái dịch
+              vụ. <b>Đây là thao tác đúng của bên vận hành, không phải sự cố.</b> Máy vẫn ở
+              ngoài, cọc {n(may.coc)} yên đang giữ.
             </p>
           )}
 

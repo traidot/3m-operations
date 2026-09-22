@@ -102,11 +102,14 @@ export const LOC: Record<
   // "có cảnh báo" KHÔNG gộp nợ cước: 799 trên 817 máy còn nợ là máy đang chạy
   // bình thường chưa thu xong cước tháng này, gộp vào thì nút ra 1.833 máy tức
   // 75% cả bảng, bấm vào không lọc được gì nữa.
+  //
+  // Cũng KHÔNG gộp TB_DA_XOA: David xác nhận 22/09/2026 rằng việc xoá thuê bao
+  // bên CMS là đúng nghiệp vụ, không phải sự cố. Nút lọc vẫn giữ để tra cứu.
   co_canh_bao: {
     ten: "có cảnh báo",
     nhom: "lat_cat",
     hop: (r) =>
-      ["HUT_CUOC", "TB_DA_XOA", "HUY_CHUA_THU_MAY"].includes(r.tinh_trang_cuoc) ||
+      ["HUT_CUOC", "HUY_CHUA_THU_MAY"].includes(r.tinh_trang_cuoc) ||
       (r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon),
   },
   con_no: {
