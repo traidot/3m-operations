@@ -58,12 +58,18 @@ const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
     ten: "cho mượn chờ lắp cố định",
     hop: (r) => r.cho_muon,
   },
-  // Máy mượn tạm chờ lắp cố định, dịch vụ đã dừng mà máy chưa về — lẽ ra lắp
-  // xong là phải đòi lại. Đây là nhóm đi đòi, tách khỏi "huỷ rồi chưa thu máy"
-  // chung vì máy mượn không có hợp đồng thuê để mà viện dẫn.
+  // Đơn bật cờ cho mượn, dịch vụ đã dừng, máy vẫn chưa về. Lưu ý 111 trên 120
+  // cái đã từng ra cước — cờ cho mượn nói NGUỒN GỐC đơn (khách lấy máy trong
+  // lúc chờ lắp cố định) chứ không có nghĩa là dùng miễn phí.
   cho_muon_can_doi: {
-    ten: "cho mượn, dịch vụ dừng — cần đòi về",
+    ten: "cho mượn, dịch vụ dừng, máy chưa về",
     hop: (r) => r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
+  },
+  // Nhóm mượn đúng nghĩa: không ra kỳ cước nào mà dịch vụ đã dừng.
+  muon_that_chua_tra: {
+    ten: "mượn thật (không kỳ cước nào), dịch vụ dừng",
+    hop: (r) =>
+      r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && Number(r.so_ky) === 0,
   },
   chua_tra: { ten: "chưa trả máy", hop: (r) => r.trang_thai === "NOT_RETURNED" },
   da_tra: { ten: "đã trả", hop: (r) => r.trang_thai === "RETURNED" },
@@ -178,15 +184,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         thuê bao nhưng hồ sơ thuê bao đã bị xoá bên nguồn.
       </p>
       <p className="muted">
-        Riêng một nhóm đáng đi đòi ngay:{" "}
-        <b>
-          {n(String(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r)).length))} máy cho mượn
-          chờ lắp wifi cố định mà dịch vụ đã dừng, máy vẫn chưa về
-        </b>{" "}
-        — giữ{" "}
-        {n(String(cong(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r)), "coc")))} yên cọc.
-        Máy mượn thì lắp xong cố định là phải trả lại, nên nhóm này không có lý do gì để ở
-        ngoài; tách riêng khỏi “huỷ rồi, chưa thu máy” vì đây không phải khách thuê.
+        <b>Cờ “cho mượn” nói nguồn gốc đơn, không có nghĩa là dùng miễn phí.</b> Trong{" "}
+        {n(String(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r)).length))} máy cho mượn mà
+        dịch vụ đã dừng và máy chưa về (giữ{" "}
+        {n(String(cong(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r)), "coc")))} yên cọc),
+        có tới{" "}
+        {n(String(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r) && Number(r.so_ky) > 0).length))}{" "}
+        máy <b>đã từng ra cước</b> — tức là khách vẫn trả tiền thuê như bình thường, chỉ khác
+        ở chỗ họ lấy máy trong lúc chờ lắp wifi cố định. Đòi những máy này giống hệt máy thuê
+        khác, không viện được lý do “mượn thì phải trả ngay”. Chỉ{" "}
+        {n(String(tatCa.filter((r) => LOC.muon_that_chua_tra!.hop(r)).length))} máy là mượn
+        đúng nghĩa: không ra kỳ cước nào.
       </p>
 
       <form method="get">
