@@ -1,63 +1,134 @@
 import type { TelecomMay } from "@/lib/queries";
 
-/**
- * Lọc theo việc phải làm, không phải theo trạng thái thô của nguồn. Bốn nhóm
- * đầu là bốn việc khác nhau, đừng gộp chung thành "chưa ra cước".
- */
 export const KHONG_NHOM = "(không ghi nhóm)";
 
-export const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
-  // Gộp mọi thứ đang có vấn đề vào một nút, để mở màn hình là thấy ngay phần
-  // cần động tới. Máy đang ra cước, đã trả, và máy cho mượn còn đúng hạn thì
-  // không nằm ở đây.
+/**
+ * Bốn nhóm bộ lọc, xếp theo việc người dùng định làm chứ không theo cột của
+ * nguồn. Nhóm đầu là một phép chia hết — sáu tình trạng loại trừ nhau, cộng
+ * lại đúng tổng số máy — nên đọc ra được "máy nào đang ở đâu". Ba nhóm sau
+ * chồng lên nhau và chồng lên nhóm đầu, đó là chủ ý: chúng là các lát cắt để
+ * đi làm việc, không phải để cộng.
+ */
+export const NHOM_LOC = {
+  tinh_trang: "Sáu tình trạng, loại trừ nhau, cộng lại đúng tổng",
+  sua_data: "Dữ liệu tự mâu thuẫn — sửa ở CMS",
+  cho_muon: "Máy cho mượn chờ lắp wifi cố định",
+  lat_cat: "Lát cắt khác",
+} as const;
+
+type Nhom = keyof typeof NHOM_LOC;
+
+export const LOC: Record<
+  string,
+  { ten: string; nhom: Nhom; hop: (r: TelecomMay) => boolean }
+> = {
+  // ── Sáu tình trạng: một máy rơi vào đúng một ô.
+  dang_ra_cuoc: {
+    ten: "đang ra cước",
+    nhom: "tinh_trang",
+    hop: (r) => r.tinh_trang_cuoc === "DANG_RA_CUOC",
+  },
+  huy_chua_thu_may: {
+    ten: "huỷ rồi, chưa thu máy",
+    nhom: "tinh_trang",
+    hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
+  },
+  chua_gan: {
+    ten: "chưa gắn thuê bao",
+    nhom: "tinh_trang",
+    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN",
+  },
+  hut_cuoc: {
+    ten: "hụt cước",
+    nhom: "tinh_trang",
+    hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC",
+  },
+  tb_da_xoa: {
+    ten: "thuê bao đã xoá",
+    nhom: "tinh_trang",
+    hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA",
+  },
+  da_tra: {
+    ten: "đã trả máy",
+    nhom: "tinh_trang",
+    hop: (r) => r.tinh_trang_cuoc === "DA_TRA",
+  },
+
+  // ── Chỗ dữ liệu tự mâu thuẫn, sửa ở CMS chứ không phải đi đòi khách. Không
+  // lặp lại nút nào của nhóm trên: "hụt cước" và "thuê bao đã xoá" cũng là lỗi
+  // dữ liệu nhưng đã có chỗ đứng riêng ở nhóm sáu tình trạng.
+  chua_gan_la: {
+    ten: "máy ở ngoài, không thuê bao, không phải cho mượn",
+    nhom: "sua_data",
+    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
+  },
+  gan_ma_khong_ky: {
+    ten: "có gắn thuê bao mà chưa ra kỳ cước nào",
+    nhom: "sua_data",
+    hop: (r) =>
+      Number(r.so_lan_gan) > 0 && Number(r.so_ky) === 0 && r.tinh_trang_cuoc !== "DA_TRA",
+  },
+  tra_ma_tb_con_chay: {
+    ten: "máy đã trả về kho mà thuê bao vẫn ACTIVE",
+    nhom: "sua_data",
+    hop: (r) => r.trang_thai === "RETURNED" && r.trang_thai_thue_bao === "ACTIVE",
+  },
+  khong_biet_khach: {
+    ten: "máy đang ở ngoài mà không biết khách là ai",
+    nhom: "sua_data",
+    hop: (r) => r.trang_thai !== "RETURNED" && r.khach === "khách chưa có tên",
+  },
+
+  // ── Đơn bật cờ "cho mượn cục wifi khi khách chờ lắp wifi cố định".
+  cho_muon: {
+    ten: "tất cả đơn cho mượn",
+    nhom: "cho_muon",
+    hop: (r) => r.cho_muon,
+  },
+  cho_muon_dang_muon: {
+    ten: "đang mượn, chưa mở dịch vụ",
+    nhom: "cho_muon",
+    hop: (r) => r.cho_muon && r.tinh_trang_cuoc === "CHUA_GAN",
+  },
+  cho_muon_can_doi: {
+    ten: "dịch vụ dừng, máy chưa về",
+    nhom: "cho_muon",
+    hop: (r) => r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
+  },
+  muon_that_chua_tra: {
+    ten: "mượn thật — chưa ra kỳ cước nào, dịch vụ đã dừng",
+    nhom: "cho_muon",
+    hop: (r) =>
+      r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && Number(r.so_ky) === 0,
+  },
+
+  // ── Lát cắt chồng lên các nhóm trên.
   //
-  // KHÔNG gộp "còn nợ cước" vào đây: 799 trên 817 máy còn nợ là máy đang chạy
-  // bình thường, chưa thu xong cước tháng này — gộp vào thì nút này ra 1.833
-  // máy, tức 75% bảng, đọc ra không còn nghĩa gì. Nợ cước có nút riêng.
+  // "có cảnh báo" KHÔNG gộp nợ cước: 799 trên 817 máy còn nợ là máy đang chạy
+  // bình thường chưa thu xong cước tháng này, gộp vào thì nút ra 1.833 máy tức
+  // 75% cả bảng, bấm vào không lọc được gì nữa.
   co_canh_bao: {
     ten: "có cảnh báo",
+    nhom: "lat_cat",
     hop: (r) =>
       ["HUT_CUOC", "TB_DA_XOA", "HUY_CHUA_THU_MAY"].includes(r.tinh_trang_cuoc) ||
       (r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon),
   },
-  hut_cuoc: { ten: "hụt cước", hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC" },
-  tb_da_xoa: { ten: "thuê bao đã xoá", hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA" },
-  // Hai nút này phải đứng cạnh nhau và nhãn phải nói rõ có trừ máy cho mượn hay
-  // không: 188 trên 192 máy chưa gắn thuê bao là đơn cho mượn chờ lắp wifi cố
-  // định, nên nút thô đọc ra gần như chỉ toàn nhóm đó.
-  chua_gan: {
-    ten: "chưa gắn thuê bao — gồm cả cho mượn",
-    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN",
+  con_no: {
+    ten: "còn nợ cước",
+    nhom: "lat_cat",
+    hop: (r) => Number(r.chua_thu) > 0,
   },
-  chua_gan_la: {
-    ten: "chưa gắn thuê bao — trừ cho mượn",
-    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
+  chua_tra: {
+    ten: "máy chưa trả về kho",
+    nhom: "lat_cat",
+    hop: (r) => r.trang_thai === "NOT_RETURNED",
   },
-  huy_chua_thu_may: {
-    ten: "huỷ rồi, chưa thu máy",
-    hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
+  mat_trang: {
+    ten: "có hoá đơn mất trắng",
+    nhom: "lat_cat",
+    hop: (r) => Number(r.mat_trang) > 0,
   },
-  dang_ra_cuoc: { ten: "đang ra cước", hop: (r) => r.tinh_trang_cuoc === "DANG_RA_CUOC" },
-  con_no: { ten: "còn nợ cước", hop: (r) => Number(r.chua_thu) > 0 },
-  cho_muon: {
-    ten: "cho mượn chờ lắp cố định",
-    hop: (r) => r.cho_muon,
-  },
-  // Đơn bật cờ cho mượn, dịch vụ đã dừng, máy vẫn chưa về. Lưu ý 111 trên 120
-  // cái đã từng ra cước — cờ cho mượn nói NGUỒN GỐC đơn (khách lấy máy trong
-  // lúc chờ lắp cố định) chứ không có nghĩa là dùng miễn phí.
-  cho_muon_can_doi: {
-    ten: "cho mượn, dịch vụ dừng, máy chưa về",
-    hop: (r) => r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
-  },
-  // Nhóm mượn đúng nghĩa: không ra kỳ cước nào mà dịch vụ đã dừng.
-  muon_that_chua_tra: {
-    ten: "mượn thật (không kỳ cước nào), dịch vụ dừng",
-    hop: (r) =>
-      r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && Number(r.so_ky) === 0,
-  },
-  chua_tra: { ten: "chưa trả máy", hop: (r) => r.trang_thai === "NOT_RETURNED" },
-  da_tra: { ten: "đã trả", hop: (r) => r.trang_thai === "RETURNED" },
 };
 
 /** Lọc theo đúng luật của màn hình, để nút xuất Excel không lệch với bảng. */

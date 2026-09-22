@@ -3,7 +3,7 @@ import { ThanBam } from "../../than-bam";
 import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
-import { KHONG_NHOM, LOC, locRows } from "./loc";
+import { KHONG_NHOM, LOC, NHOM_LOC, locRows } from "./loc";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
@@ -204,14 +204,29 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             Tất cả · {n(String(tatCa.length))}
           </button>
         </Link>
-        {Object.entries(LOC).map(([ma, { ten, hop }]) => (
-          <Link key={ma} href={link({ loc: ma, q: mot(sp.q) || undefined, may: may || undefined, nk: nk || undefined, lk: lk || undefined })}>
-            <button type="button" className={loc === ma ? "primary" : undefined}>
-              {ten} · {n(String(tatCa.filter(hop).length))}
-            </button>
-          </Link>
-        ))}
       </p>
+      {(Object.keys(NHOM_LOC) as (keyof typeof NHOM_LOC)[]).map((g) => (
+        <div key={g} className="nhom-loc">
+          <div className="muted nhan-nhom">{NHOM_LOC[g]}</div>
+          <p className="actions">
+            {Object.entries(LOC)
+              .filter(([, v]) => v.nhom === g)
+              .map(([ma, { ten, hop }]) => (
+                <Link
+                  key={ma}
+                  href={link({
+                    loc: ma, q: mot(sp.q) || undefined, may: may || undefined,
+                    nk: nk || undefined, lk: lk || undefined,
+                  })}
+                >
+                  <button type="button" className={loc === ma ? "primary" : undefined}>
+                    {ten} · {n(String(tatCa.filter(hop).length))}
+                  </button>
+                </Link>
+              ))}
+          </p>
+        </div>
+      ))}
 
       <p className="muted">
         {n(String(rows.length))} máy

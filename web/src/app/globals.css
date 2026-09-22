@@ -480,3 +480,9 @@ nav a.dang-mo {
   text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px;
   text-decoration-color: var(--ok);
 }
+
+/* Hàng nút lọc gom theo nhóm: nhãn nhỏ ở trên, nút ngay dưới, các nhóm sát
+   nhau hơn khoảng cách đoạn văn thường để đọc ra là một khối. */
+.nhom-loc { margin-top: 10px; }
+.nhom-loc .nhan-nhom { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.nhom-loc .actions { margin-top: 4px; }
