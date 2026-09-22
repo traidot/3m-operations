@@ -99,7 +99,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           khách, nhưng chỉ {n(String(dem(tatCa, "DANG_RA_CUOC")))} cái đang ra cước.
         </b>{" "}
         {n(String(tatCa.length - dem(tatCa, "DANG_RA_CUOC") - dem(tatCa, "DA_TRA")))} cái còn
-        lại là ba việc khác nhau:{" "}
+        lại gồm ba việc cần xử lý và một nhóm không cần quan tâm. Ba việc:{" "}
         <b>{n(String(dem(tatCa, "HUT_CUOC")))}</b> máy thuê bao vẫn ACTIVE mà ngừng ra cước —
         đây là tiền, ước tính {n(String(cong(tatCa, "tien_hut_uoc")))} yên;{" "}
         <b>{n(String(dem(tatCa, "HUY_CHUA_THU_MAY")))}</b> máy thuê bao đã huỷ nên không ra
@@ -114,9 +114,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         máy là chưa giải thích được.
       </p>
       <p className="muted">
-        Còn <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn thuê bao nhưng hồ sơ thuê
-        bao đã bị xoá bên CMS. <b>Đây là thao tác đúng của bên vận hành, không phải sự cố</b>{" "}
-        — vẫn liệt kê để tra cứu chứ không tính vào việc cần xử lý.
+        Nhóm không cần quan tâm là <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn
+        thuê bao nhưng hồ sơ thuê bao đã bị xoá bên CMS — <b>thao tác đúng của bên vận hành,
+        không phải sự cố</b>. Nhóm này không có nút lọc riêng và không tính vào cảnh báo.
       </p>
       <p className="muted">
         <b>Cờ “cho mượn” nói nguồn gốc đơn, không có nghĩa là dùng miễn phí.</b> Trong{" "}

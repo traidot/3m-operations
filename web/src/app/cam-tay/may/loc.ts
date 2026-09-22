@@ -4,13 +4,16 @@ export const KHONG_NHOM = "(không ghi nhóm)";
 
 /**
  * Bốn nhóm bộ lọc, xếp theo việc người dùng định làm chứ không theo cột của
- * nguồn. Nhóm đầu là một phép chia hết — sáu tình trạng loại trừ nhau, cộng
- * lại đúng tổng số máy — nên đọc ra được "máy nào đang ở đâu". Ba nhóm sau
- * chồng lên nhau và chồng lên nhóm đầu, đó là chủ ý: chúng là các lát cắt để
- * đi làm việc, không phải để cộng.
+ * nguồn. Nhóm đầu là các tình trạng loại trừ nhau, đọc ra được "máy nào đang
+ * ở đâu". Ba nhóm sau chồng lên nhau và chồng lên nhóm đầu, đó là chủ ý:
+ * chúng là các lát cắt để đi làm việc, không phải để cộng.
+ *
+ * Tình trạng TB_DA_XOA không có nút: David chốt 22/09/2026 là không cần quan
+ * tâm tới nhóm đó. Vì vậy nhóm đầu KHÔNG còn cộng đủ tổng số máy — đừng ghi
+ * nhãn là "cộng lại đúng tổng" nữa.
  */
 export const NHOM_LOC = {
-  tinh_trang: "Sáu tình trạng, loại trừ nhau, cộng lại đúng tổng",
+  tinh_trang: "Năm tình trạng máy, loại trừ nhau",
   sua_data: "Dữ liệu tự mâu thuẫn — sửa ở CMS",
   cho_muon: "Máy cho mượn chờ lắp wifi cố định",
   lat_cat: "Lát cắt khác",
@@ -42,11 +45,6 @@ export const LOC: Record<
     ten: "hụt cước",
     nhom: "tinh_trang",
     hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC",
-  },
-  tb_da_xoa: {
-    ten: "thuê bao đã xoá",
-    nhom: "tinh_trang",
-    hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA",
   },
   da_tra: {
     ten: "đã trả máy",
