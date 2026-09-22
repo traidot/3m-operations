@@ -4,6 +4,7 @@ import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
+import { NHOM_CHO_MUON } from "./chi-tiet";
 
 export const dynamic = "force-dynamic";
 
@@ -128,9 +129,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <b>{n(String(dem(tatCa, "HUY_CHUA_THU_MAY")))}</b> máy thuê bao đã huỷ nên không ra
         cước là đúng, nhưng máy chưa đòi về được và{" "}
         {n(String(cong(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && r.trang_thai_coc === "PENDING"), "coc")))}{" "}
-        yên cọc vẫn đang treo; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy đưa ra mà chưa
-        mở dịch vụ lần nào; <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn thuê bao
-        nhưng hồ sơ thuê bao đã bị xoá bên nguồn.
+        yên cọc vẫn đang treo; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy chưa mở dịch vụ
+        lần nào — trong đó{" "}
+        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.nhom_khach === NHOM_CHO_MUON).length))}{" "}
+        máy là <b>cho mượn trong lúc khách chờ lắp wifi cố định</b>, đúng nghiệp vụ chứ không
+        phải thiếu dịch vụ, chỉ còn{" "}
+        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.nhom_khach !== NHOM_CHO_MUON).length))}{" "}
+        máy là chưa giải thích được; <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn
+        thuê bao nhưng hồ sơ thuê bao đã bị xoá bên nguồn.
       </p>
 
       <form method="get">
