@@ -56,8 +56,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Thu cước hàng tháng</h1>
       <p className="muted">
         Từng khoản còn phải thu của cả hai mảng, xếp theo hạn — cái quá hạn lâu nhất lên
-        đầu, rồi tới cái sắp tới hạn. Hạn của wifi cầm tay là mùng 1 của tháng dùng, của
-        wifi cố định là mùng 10 của tháng kế tiếp kỳ. Hoàn tiền cho khách không nằm ở đây
+        đầu, rồi tới cái sắp tới hạn. Hạn của wifi cầm tay là mùng 1 của tháng dùng. Wifi
+        cố định thì <b>tính tới hết tháng hiện tại</b>: kỳ tháng này chưa có phiếu thu đã
+        duyệt là vào danh sách ngay, không chờ mùng 10 tháng sau. Hoàn tiền cho khách không nằm ở đây
         vì đó là khoản 3M phải trả, không phải khoản đi thu.
       </p>
 

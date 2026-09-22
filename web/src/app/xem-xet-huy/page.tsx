@@ -34,7 +34,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Dự kiến huỷ</h1>
       <p className="muted">
         Dịch vụ <b>còn đang chạy</b> mà đã quá hạn thu cước. Mốc biết được quá hạn hay
-        chưa: wifi cầm tay là mùng 1 hàng tháng, wifi cố định là mùng 10. Xếp cái treo
+        chưa: wifi cầm tay là mùng 1 hàng tháng, wifi cố định là <b>hết tháng hiện tại</b>
+        — kỳ tháng này chưa đóng đã coi là quá hạn. Xếp cái treo
         lâu nhất lên đầu. Dịch vụ đã huỷ rồi thì không có ở đây, và hợp đồng cố định đã
         trừ tiền cọc chờ duyệt — khách nộp rồi thì không đem ra cân nhắc cắt. Muốn xem
         từng khoản phải thu, kể cả cái chưa tới hạn, thì sang{" "}

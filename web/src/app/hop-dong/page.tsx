@@ -116,8 +116,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Hợp đồng wifi cố định</h1>
       <p className="muted">
         Toàn bộ hợp đồng trong hệ thống wifi cố định. Bấm mã hợp đồng để xem cước từng
-        tháng. Kỳ tháng M phải đóng xong trước mùng 10 tháng M+1, qua ngày đó mới tính
-        là nợ — nên tháng đang chạy chưa bao giờ nằm trong cột “còn nợ”. “Cọc chờ duyệt”
+        tháng. Mọi thứ ở đây <b>dừng ở tháng hiện tại</b>: kỳ cuối cùng là tháng này, và
+        tháng này chưa có phiếu thu đã duyệt thì tính là nợ ngay — không chờ tới hạn mùng
+        10 tháng sau. Vì vậy con số “còn nợ” ở đây <b>đòi sớm hơn</b> luật hạn một nhịp,
+        và cột “chưa đến hạn” không còn dòng nào. “Cọc chờ duyệt”
         là tiền khách đã nộp qua combini mà bên mình chưa duyệt; “sau cọc” là phần thật
         sự còn phải đòi. “Chưa tính được” là hợp đồng thiếu giá cước hoặc thiếu ngày bắt
         đầu thu nên không sinh được kỳ nào — không phải đã thu đủ.
