@@ -73,11 +73,6 @@ export const LOC: Record<
     nhom: "sua_data",
     hop: (r) => r.trang_thai === "RETURNED" && r.trang_thai_thue_bao === "ACTIVE",
   },
-  khong_biet_khach: {
-    ten: "máy đang ở ngoài mà không biết khách là ai",
-    nhom: "sua_data",
-    hop: (r) => r.trang_thai !== "RETURNED" && r.khach === "khách chưa có tên",
-  },
 
   // ── Đơn bật cờ "cho mượn cục wifi khi khách chờ lắp wifi cố định".
   cho_muon: {
