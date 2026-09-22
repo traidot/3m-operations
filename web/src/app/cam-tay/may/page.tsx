@@ -3,9 +3,8 @@ import { ThanBam } from "../../than-bam";
 import { ChipLoaiKhach } from "../../chip";
 import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
+import { KHONG_NHOM, LOC, locRows } from "./loc";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
-
-const KHONG_NHOM = "(không ghi nhóm)";
 
 export const dynamic = "force-dynamic";
 
@@ -17,64 +16,6 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 const cong = (rows: TelecomMay[], k: keyof TelecomMay) =>
   rows.reduce((t, r) => t + Number(r[k] ?? 0), 0);
 
-/**
- * Lọc theo việc phải làm, không phải theo trạng thái thô của nguồn. Bốn nhóm
- * đầu là bốn việc khác nhau, đừng gộp chung thành "chưa ra cước".
- */
-const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
-  // Gộp mọi thứ đang có vấn đề vào một nút, để mở màn hình là thấy ngay phần
-  // cần động tới. Máy đang ra cước, đã trả, và máy cho mượn còn đúng hạn thì
-  // không nằm ở đây.
-  //
-  // KHÔNG gộp "còn nợ cước" vào đây: 799 trên 817 máy còn nợ là máy đang chạy
-  // bình thường, chưa thu xong cước tháng này — gộp vào thì nút này ra 1.833
-  // máy, tức 75% bảng, đọc ra không còn nghĩa gì. Nợ cước có nút riêng.
-  co_canh_bao: {
-    ten: "có cảnh báo",
-    hop: (r) =>
-      ["HUT_CUOC", "TB_DA_XOA", "HUY_CHUA_THU_MAY"].includes(r.tinh_trang_cuoc) ||
-      (r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon),
-  },
-  hut_cuoc: { ten: "hụt cước", hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC" },
-  tb_da_xoa: { ten: "thuê bao đã xoá", hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA" },
-  // Hai nút này phải đứng cạnh nhau và nhãn phải nói rõ có trừ máy cho mượn hay
-  // không: 188 trên 192 máy chưa gắn thuê bao là đơn cho mượn chờ lắp wifi cố
-  // định, nên nút thô đọc ra gần như chỉ toàn nhóm đó.
-  chua_gan: {
-    ten: "chưa gắn thuê bao — gồm cả cho mượn",
-    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN",
-  },
-  chua_gan_la: {
-    ten: "chưa gắn thuê bao — trừ cho mượn",
-    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
-  },
-  huy_chua_thu_may: {
-    ten: "huỷ rồi, chưa thu máy",
-    hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
-  },
-  dang_ra_cuoc: { ten: "đang ra cước", hop: (r) => r.tinh_trang_cuoc === "DANG_RA_CUOC" },
-  con_no: { ten: "còn nợ cước", hop: (r) => Number(r.chua_thu) > 0 },
-  cho_muon: {
-    ten: "cho mượn chờ lắp cố định",
-    hop: (r) => r.cho_muon,
-  },
-  // Đơn bật cờ cho mượn, dịch vụ đã dừng, máy vẫn chưa về. Lưu ý 111 trên 120
-  // cái đã từng ra cước — cờ cho mượn nói NGUỒN GỐC đơn (khách lấy máy trong
-  // lúc chờ lắp cố định) chứ không có nghĩa là dùng miễn phí.
-  cho_muon_can_doi: {
-    ten: "cho mượn, dịch vụ dừng, máy chưa về",
-    hop: (r) => r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
-  },
-  // Nhóm mượn đúng nghĩa: không ra kỳ cước nào mà dịch vụ đã dừng.
-  muon_that_chua_tra: {
-    ten: "mượn thật (không kỳ cước nào), dịch vụ dừng",
-    hop: (r) =>
-      r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && Number(r.so_ky) === 0,
-  },
-  chua_tra: { ten: "chưa trả máy", hop: (r) => r.trang_thai === "NOT_RETURNED" },
-  da_tra: { ten: "đã trả", hop: (r) => r.trang_thai === "RETURNED" },
-};
-
 const dem = (rows: TelecomMay[], ma: string) =>
   rows.filter((r) => r.tinh_trang_cuoc === ma).length;
 
@@ -83,25 +24,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tatCa = await getTelecomMay();
 
   const loc = mot(sp.loc) in LOC ? mot(sp.loc) : "";
-  const tim = mot(sp.q).trim().toLowerCase();
-  let rows = loc ? tatCa.filter(LOC[loc]!.hop) : tatCa;
-  if (tim) {
-    rows = rows.filter((r) =>
-      [r.imei, r.ma_khach, r.khach, r.thue_bao_hien_tai]
-        .some((v) => v?.toLowerCase().includes(tim)),
-    );
-  }
 
   // Đời máy là danh sách động (18 sản phẩm bên nguồn) nên để select, không phải nút.
   const doiMay = [...new Set(tatCa.map((r) => r.model).filter((v): v is string => !!v))].sort();
   const nhomKhach = [...new Set(tatCa.map((r) => r.nhom_khach ?? KHONG_NHOM))].sort();
   const lk = mot(sp.lk);
-  if (lk) rows = rows.filter((r) => (r.loai_khach ?? "khong-ro") === lk);
   const may = mot(sp.may);
-  if (may) rows = rows.filter((r) => (may === "(trống)" ? !r.model : r.model === may));
   // Nhóm khách bên CMS — đây là chỗ đọc ra máy cho mượn chờ lắp wifi cố định.
   const nk = mot(sp.nk);
-  if (nk) rows = rows.filter((r) => (r.nhom_khach ?? KHONG_NHOM) === nk);
+  const rows = locRows(tatCa, { loc, q: mot(sp.q), may, lk, nk });
 
   const moMay = mot(sp.xem);
   const link = (t: Record<string, string | undefined>) => {
@@ -287,7 +218,22 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         {loc && ` · ${LOC[loc]!.ten}`}
         {may && ` · ${may}`}
         {lk && ` · ${lk === "khong-ro" ? "không rõ loại" : (LOAI_KHACH[lk] ?? lk)}`}
-        {tim && ` · tìm “${mot(sp.q)}”`}
+        {nk && ` · ${nk}`}
+        {mot(sp.q).trim() && ` · tìm “${mot(sp.q)}”`}
+      </p>
+
+      <p className="actions">
+        <a
+          href={`/cam-tay/may/xuat?${new URLSearchParams(
+            Object.fromEntries(
+              Object.entries({ loc, q: mot(sp.q), may, lk, nk }).filter(([, v]) => v),
+            ),
+          )}`}
+        >
+          <button type="button" className="primary">
+            Xuất Excel {n(String(rows.length))} máy đang xem
+          </button>
+        </a>
       </p>
 
       {rows.length === 0 ? (
