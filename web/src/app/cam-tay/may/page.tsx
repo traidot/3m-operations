@@ -22,6 +22,19 @@ const cong = (rows: TelecomMay[], k: keyof TelecomMay) =>
  * đầu là bốn việc khác nhau, đừng gộp chung thành "chưa ra cước".
  */
 const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
+  // Gộp mọi thứ đang có vấn đề vào một nút, để mở màn hình là thấy ngay phần
+  // cần động tới. Máy đang ra cước, đã trả, và máy cho mượn còn đúng hạn thì
+  // không nằm ở đây.
+  //
+  // KHÔNG gộp "còn nợ cước" vào đây: 799 trên 817 máy còn nợ là máy đang chạy
+  // bình thường, chưa thu xong cước tháng này — gộp vào thì nút này ra 1.833
+  // máy, tức 75% bảng, đọc ra không còn nghĩa gì. Nợ cước có nút riêng.
+  co_canh_bao: {
+    ten: "có cảnh báo",
+    hop: (r) =>
+      ["HUT_CUOC", "TB_DA_XOA", "HUY_CHUA_THU_MAY"].includes(r.tinh_trang_cuoc) ||
+      (r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon),
+  },
   hut_cuoc: { ten: "hụt cước", hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC" },
   tb_da_xoa: { ten: "thuê bao đã xoá", hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA" },
   chua_gan: { ten: "chưa gắn thuê bao", hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" },
@@ -38,6 +51,13 @@ const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
   chua_gan_la: {
     ten: "chưa gắn thuê bao, không phải cho mượn",
     hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
+  },
+  // Máy mượn tạm chờ lắp cố định, dịch vụ đã dừng mà máy chưa về — lẽ ra lắp
+  // xong là phải đòi lại. Đây là nhóm đi đòi, tách khỏi "huỷ rồi chưa thu máy"
+  // chung vì máy mượn không có hợp đồng thuê để mà viện dẫn.
+  cho_muon_can_doi: {
+    ten: "cho mượn, dịch vụ dừng — cần đòi về",
+    hop: (r) => r.cho_muon && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
   },
   chua_tra: { ten: "chưa trả máy", hop: (r) => r.trang_thai === "NOT_RETURNED" },
   da_tra: { ten: "đã trả", hop: (r) => r.trang_thai === "RETURNED" },
@@ -150,6 +170,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon).length))}{" "}
         máy là chưa giải thích được; <b>{n(String(dem(tatCa, "TB_DA_XOA")))}</b> máy có gắn
         thuê bao nhưng hồ sơ thuê bao đã bị xoá bên nguồn.
+      </p>
+      <p className="muted">
+        Riêng một nhóm đáng đi đòi ngay:{" "}
+        <b>
+          {n(String(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r)).length))} máy cho mượn
+          chờ lắp wifi cố định mà dịch vụ đã dừng, máy vẫn chưa về
+        </b>{" "}
+        — giữ{" "}
+        {n(String(cong(tatCa.filter((r) => LOC.cho_muon_can_doi!.hop(r)), "coc")))} yên cọc.
+        Máy mượn thì lắp xong cố định là phải trả lại, nên nhóm này không có lý do gì để ở
+        ngoài; tách riêng khỏi “huỷ rồi, chưa thu máy” vì đây không phải khách thuê.
       </p>
 
       <form method="get">
