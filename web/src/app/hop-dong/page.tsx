@@ -119,7 +119,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         tháng. Mọi thứ ở đây <b>dừng ở tháng hiện tại</b>: kỳ cuối cùng là tháng này, và
         tháng này chưa có phiếu thu đã duyệt thì tính là nợ ngay — không chờ tới hạn mùng
         10 tháng sau. Vì vậy con số “còn nợ” ở đây <b>đòi sớm hơn</b> luật hạn một nhịp,
-        và cột “chưa đến hạn” không còn dòng nào. “Cọc chờ duyệt”
+        và cột “chưa đến hạn” không còn dòng nào. “Treo duyệt” là kỳ quá hạn mà{" "}
+        <b>đã có phiếu thu chờ duyệt</b> — tiền có thể đã về, chỉ chưa ai bấm duyệt, nên
+        tách khỏi nợ: đó là việc của bên mình chứ không phải việc đi đòi khách. “Cọc chờ duyệt”
         là tiền khách đã nộp qua combini mà bên mình chưa duyệt; “sau cọc” là phần thật
         sự còn phải đòi. “Chưa tính được” là hợp đồng thiếu giá cước hoặc thiếu ngày bắt
         đầu thu nên không sinh được kỳ nào — không phải đã thu đủ.
@@ -196,6 +198,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th className="num">Miễn</th>
                 <th className="num">Nợ</th>
                 <th className="num">Còn nợ</th>
+                <th className="num">Treo duyệt</th>
                 <th className="num">Cọc chờ duyệt</th>
                 <th className="num">Sau cọc</th>
                 <th>Thu tới</th>
@@ -251,6 +254,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {KHONG_SINH_KY.has(r.tinh_trang_cuoc) ? "—" : n(r.so_ky_no)}
                   </td>
                   <td className="num mono">{n(r.con_no)}</td>
+                  <td className="num mono">
+                    {Number(r.tien_treo_duyet) > 0 ? n(r.tien_treo_duyet) : "—"}
+                  </td>
                   <td className="num mono">
                     {Number(r.coc_cho_duyet) > 0 ? n(r.coc_cho_duyet) : "—"}
                   </td>

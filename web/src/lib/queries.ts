@@ -318,6 +318,8 @@ export type Contract = {
   so_phieu_coc_cho: string;
   con_no_sau_coc: string;
   do_cong_ty: boolean;
+  so_ky_treo_duyet: string;
+  tien_treo_duyet: string;
 };
 
 export type ContractFilter = {
@@ -345,7 +347,7 @@ const COT_HOP_DONG = `subscription_id, contract_code, dia_chi, trang_thai_hop_do
        tinh_trang_cuoc, canh_bao,
        so_ky_chua_den_han::text, tien_chua_den_han::text,
        coc_cho_duyet::text, so_phieu_coc_cho::text, con_no_sau_coc::text,
-       do_cong_ty`;
+       do_cong_ty, so_ky_treo_duyet::text, tien_treo_duyet::text`;
 
 export const CONTRACTS_PER_PAGE = 50;
 
