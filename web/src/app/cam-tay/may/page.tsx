@@ -37,7 +37,17 @@ const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
   },
   hut_cuoc: { ten: "hụt cước", hop: (r) => r.tinh_trang_cuoc === "HUT_CUOC" },
   tb_da_xoa: { ten: "thuê bao đã xoá", hop: (r) => r.tinh_trang_cuoc === "TB_DA_XOA" },
-  chua_gan: { ten: "chưa gắn thuê bao", hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" },
+  // Hai nút này phải đứng cạnh nhau và nhãn phải nói rõ có trừ máy cho mượn hay
+  // không: 188 trên 192 máy chưa gắn thuê bao là đơn cho mượn chờ lắp wifi cố
+  // định, nên nút thô đọc ra gần như chỉ toàn nhóm đó.
+  chua_gan: {
+    ten: "chưa gắn thuê bao — gồm cả cho mượn",
+    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN",
+  },
+  chua_gan_la: {
+    ten: "chưa gắn thuê bao — trừ cho mượn",
+    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
+  },
   huy_chua_thu_may: {
     ten: "huỷ rồi, chưa thu máy",
     hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
@@ -47,10 +57,6 @@ const LOC: Record<string, { ten: string; hop: (r: TelecomMay) => boolean }> = {
   cho_muon: {
     ten: "cho mượn chờ lắp cố định",
     hop: (r) => r.cho_muon,
-  },
-  chua_gan_la: {
-    ten: "chưa gắn thuê bao, không phải cho mượn",
-    hop: (r) => r.tinh_trang_cuoc === "CHUA_GAN" && !r.cho_muon,
   },
   // Máy mượn tạm chờ lắp cố định, dịch vụ đã dừng mà máy chưa về — lẽ ra lắp
   // xong là phải đòi lại. Đây là nhóm đi đòi, tách khỏi "huỷ rồi chưa thu máy"
