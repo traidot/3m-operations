@@ -59,7 +59,9 @@ export async function GET(req: Request) {
       tong(r),
     ]);
     // Cột thứ 6 là "Tổng" nên ghi chú phải sang cột 7.
-    if (tk === TRU_COC) h.getCell(7).value = "KHÔNG phải tiền ngân hàng — cấn trừ tiền cọc";
+    if (tk === TRU_COC)
+      h.getCell(7).value =
+        "Cọc khách nộp trước qua combini, nay trừ sang cước — sao kê ghi ở tháng nộp cọc";
     if (tk === CHUA_GHI) h.getCell(7).value = "Báo cáo tài khoản thu của CMS loại thẳng nhóm này";
   }
   dong([
@@ -68,7 +70,8 @@ export async function GET(req: Request) {
     ...["truoc", "dung", "muon"].map((k) => tong(theoKy.filter((x) => nhip(x) === k))),
     tong(theoKy),
   ], "dam");
-  dong(["Trong đó thật sự vào ngân hàng", null, null, null, null, tong(theoKy.filter((r) => !r.can_tru_coc))], "dam");
+  dong(["Có giao dịch ngân hàng gắn với chính kỳ này", null, null, null, null,
+    tong(theoKy.filter((r) => !r.can_tru_coc))], "dam");
   dong([null, null, null, null, null, "Khớp với ô “Tổng đã thu” tháng này của Báo cáo thống kê cước phí bên CMS."], "phu");
   d++;
 
@@ -94,8 +97,8 @@ export async function GET(req: Request) {
       viec: "Duyệt nốt; soát các đợt số tiền lẻ trước khi duyệt" },
     { ten: "Phiếu cha đã bị xoá ở nguồn", hop: (r: DotThuCoDinh) => r.phieu_da_xoa,
       viec: "Đợt còn sống mà phiếu cha mất — kiểm tra trên CMS" },
-    { ten: "Cấn trừ cọc — không phải tiền mặt", hop: (r: DotThuCoDinh) => r.can_tru_coc,
-      viec: "Không phải lỗi, chỉ cần nhớ trừ ra khi đối chiếu ngân hàng" },
+    { ten: "Cấn trừ cọc — sao kê nằm ở tháng nộp cọc", hop: (r: DotThuCoDinh) => r.can_tru_coc,
+      viec: "Không phải lỗi: tiền thật đã vào qua combini từ trước, chỉ khác tháng" },
   ]) {
     const a = tong(theoKy.filter(c.hop));
     const b = tong(theoTienVe.filter(c.hop));

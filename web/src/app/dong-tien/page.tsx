@@ -107,7 +107,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               const d = theoKy.filter((r) => r.tai_khoan === tk);
               const canh =
                 tk === TRU_COC
-                  ? "không phải tiền ngân hàng — cấn trừ tiền cọc"
+                  ? "cọc khách nộp trước qua combini, nay trừ sang cước — giao dịch ngân hàng nằm ở tháng nộp cọc"
                   : tk === CHUA_GHI
                     ? "báo cáo tài khoản thu của CMS loại thẳng nhóm này"
                     : null;
@@ -151,10 +151,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </table>
       </div>
       <p className="muted">
-        Trong đó <b>thật sự vào ngân hàng {n(tienNganHang)}</b> — đã trừ{" "}
-        {n(tong(theoKy.filter((r) => r.can_tru_coc)))} cấn trừ cọc, khoản đó không có đồng nào
-        chạy qua tài khoản. Cột &ldquo;thu trước&rdquo; là tiền đã về từ các tháng trước, cột
-        &ldquo;thu sau&rdquo; nghĩa là kỳ này <b>vẫn đang thu tiếp</b> nên con số còn tăng.
+        Trong đó <b>{n(tienNganHang)} có giao dịch ngân hàng gắn với chính kỳ này</b>;{" "}
+        {n(tong(theoKy.filter((r) => r.can_tru_coc)))} còn lại là <b>cấn trừ cọc</b> — tiền
+        thật, khách đã nộp trước qua combini, nhưng sao kê ghi ở tháng nộp cọc chứ không phải
+        tháng này, nên đừng đi tìm nó trong sao kê của kỳ này. Cột &ldquo;thu trước&rdquo; là
+        tiền đã về từ các tháng trước, cột &ldquo;thu sau&rdquo; nghĩa là kỳ này{" "}
+        <b>vẫn đang thu tiếp</b> nên con số còn tăng.
       </p>
 
       <h2>2 · Tiền về trong tháng {Number(m)} là cước của kỳ nào</h2>
