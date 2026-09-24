@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "kho:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/kho/nhap-doi-soat.ts",
     "sao-ke:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/sao-ke/nhap.ts",
-    "doi-chieu:cuoc-tk": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/doi-chieu/cuoc-vs-tai-khoan.ts"
+    "doi-chieu:cuoc-tk": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/doi-chieu/cuoc-vs-tai-khoan.ts",
+    "sao-ke:doi-soat": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/sao-ke/doi-soat.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
