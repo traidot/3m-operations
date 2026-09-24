@@ -1,5 +1,7 @@
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
+import { MAU, TIEN, dauTrang, gio } from "../excel.js";
+import { banKeTiep } from "../ten-file.js";
 
 /**
  * Đối chiếu hai báo cáo của CMS trên TOÀN BỘ lịch sử, không cắt mốc tháng:
@@ -17,14 +19,16 @@ import { pool, q } from "../db.js";
  * `vao_bao_cao_cuoc` × `vao_bao_cao_tai_khoan` trong v_fixed_dot_thu.
  */
 
-const TIEN = "#,##0";
-const XAM = "FFEFEFEF";
-const DO = "FFFCE4E4";      // chỉ (2) tính — thiếu tài khoản thu
-const VANG = "FFFFF3CD";    // chỉ (3) tính — phiếu cha chưa duyệt
-const TIM = "FFEDE7F6";     // không báo cáo nào tính — đợt chưa duyệt
+const { xam: XAM, do: DO, vang: VANG, tim: TIM } = MAU;
 
 type Nhom = {
-  ma: string; ten: string; mau: string; viec: string;
+  ma: string;
+  /** Nhãn ngắn để lọc trong Excel — đúng chữ người vận hành dùng. */
+  trang_thai: string;
+  ten: string;
+  bao_cao: string;
+  mau: string;
+  viec: string;
   loc: string;   // mệnh đề where
 };
 
@@ -35,19 +39,25 @@ type Nhom = {
 const NHOM: Nhom[] = [
   {
     ma: "chua-ghi-tk", mau: DO,
-    ten: "Chỉ (2) tính · đợt chưa ghi tài khoản thu",
+    trang_thai: "CHƯA GHI KHOẢN THU",
+    ten: "Đợt đã duyệt nhưng chưa chọn tài khoản nhận tiền",
+    bao_cao: "Chỉ (2) cước phí tính · (3) tài khoản thu loại",
     viec: "Mở đợt trên CMS, chọn tài khoản đã thực nhận tiền",
     loc: "vao_bao_cao_cuoc and not vao_bao_cao_tai_khoan",
   },
   {
     ma: "phieu-cha-cho-duyet", mau: VANG,
-    ten: "Chỉ (3) tính · phiếu cha chưa duyệt",
+    trang_thai: "CHƯA APPROVE · phiếu cha",
+    ten: "Đợt đã duyệt nhưng phiếu cha còn chờ duyệt",
+    bao_cao: "Chỉ (3) tài khoản thu tính · (2) cước phí loại",
     viec: "Duyệt phiếu cha; soát số tiền lẻ trước khi duyệt",
     loc: "vao_bao_cao_tai_khoan and not vao_bao_cao_cuoc",
   },
   {
     ma: "dot-chua-duyet", mau: TIM,
-    ten: "Không báo cáo nào tính · cả đợt lẫn phiếu cha chưa duyệt",
+    trang_thai: "CHƯA APPROVE · cả đợt lẫn phiếu cha",
+    ten: "Cả đợt lẫn phiếu cha đều còn chờ duyệt",
+    bao_cao: "Không báo cáo nào tính",
     viec: "Duyệt cả đợt lẫn phiếu cha, hoặc xoá nếu thu nhầm",
     loc: "not vao_bao_cao_cuoc and not vao_bao_cao_tai_khoan",
   },
@@ -70,6 +80,9 @@ type TheoTk = {
 const n = (v: string | null) => (v === null ? null : Number(v));
 
 async function main() {
+  const [dongBo] = await q<{ luc: string }>(
+    `select max(finished_at)::text as luc from sync_run where source = 'FIXED' and status = 'OK'`);
+
   const [tong] = await q<{
     cuoc_dot: string; cuoc: string; tk_dot: string; tk: string;
     duyet_dot: string; duyet: string; cho_dot: string; cho: string;
@@ -138,7 +151,10 @@ async function main() {
 
   const chenh = Number(tong!.cuoc) - Number(tong!.tk);
   dong(["Đối chiếu báo cáo cước phí và báo cáo tài khoản thu"], "tieu-de");
-  dong([`Wifi cố định · toàn bộ lịch sử, không cắt mốc tháng · chốt lúc ${new Date().toLocaleString("vi-VN")}`], "phu");
+  dong([
+    "Wifi cố định · toàn bộ lịch sử, không cắt mốc tháng · nguồn: kho 3m_warehouse " +
+    `(v_fixed_dot_thu), đồng bộ từ CMS lúc ${gio(dongBo?.luc ?? null)} · chốt lúc ${new Date().toLocaleString("vi-VN")}`,
+  ], "phu");
   d++;
 
   dong(["1 · Hai con số theo phê duyệt"], "muc");
@@ -163,12 +179,12 @@ async function main() {
   d++;
 
   dong(["3 · Chênh do đâu"], "muc");
-  dong(["Nhóm", "Số đợt", "Số tiền", "Dấu vào chênh", "Việc cần làm"], "dam");
+  dong(["Trạng thái", "Số đợt", "Số tiền", "Dấu vào chênh", "Việc cần làm"], "dam");
   for (const g of NHOM) {
     const t = theoNhom.find((x) => x.ma === g.ma)!;
     const dau = g.ma === "chua-ghi-tk" ? Number(t.tien)
               : g.ma === "phieu-cha-cho-duyet" ? -Number(t.tien) : 0;
-    dong([g.ten, Number(t.so), Number(t.tien), dau, g.viec], undefined, g.mau);
+    dong([`${g.trang_thai} — ${g.ten}`, Number(t.so), Number(t.tien), dau, g.viec], undefined, g.mau);
   }
   dong(["Cộng dấu", null, null, chenh, "Khớp đúng con số chênh ở mục 2"], "dam");
   d++;
@@ -179,7 +195,7 @@ async function main() {
         null, "Gán tài khoản cho nhóm đỏ, duyệt nhóm vàng"], "dam");
 
   // ── Trang 2: theo tài khoản ───────────────────────────────────────────────
-  const ws2 = wb.addWorksheet("Theo tài khoản", { views: [{ state: "frozen", ySplit: 1 }] });
+  const ws2 = wb.addWorksheet("Theo tài khoản");
   ws2.columns = [
     { header: "Tài khoản", key: "tai_khoan", width: 24 },
     { header: "Đã duyệt · đợt", key: "duyet_dot", width: 14 },
@@ -190,7 +206,6 @@ async function main() {
     { header: "(3) Tài khoản thu", key: "tk", width: 17, style: { numFmt: TIEN } },
     { header: "Chênh (2)−(3)", key: "chenh", width: 15, style: { numFmt: TIEN } },
   ];
-  ws2.getRow(1).font = { bold: true };
   for (const r of theoTk) {
     const c = Number(r.cuoc) - Number(r.tk);
     const h = ws2.addRow({
@@ -213,12 +228,14 @@ async function main() {
     cuoc: Number(tong!.cuoc), tk: Number(tong!.tk), chenh,
   });
   tongTk.font = { bold: true };
-  ws2.autoFilter = { from: "A1", to: { row: 1, column: 8 } };
+
 
   // ── Trang 3: danh sách từng đợt lệch ──────────────────────────────────────
-  const ws3 = wb.addWorksheet("Danh sách lệch", { views: [{ state: "frozen", ySplit: 1 }] });
+  const ws3 = wb.addWorksheet("Danh sách lệch");
   ws3.columns = [
-    { header: "Nhóm", key: "nhom", width: 50 },
+    { header: "Trạng thái", key: "trang_thai", width: 30 },
+    { header: "Báo cáo nào tính", key: "bao_cao", width: 38 },
+    { header: "Diễn giải", key: "nhom", width: 44 },
     { header: "Mã hợp đồng", key: "ma_hd", width: 15 },
     { header: "Địa chỉ lắp", key: "dia_chi", width: 46 },
     { header: "Kỳ cước", key: "ky", width: 10 },
@@ -230,19 +247,25 @@ async function main() {
     { header: "Trạng thái phiếu cha", key: "trang_thai_phieu", width: 20 },
     { header: "ID đợt", key: "source_id", width: 38 },
   ];
-  ws3.getRow(1).font = { bold: true };
   for (const r of chiTiet) {
     const g = NHOM.find((x) => x.ma === r.nhom)!;
     const h = ws3.addRow({
-      ...r, nhom: g.ten, so_tien: n(r.so_tien),
+      ...r, trang_thai: g.trang_thai, bao_cao: g.bao_cao, nhom: g.ten,
+      so_tien: n(r.so_tien),
       tai_khoan: r.tai_khoan === "CHUA_GHI" ? "(chưa ghi tài khoản)" : r.tai_khoan,
     });
-    for (let i = 1; i <= 11; i++)
+    for (let i = 1; i <= 13; i++)
       h.getCell(i).fill = { type: "pattern", pattern: "solid", fgColor: { argb: g.mau } };
   }
-  ws3.autoFilter = { from: "A1", to: { row: 1, column: 11 } };
 
-  const ra = process.argv[2] ?? "../data/doi-chieu-cuoc-vs-tai-khoan.xlsx";
+  const moc =
+    "Nguồn: kho 3m_warehouse, view v_fixed_dot_thu — đợt thu wifi cố định đồng bộ từ CMS " +
+    `(MySQL wifi-api) lúc ${gio(dongBo?.luc ?? null)}. Toàn bộ lịch sử, không cắt mốc tháng. ` +
+    `File chốt lúc ${new Date().toLocaleString("vi-VN")}.`;
+  dauTrang(ws2, "Đối chiếu hai báo cáo CMS — theo tài khoản", moc, 8);
+  dauTrang(ws3, "Danh sách từng đợt làm hai báo cáo lệch nhau", moc, 13);
+
+  const ra = process.argv[2] ?? banKeTiep("../data", "doi-chieu-cuoc-vs-tai-khoan");
   await wb.xlsx.writeFile(ra);
 
   const t = (s: string | number) => Number(s).toLocaleString("vi-VN");

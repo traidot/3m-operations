@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
+import { MAU, TIEN, dauTrang, gio } from "../excel.js";
 import { banKeTiep } from "../ten-file.js";
 import { ghep, type Dot, type GiaoDich } from "./ghep.js";
 
@@ -17,12 +18,7 @@ import { ghep, type Dot, type GiaoDich } from "./ghep.js";
  * được là chuyện bình thường, không mặc nhiên là lỗi.
  */
 
-const TIEN = "#,##0";
-const XAM = "FFEFEFEF";
-const XANH = "FFE8F5E9";   // ghép chắc
-const VANG = "FFFFF3CD";   // ghép được nhưng lệch tài khoản hoặc lệch ngày nhiều
-const TIM = "FFEDE7F6";    // ghép chỉ dựa số tiền và ngày
-const DO = "FFFCE4E4";     // không ghép được
+const { xam: XAM, xanh: XANH, vang: VANG, tim: TIM, do: DO } = MAU;
 
 type BanGhi = {
   mau: string; ten: string;
@@ -54,26 +50,7 @@ type Thang = {
 
 const num = (v: unknown) => Number(v);
 
-const gio = (s: string | null) =>
-  s ? new Date(s).toLocaleString("vi-VN") : "không rõ";
 
-/**
- * Chèn hai dòng đầu trang nói rõ trang này lấy số ở đâu và chốt lúc nào. Nhìn
- * cột "Chuyển khoản nội bộ" hay "Tiền khách" mà không biết nó là số của sao kê
- * hay của phần mềm thì rất dễ đọc ngược, nên nguồn phải nằm ngay trên đầu chứ
- * không chỉ nằm ở trang Ghi chú.
- */
-function dauTrang(ws: ExcelJS.Worksheet, ten: string, nguon: string, soCot: number) {
-  ws.spliceRows(1, 0, [ten], [nguon]);
-  ws.getRow(1).font = { bold: true, size: 13 };
-  ws.getRow(2).font = { italic: true, size: 10, color: { argb: "FF666666" } };
-  ws.mergeCells(1, 1, 1, soCot);
-  ws.mergeCells(2, 1, 2, soCot);
-  ws.getRow(3).font = { bold: true };
-  ws.getRow(3).fill = { type: "pattern", pattern: "solid", fgColor: { argb: XAM } };
-  ws.views = [{ state: "frozen", ySplit: 3 }];
-  ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: soCot } };
-}
 
 async function main() {
   const gdAll = await q<GdRow & { tien_vao: string; id: string }>(`
