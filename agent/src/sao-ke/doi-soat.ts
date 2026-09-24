@@ -54,6 +54,27 @@ type Thang = {
 
 const num = (v: unknown) => Number(v);
 
+const gio = (s: string | null) =>
+  s ? new Date(s).toLocaleString("vi-VN") : "không rõ";
+
+/**
+ * Chèn hai dòng đầu trang nói rõ trang này lấy số ở đâu và chốt lúc nào. Nhìn
+ * cột "Chuyển khoản nội bộ" hay "Tiền khách" mà không biết nó là số của sao kê
+ * hay của phần mềm thì rất dễ đọc ngược, nên nguồn phải nằm ngay trên đầu chứ
+ * không chỉ nằm ở trang Ghi chú.
+ */
+function dauTrang(ws: ExcelJS.Worksheet, ten: string, nguon: string, soCot: number) {
+  ws.spliceRows(1, 0, [ten], [nguon]);
+  ws.getRow(1).font = { bold: true, size: 13 };
+  ws.getRow(2).font = { italic: true, size: 10, color: { argb: "FF666666" } };
+  ws.mergeCells(1, 1, 1, soCot);
+  ws.mergeCells(2, 1, 2, soCot);
+  ws.getRow(3).font = { bold: true };
+  ws.getRow(3).fill = { type: "pattern", pattern: "solid", fgColor: { argb: XAM } };
+  ws.views = [{ state: "frozen", ySplit: 3 }];
+  ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: soCot } };
+}
+
 async function main() {
   const gdAll = await q<GdRow & { tien_vao: string; id: string }>(`
     select r.id::text, r.tai_khoan, r.ngay::text as ngay, r.tien_vao::text,
@@ -81,6 +102,12 @@ async function main() {
   const capTheoGd = new Map(kq.cap.map((c) => [c.gd.id, c]));
   const dotTheoId = new Map(dots.map((d) => [d.source_id, d]));
 
+  const [nguon] = await q<{ ten_file: string; sua_luc: string; nhap_luc: string; dong_bo: string }>(`
+    select i.ten_file, i.sua_luc::text, i.nhap_luc::text,
+           (select max(finished_at)::text from sync_run
+             where source = 'FIXED' and status = 'OK') as dong_bo
+      from bank_import i where i.dang_dung`);
+
   const thang = await q<Thang>(`
     select thang, tai_khoan, so_gd::text, tien_tho::text, noi_bo::text,
            tien_khach::text, so_dot_pm::text, tien_pm::text, chenh::text
@@ -89,19 +116,18 @@ async function main() {
   const wb = new ExcelJS.Workbook();
 
   // ── Trang 1: theo tháng và tài khoản ──────────────────────────────────────
-  const ws1 = wb.addWorksheet("Theo tháng và tài khoản", { views: [{ state: "frozen", ySplit: 1 }] });
+  const ws1 = wb.addWorksheet("Theo tháng và tài khoản");
   ws1.columns = [
     { header: "Tháng", key: "thang", width: 10 },
     { header: "Tài khoản", key: "tai_khoan", width: 20 },
-    { header: "Số GD", key: "so_gd", width: 8 },
-    { header: "Sao kê · thô", key: "tien_tho", width: 14, style: { numFmt: TIEN } },
-    { header: "Chuyển khoản nội bộ", key: "noi_bo", width: 19, style: { numFmt: TIEN } },
-    { header: "Sao kê · tiền khách", key: "tien_khach", width: 18, style: { numFmt: TIEN } },
-    { header: "Phần mềm · số đợt", key: "so_dot_pm", width: 17 },
-    { header: "Phần mềm · tiền", key: "tien_pm", width: 16, style: { numFmt: TIEN } },
-    { header: "Chênh", key: "chenh", width: 14, style: { numFmt: TIEN } },
+    { header: "SAO KÊ NH · số GD", key: "so_gd", width: 16 },
+    { header: "SAO KÊ NH · tiền vào thô", key: "tien_tho", width: 21, style: { numFmt: TIEN } },
+    { header: "SAO KÊ NH · chuyển khoản nội bộ", key: "noi_bo", width: 27, style: { numFmt: TIEN } },
+    { header: "SAO KÊ NH · tiền khách", key: "tien_khach", width: 20, style: { numFmt: TIEN } },
+    { header: "PHẦN MỀM · số đợt", key: "so_dot_pm", width: 17 },
+    { header: "PHẦN MỀM · tiền", key: "tien_pm", width: 16, style: { numFmt: TIEN } },
+    { header: "Chênh = tiền khách − phần mềm", key: "chenh", width: 26, style: { numFmt: TIEN } },
   ];
-  ws1.getRow(1).font = { bold: true };
   for (const r of thang) {
     const h = ws1.addRow({
       thang: r.thang,
@@ -115,32 +141,30 @@ async function main() {
       h.getCell("chenh").fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
     }
   }
-  ws1.autoFilter = { from: "A1", to: { row: 1, column: 9 } };
+
 
   // ── Trang 2: từng giao dịch sao kê ────────────────────────────────────────
-  const ws2 = wb.addWorksheet("Từng giao dịch", { views: [{ state: "frozen", ySplit: 1 }] });
+  const ws2 = wb.addWorksheet("Từng giao dịch");
   ws2.columns = [
-    { header: "Ngày", key: "ngay", width: 12 },
-    { header: "Tài khoản", key: "tai_khoan", width: 17 },
-    { header: "Số tiền", key: "tien_vao", width: 12, style: { numFmt: TIEN } },
-    { header: "Loại GD", key: "loai_gd", width: 10 },
-    { header: "Người chuyển", key: "ten_gd", width: 26 },
-    { header: "Mã HĐ trên sao kê", key: "ma_hd_sk", width: 17 },
-    { header: "Trang", key: "trang", width: 18 },
-    { header: "Dòng", key: "dong", width: 7 },
+    { header: "SAO KÊ NH · ngày", key: "ngay", width: 15 },
+    { header: "SAO KÊ NH · tài khoản", key: "tai_khoan", width: 20 },
+    { header: "SAO KÊ NH · số tiền", key: "tien_vao", width: 18, style: { numFmt: TIEN } },
+    { header: "SAO KÊ NH · loại GD", key: "loai_gd", width: 18 },
+    { header: "SAO KÊ NH · người chuyển", key: "ten_gd", width: 26 },
+    { header: "SAO KÊ NH · mã HĐ kế toán dò", key: "ma_hd_sk", width: 25 },
+    { header: "SAO KÊ NH · trang gốc", key: "trang", width: 20 },
+    { header: "SAO KÊ NH · dòng gốc", key: "dong", width: 19 },
     { header: "Kết quả đối soát", key: "ket_qua", width: 62 },
-    { header: "Mã HĐ phần mềm", key: "ma_hd_pm", width: 17 },
-    { header: "Kỳ cước", key: "ky", width: 22 },
-    { header: "Số kỳ gộp", key: "so_ky", width: 10 },
-    { header: "Ngày thu phần mềm", key: "ngay_thu", width: 18 },
+    { header: "PHẦN MỀM · mã HĐ", key: "ma_hd_pm", width: 17 },
+    { header: "PHẦN MỀM · kỳ cước", key: "ky", width: 24 },
+    { header: "PHẦN MỀM · số kỳ gộp", key: "so_ky", width: 19 },
+    { header: "PHẦN MỀM · ngày thu", key: "ngay_thu", width: 19 },
     { header: "Lệch ngày", key: "lech_ngay", width: 11 },
-    { header: "Tài khoản phần mềm", key: "tk_pm", width: 19 },
-    { header: "Trạng thái đợt", key: "trang_thai_dot", width: 18 },
-    { header: "Trạng thái phiếu cha", key: "trang_thai_phieu", width: 20 },
-    { header: "ID đợt", key: "source_id", width: 38 },
+    { header: "PHẦN MỀM · tài khoản", key: "tk_pm", width: 20 },
+    { header: "PHẦN MỀM · trạng thái đợt", key: "trang_thai_dot", width: 23 },
+    { header: "PHẦN MỀM · trạng thái phiếu cha", key: "trang_thai_phieu", width: 28 },
+    { header: "PHẦN MỀM · ID đợt", key: "source_id", width: 38 },
   ];
-  ws2.getRow(1).font = { bold: true };
-
   for (const g of gds) {
     const c = capTheoGd.get(g.id);
     // Một lần nộp có thể gồm nhiều kỳ; lấy đợt đầu làm đại diện cho các cột
@@ -173,10 +197,10 @@ async function main() {
     if (d && d.tai_khoan !== g.tai_khoan)
       h.getCell("tk_pm").font = { bold: true, color: { argb: "FFC00000" } };
   }
-  ws2.autoFilter = { from: "A1", to: { row: 1, column: 18 } };
+
 
   // ── Trang 3: đợt phần mềm không có giao dịch sao kê ───────────────────────
-  const ws3 = wb.addWorksheet("Đợt phần mềm chưa ghép", { views: [{ state: "frozen", ySplit: 1 }] });
+  const ws3 = wb.addWorksheet("Đợt phần mềm chưa ghép");
   ws3.columns = [
     { header: "Mã hợp đồng", key: "ma_hd", width: 15 },
     { header: "Địa chỉ lắp", key: "dia_chi", width: 46 },
@@ -188,7 +212,6 @@ async function main() {
     { header: "Trạng thái phiếu cha", key: "trang_thai_phieu", width: 20 },
     { header: "ID đợt", key: "source_id", width: 38 },
   ];
-  ws3.getRow(1).font = { bold: true };
   const leTheoTien = [...kq.dot_le].sort((a, b) => b.so_tien - a.so_tien);
   for (const d of leTheoTien) {
     const r = dotTheoId.get(d.source_id)!;
@@ -197,12 +220,19 @@ async function main() {
       tai_khoan: r.tai_khoan === "CHUA_GHI" ? "(chưa ghi tài khoản)" : r.tai_khoan,
     });
   }
-  ws3.autoFilter = { from: "A1", to: { row: 1, column: 9 } };
+
+
+  const moc =
+    `Nguồn 1 — SAO KÊ NGÂN HÀNG: ${nguon?.ten_file ?? "?"} (file sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}). ` +
+    `Nguồn 2 — PHẦN MỀM wifi cố định: kho 3m_warehouse, đồng bộ từ CMS lúc ${gio(nguon?.dong_bo ?? null)}. ` +
+    `File chốt lúc ${new Date().toLocaleString("vi-VN")}.`;
+  dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 9);
+  dauTrang(ws2, "Từng giao dịch sao kê, ghép với khoản thu bên phần mềm", moc, 18);
+  dauTrang(ws3, "Đợt thu bên phần mềm không tìm được giao dịch nào trên sao kê", moc, 9);
 
   // ── Trang 4: ghi chú ──────────────────────────────────────────────────────
   const ws4 = wb.addWorksheet("Ghi chú");
-  ws4.columns = [{ width: 30 }, { width: 100 }];
-  ws4.getRow(1).font = { bold: true };
+  ws4.columns = [{ width: 34 }, { width: 110 }];
   const capGop = kq.cap.filter((c) => c.khoan.dot.length > 1);
   const tienCap = kq.cap.reduce((t, c) => t + c.gd.tien_vao, 0);
   const tienGdLe = kq.gd_le.reduce((t, g) => t + g.tien_vao, 0);
@@ -210,8 +240,10 @@ async function main() {
   const t = (n: number) => n.toLocaleString("vi-VN");
   for (const [a, b] of [
     ["Mục", "Nội dung"],
-    ["Nguồn sao kê", "data/bill/Sao kê cố định.xlsx — 3 trang: Yucho Thương, Yucho Arai cố định, GMO"],
-    ["Nguồn phần mềm", "v_fixed_dot_thu — đợt thu wifi cố định, toàn bộ lịch sử"],
+    ["Nguồn 1 · sao kê ngân hàng",
+     `${nguon?.ten_file ?? "?"} — 3 trang: Yucho Thương, Yucho Arai cố định, GMO. File sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}.`],
+    ["Nguồn 2 · phần mềm wifi cố định",
+     `v_fixed_dot_thu trong kho 3m_warehouse — đợt thu toàn bộ lịch sử, đồng bộ từ CMS (MySQL wifi-api) lúc ${gio(nguon?.dong_bo ?? null)}.`],
     ["Chốt lúc", new Date().toLocaleString("vi-VN")],
     ["", ""],
     ["Giao dịch sao kê", `${gds.length} dòng · ${t(gds.reduce((s, g) => s + g.tien_vao, 0))}`],
