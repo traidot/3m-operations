@@ -40,6 +40,7 @@ type GdRow = GiaoDich & {
 type DotRow = Dot & {
   ky: string; dia_chi: string | null;
   trang_thai_dot: string | null; trang_thai_phieu: string | null;
+  vao_bao_cao_tai_khoan: boolean; can_tru_coc: boolean;
 };
 
 type Thang = {
@@ -66,7 +67,8 @@ async function main() {
 
   const dotAll = await q<DotRow & { so_tien: string }>(`
     select source_id, tai_khoan, ngay_thu::text as ngay_thu, so_tien::text,
-           ma_hd, ky, dia_chi, trang_thai_dot, trang_thai_phieu
+           ma_hd, ky, dia_chi, trang_thai_dot, trang_thai_phieu,
+           vao_bao_cao_tai_khoan, can_tru_coc
       from v_fixed_dot_thu
      order by ngay_thu, source_id`);
 
@@ -204,6 +206,9 @@ async function main() {
   // ── Trang 3: đợt phần mềm không có giao dịch sao kê ───────────────────────
   const ws3 = wb.addWorksheet("Đợt phần mềm chưa ghép");
   ws3.columns = [
+    { header: "Có trong báo cáo khoản thu", key: "trong_bc", width: 26 },
+    { header: "Vì sao chưa ghép", key: "vi_sao", width: 52 },
+    { header: "GD sao kê gần nhất cùng số tiền", key: "ung_vien", width: 34 },
     { header: "Mã hợp đồng", key: "ma_hd", width: 15 },
     { header: "Địa chỉ lắp", key: "dia_chi", width: 46 },
     { header: "Kỳ cước", key: "ky", width: 10 },
@@ -214,11 +219,48 @@ async function main() {
     { header: "Trạng thái phiếu cha", key: "trang_thai_phieu", width: 20 },
     { header: "ID đợt", key: "source_id", width: 38 },
   ];
+  // Dải ngày sao kê của từng tài khoản: đợt rơi ngoài dải thì sao kê không có
+  // dữ liệu để mà khớp, đó không phải thiếu tiền.
+  const dai = new Map<string, { tu: string; den: string }>();
+  for (const g of gds) {
+    if (!g.ngay) continue;
+    const c = dai.get(g.tai_khoan);
+    if (!c) dai.set(g.tai_khoan, { tu: g.ngay, den: g.ngay });
+    else {
+      if (g.ngay < c.tu) c.tu = g.ngay;
+      if (g.ngay > c.den) c.den = g.ngay;
+    }
+  }
   const leTheoTien = [...kq.dot_le].sort((a, b) => b.so_tien - a.so_tien);
   for (const d of leTheoTien) {
     const r = dotTheoId.get(d.source_id)!;
+    // Giao dịch còn trống, cùng tài khoản, cùng số tiền, gần ngày thu nhất —
+    // để soi tay xem có phải cùng một khoản mà lệch ngày quá xa hay không.
+    const gan = kq.gd_le
+      .filter((g) => g.tai_khoan === r.tai_khoan && g.tien_vao === r.so_tien && g.ngay)
+      .map((g) => ({ g, l: Math.abs(Date.parse(g.ngay!) - Date.parse(r.ngay_thu ?? "")) / 86_400_000 }))
+      .sort((a, b) => a.l - b.l)[0];
+    const kho = dai.get(r.tai_khoan);
+    const ngoaiDai =
+      kho && r.ngay_thu ? r.ngay_thu < kho.tu || r.ngay_thu > kho.den : false;
+
+    const viSao = r.can_tru_coc
+      ? "Cấn trừ cọc — tiền đã vào từ tháng khách nộp cọc, không có giao dịch riêng"
+      : r.tai_khoan === "CHUA_GHI"
+        ? "Chưa ghi tài khoản thu — không biết tìm ở sao kê nào"
+        : !kho
+          ? "Tài khoản này không có trang nào trong file sao kê"
+          : ngoaiDai
+            ? `Ngoài dải sao kê — tài khoản này chỉ có từ ${kho.tu} đến ${kho.den}`
+            : gan
+              ? `Có giao dịch cùng số tiền nhưng lệch ${Math.round(gan.l)} ngày — soi tay`
+              : "Không có giao dịch nào cùng số tiền ở tài khoản này";
+
     ws3.addRow({
       ...r,
+      trong_bc: r.vao_bao_cao_tai_khoan ? "có" : "không",
+      vi_sao: viSao,
+      ung_vien: gan ? `${gan.g.ngay} · lệch ${Math.round(gan.l)} ngày` : null,
       tai_khoan: r.tai_khoan === "CHUA_GHI" ? "(chưa ghi tài khoản)" : r.tai_khoan,
     });
   }
@@ -245,7 +287,7 @@ async function main() {
       }
   });
   dauTrang(ws2, "Từng giao dịch sao kê, ghép với khoản thu bên phần mềm", moc, 18);
-  dauTrang(ws3, "Đợt thu bên phần mềm không tìm được giao dịch nào trên sao kê", moc, 9);
+  dauTrang(ws3, "Đợt thu bên phần mềm không tìm được giao dịch nào trên sao kê", moc, 12);
 
   // ── Trang 4: ghi chú ──────────────────────────────────────────────────────
   const ws4 = wb.addWorksheet("Ghi chú");
