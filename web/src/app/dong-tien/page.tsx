@@ -117,6 +117,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       .sort((a, b) => tong(b[1]) - tong(a[1])),
   };
 
+  const xuatHref = `/dong-tien/xuat?pv=${pv}&gn=${gn}&thang=${thang}`;
+
   // Ngăn kéo mở theo tài khoản, hoặc theo lý do bị CMS loại — cùng một vỏ.
   const moTk = mot(sp.tk);
   const moLd = mot(sp.ld);
@@ -201,6 +203,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               ))}
         </p>
       </div>
+
+      <p className="actions">
+        <a href={xuatHref}>
+          <button type="button" className="primary">
+            Xuất Excel {khung}
+          </button>
+        </a>
+      </p>
 
       <h2>
         {gn === "ky"
@@ -439,7 +449,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </div>
 
       <p className="actions">
-        <a href={`/dong-tien/xuat?pv=${pv}&gn=${gn}&thang=${thang}`}>
+        <a href={xuatHref}>
           <button type="button" className="primary">
             Xuất Excel {khung}
           </button>
