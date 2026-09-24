@@ -461,6 +461,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               </>
             )}
           </p>
+          <p className="actions">
+            <a
+              href={`/dong-tien/xuat?pv=${pv}&gn=${gn}&thang=${thang}&${
+                moTk ? `tk=${encodeURIComponent(moTk)}` : `ld=${encodeURIComponent(moLd)}`
+              }`}
+            >
+              <button type="button" className="primary">
+                Xuất Excel {n(moRows.length)} đợt
+              </button>
+            </a>
+          </p>
           <div className="scroller">
             <table>
               <thead>

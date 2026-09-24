@@ -32,10 +32,69 @@ export async function GET(req: Request) {
 
   const { tu, den } = khoang(pv, thang);
   const nhipHien = nhipCua(pv);
-  const rows = tapNeo(await getDotThuCoDinh(tu, den), gn, tu, den);
+  const tatCa = await getDotThuCoDinh(tu, den);
+  const rows = tapNeo(tatCa, gn, tu, den);
   const khung = nhanKhoang(pv, thang);
   const cot = nhanCot(pv, thang);
   const tenTrucSuy = gn === "ky" ? "tiền về" : "kỳ cước";
+
+  const themCot = (ws: ExcelJS.Worksheet) => {
+    ws.columns = [
+      { header: "Mã hợp đồng", key: "ma_hd", width: 16 },
+      { header: "Địa chỉ lắp", key: "dia_chi", width: 46 },
+      { header: "Cước tháng", key: "cuoc_thang", width: 11, style: { numFmt: TIEN } },
+      { header: "Kỳ cước", key: "ky", width: 10 },
+      { header: "Tháng tiền về", key: "thang_tien_ve", width: 14 },
+      { header: "Ngày thu", key: "ngay_thu", width: 12 },
+      { header: "Số tiền", key: "so_tien", width: 10, style: { numFmt: TIEN } },
+      { header: "Tài khoản", key: "tai_khoan", width: 20 },
+      { header: "Nhịp", key: "vai_tro", width: 30 },
+      { header: "Trạng thái đợt", key: "trang_thai_dot", width: 17 },
+      { header: "Trạng thái phiếu cha", key: "trang_thai_phieu", width: 20 },
+      { header: "ID đợt", key: "source_id", width: 38 },
+    ];
+    ws.getRow(1).font = { bold: true };
+  };
+  const themDong = (ws: ExcelJS.Worksheet, ds: DotThuCoDinh[]) => {
+    for (const r of ds) {
+      ws.addRow({
+        ...r,
+        vai_tro: `${tenTrucSuy} ${{ truoc: "trước", dung: "trong", sau: "sau" }[nhip(r, gn, tu, den)]} ${cot}`,
+        tai_khoan: r.tai_khoan === CHUA_GHI ? "(chưa ghi tài khoản)" : r.tai_khoan,
+        cuoc_thang: r.cuoc_thang === null ? null : Number(r.cuoc_thang),
+        so_tien: Number(r.so_tien),
+      });
+    }
+    ws.autoFilter = { from: "A1", to: { row: 1, column: ws.columns.length } };
+  };
+
+  // Ngăn kéo: xuất đúng danh sách đang mở, một trang, không kèm bảng tổng hợp.
+  const tk = sp.get("tk");
+  const ld = sp.get("ld");
+  if (tk || ld) {
+    const trongPhamVi =
+      gn === "ky"
+        ? tatCa.filter((r) => (!tu || r.ky >= tu) && r.ky <= den)
+        : tatCa.filter((r) => (!tu || r.thang_tien_ve >= tu) && r.thang_tien_ve <= den);
+    const ds = tk
+      ? rows.filter((r) => r.tai_khoan === tk)
+      : trongPhamVi.filter(
+          (r) => (gn === "ky" ? r.ly_do_ngoai_cuoc : r.ly_do_ngoai_tai_khoan) === ld,
+        );
+    const wb1 = new ExcelJS.Workbook();
+    const ws1 = wb1.addWorksheet("Chi tiết", { views: [{ state: "frozen", ySplit: 1 }] });
+    themCot(ws1);
+    themDong(ws1, ds);
+    const buf1 = await wb1.xlsx.writeBuffer();
+    return new Response(new Uint8Array(buf1 as ArrayBuffer), {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        // Tên file thuần ASCII: header HTTP chỉ nhận latin1.
+        "Content-Disposition": `attachment; filename="dong-tien-${gn}-${pv}-${thang}-chi-tiet.xlsx"`,
+      },
+    });
+  }
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Tổng hợp");
@@ -132,32 +191,8 @@ export async function GET(req: Request) {
   }
 
   const ws2 = wb.addWorksheet("Chi tiết từng đợt", { views: [{ state: "frozen", ySplit: 1 }] });
-  ws2.columns = [
-    { header: "Nhịp", key: "vai_tro", width: 34 },
-    { header: "Mã hợp đồng", key: "ma_hd", width: 16 },
-    { header: "Địa chỉ lắp", key: "dia_chi", width: 42 },
-    { header: "Cước tháng", key: "cuoc_thang", width: 11, style: { numFmt: TIEN } },
-    { header: "Kỳ cước", key: "ky", width: 10 },
-    { header: "Tháng tiền về", key: "thang_tien_ve", width: 14 },
-    { header: "Ngày thu", key: "ngay_thu", width: 12 },
-    { header: "Số tiền", key: "so_tien", width: 10, style: { numFmt: TIEN } },
-    { header: "Tài khoản", key: "tai_khoan", width: 20 },
-    { header: "Trạng thái đợt", key: "trang_thai_dot", width: 17 },
-    { header: "Trạng thái phiếu cha", key: "trang_thai_phieu", width: 20 },
-    { header: "ID đợt", key: "source_id", width: 38 },
-  ];
-  ws2.getRow(1).font = { bold: true };
-  for (const r of rows) {
-    ws2.addRow({
-      ...r,
-      vai_tro: `${tenTrucSuy} ${{ truoc: "trước", dung: "trong", sau: "sau" }[nhip(r, gn, tu, den)]} ${cot}`,
-      tai_khoan: r.tai_khoan === CHUA_GHI ? "(chưa ghi tài khoản)" : r.tai_khoan,
-      cuoc_thang: r.cuoc_thang === null ? null : Number(r.cuoc_thang),
-      so_tien: Number(r.so_tien),
-    });
-  }
-  ws2.autoFilter = { from: "A1", to: { row: 1, column: ws2.columns.length } };
-
+  themCot(ws2);
+  themDong(ws2, rows);
   const buf = await wb.xlsx.writeBuffer();
   return new Response(new Uint8Array(buf as ArrayBuffer), {
     headers: {
