@@ -12,7 +12,8 @@
     "test": "tsx --test src/**/*.test.ts",
     "typecheck": "tsc --noEmit",
     "kho:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/kho/nhap-doi-soat.ts",
-    "sao-ke:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/sao-ke/nhap.ts"
+    "sao-ke:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/sao-ke/nhap.ts",
+    "doi-chieu:cuoc-tk": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/doi-chieu/cuoc-vs-tai-khoan.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
