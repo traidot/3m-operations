@@ -161,7 +161,7 @@ async function main() {
         so_dot_cms: num(r?.so_dot_cms ?? 0), tien_cms: num(r?.tien_cms ?? 0),
         so_dot_pm: num(r?.so_dot_pm ?? 0), tien_pm: num(r?.tien_pm ?? 0),
         tien_cho_duyet: num(r?.tien_cho_duyet ?? 0),
-        chenh_cms: num(r?.chenh_cms ?? 0), chenh: num(r?.chenh ?? 0),
+        // Hai cột chênh gán công thức sau, khi đã biết số dòng thật.
       });
       d1++;
       for (const k of ["chenh_cms", "chenh"])
@@ -182,6 +182,7 @@ async function main() {
     thang.reduce((t, r) => (thangCo.includes(r.thang) ? t + lay(r) : t), 0);
   ws1.addRow({});
   d1++;
+  const dTongTruoc = ++d1;
   const hTong = ws1.addRow({
     tai_khoan: "TỔNG",
     so_gd: congCot((r) => num(r.so_gd)),
@@ -193,8 +194,6 @@ async function main() {
     so_dot_pm: congCot((r) => num(r.so_dot_pm)),
     tien_pm: congCot((r) => num(r.tien_pm)),
     tien_cho_duyet: congCot((r) => num(r.tien_cho_duyet)),
-    chenh_cms: congCot((r) => num(r.chenh_cms)),
-    chenh: congCot((r) => num(r.chenh)),
   });
   hTong.font = { bold: true };
   for (let c = 1; c <= 13; c++)
@@ -338,6 +337,37 @@ async function main() {
   ]);
   // dauTrang chèn ba dòng (tên, nguồn, nhóm) nên chỉ số dòng dịch xuống 3.
   const GIU = new Set<string>([DO, MAU.vang]);
+  // Hai cột chênh và dòng tổng để Excel tự tính, không ghi số chết: sửa một ô
+  // số liệu là chênh và tổng nhảy theo, và người đọc thấy được phép tính.
+  // dauTrang chèn ba dòng nên mọi chỉ số dịch xuống 3.
+  const dDau = (khoi[0]?.tu ?? 1) + 3;
+  const dCuoi = (khoi.at(-1)?.den ?? 0) + 3;
+  const dTong = dTongTruoc + 3;
+  // Kèm sẵn `result` để công cụ nào không tự tính công thức vẫn đọc ra số.
+  // ExcelJS BỎ HẲN key `result` khi nó bằng 0, nên phải nhận ô công thức qua
+  // `formula` chứ không qua `result` — dò nhầm là Number(object) ra NaN và lan
+  // ra cả dòng tổng.
+  const giaTri = (v: ExcelJS.CellValue): number =>
+    typeof v === "object" && v !== null && "formula" in v
+      ? Number((v as ExcelJS.CellFormulaValue).result ?? 0)
+      : Number(v ?? 0);
+  const so = (r: number, c: number) => giaTri(ws1.getCell(r, c).value);
+  const cot = (c: number) => String.fromCharCode(64 + c);
+  for (let r = dDau; r <= dCuoi; r++) {
+    // chênh = tiền khách (F) trừ đi số của phần mềm — H giống CMS, J bỏ lọc.
+    const khach = so(r, 6);
+    ws1.getCell(r, 12).value = { formula: `F${r}-H${r}`, result: khach - so(r, 8) };
+    ws1.getCell(r, 13).value = { formula: `F${r}-J${r}`, result: khach - so(r, 10) };
+  }
+  for (let c = 3; c <= 13; c++) {
+    let tong = 0;
+    for (let r = dDau; r <= dCuoi; r++) tong += so(r, c);
+    ws1.getCell(dTong, c).value = {
+      formula: `SUM(${cot(c)}${dDau}:${cot(c)}${dCuoi})`,
+      result: tong,
+    };
+  }
+
   // Vòng so le chỉ phủ các khối tháng; dòng tổng nằm ngoài nên giữ nguyên nền.
   khoi.forEach((k, i) => {
     ws1.mergeCells(k.tu + 3, 1, k.den + 3, 1);
