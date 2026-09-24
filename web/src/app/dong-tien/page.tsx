@@ -24,6 +24,18 @@ const NHAN_PV: Record<PhamVi, string> = {
   thang: "Một tháng",
 };
 
+/** Một câu nói rõ vì sao CMS bỏ nhóm đó, để người đọc không phải tra code. */
+const GIAI_THICH: Record<string, string> = {
+  "đợt chưa ghi tài khoản thu": "báo cáo lọc collectionAccount IS NOT NULL nên loại thẳng",
+  "đợt chưa duyệt": "chỉ tính đợt đã duyệt, hoặc phiếu cha đánh dấu tất toán tay",
+  "tháng miễn phí": "kỳ được miễn phí thì không phải tiền thu",
+  "đợt tiền bằng 0": "báo cáo lọc amount > 0",
+  "phiếu cha đã bị xoá ở nguồn": "đợt còn sống mà phiếu cha đã bị xoá bên CMS",
+  "phiếu cha chưa duyệt": "chỉ tính phiếu cha đã duyệt",
+  "hợp đồng chưa lắp xong": "báo cáo chỉ tính hợp đồng INSTALLATION_COMPLETED",
+  "hợp đồng chưa có giá cước": "báo cáo chỉ tính hợp đồng có cước tháng > 0",
+};
+
 const NHAN_NHIP: Record<string, string> = { truoc: "trước", dung: "trong", sau: "sau" };
 
 const GN: GocNhin[] = ["ky", "tien-ve"];
@@ -70,9 +82,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const taiKhoan = xepTaiKhoan(rows);
   const tienNganHang = tong(rows.filter((r) => !r.can_tru_coc));
   const tongRows = tong(rows);
-  // Bộ lọc của CMS bỏ đợt chưa ghi tài khoản và đợt chưa duyệt, nên tổng bên đó
-  // luôn nhỏ hơn. Hiện cả hai để người đọc không tưởng là lệch số.
-  const khopCms = tong(rows.filter((r) => r.vao_bao_cao_tai_khoan));
 
   const lk = (t: Record<string, string | undefined>) => {
     const p = new URLSearchParams({ pv, gn, thang });
@@ -83,8 +92,40 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     return `/dong-tien?${p}`;
   };
 
-  const mo = mot(sp.tk);
-  const moRows = mo ? rows.filter((r) => r.tai_khoan === mo) : [];
+  // Đối chiếu: tập đầy đủ trong phạm vi (chưa lọc theo luật CMS), rồi trừ dần
+  // từng lý do để ra đúng con số bên đó.
+  const trongPhamVi =
+    gn === "ky"
+      ? tatCa.filter((r) => (!tu || r.ky >= tu) && r.ky <= den)
+      : tatCa.filter((r) => (!tu || r.thang_tien_ve >= tu) && r.thang_tien_ve <= den);
+  const layLyDo = (r: (typeof trongPhamVi)[number]) =>
+    gn === "ky" ? r.ly_do_ngoai_cuoc : r.ly_do_ngoai_tai_khoan;
+  const khopRows = trongPhamVi.filter((r) => !layLyDo(r));
+  const biCap =
+    gn === "tien-ve"
+      ? khopRows.reduce((t, r) => t + Number(r.tien_bi_cap), 0)
+      : 0;
+  const doiChieu = {
+    tatCaRows: trongPhamVi,
+    khopRows,
+    bi_cap: biCap,
+    khop: tong(khopRows) - biCap,
+    ten_bao_cao:
+      gn === "ky" ? "Báo cáo thống kê cước phí (CMS)" : "Báo cáo tài khoản thu (CMS)",
+    ly_do: [...new Set(trongPhamVi.map(layLyDo).filter((v): v is string => !!v))]
+      .map((ten) => [ten, trongPhamVi.filter((r) => layLyDo(r) === ten)] as const)
+      .sort((a, b) => tong(b[1]) - tong(a[1])),
+  };
+
+  // Ngăn kéo mở theo tài khoản, hoặc theo lý do bị CMS loại — cùng một vỏ.
+  const moTk = mot(sp.tk);
+  const moLd = mot(sp.ld);
+  const mo = moTk || moLd;
+  const moRows = moTk
+    ? rows.filter((r) => r.tai_khoan === moTk)
+    : moLd
+      ? trongPhamVi.filter((r) => layLyDo(r) === moLd)
+      : [];
   const thangGan = danhSachThang.slice(0, SO_THANG_HIEN).reverse();
   const cacNam = [...new Set(danhSachThang.map((t) => t.thang.slice(0, 4)))].sort();
 
@@ -109,7 +150,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <div className="muted nhan-nhom">Góc nhìn — neo vào trục nào</div>
         <p className="actions">
           {GN.map((g) => (
-            <Link key={g} href={lk({ gn: g, tk: undefined })}>
+            <Link key={g} href={lk({ gn: g, tk: undefined, ld: undefined })}>
               <button type="button" className={gn === g ? "primary" : undefined}>
                 {NHAN_GN[g]}
               </button>
@@ -122,7 +163,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <div className="muted nhan-nhom">Phạm vi thời gian</div>
         <p className="actions">
           {PV.map((p) => (
-            <Link key={p} href={lk({ pv: p, tk: undefined })}>
+            <Link key={p} href={lk({ pv: p, tk: undefined, ld: undefined })}>
               <button type="button" className={pv === p ? "primary" : undefined}>
                 {NHAN_PV[p]}
               </button>
@@ -132,7 +173,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <p className="actions">
           {pv === "nam"
             ? cacNam.map((y) => (
-                <Link key={y} href={lk({ thang: `${y}-12`, tk: undefined })}>
+                <Link key={y} href={lk({ thang: `${y}-12`, tk: undefined, ld: undefined })}>
                   <button
                     type="button"
                     className={thang.slice(0, 4) === y ? "primary" : undefined}
@@ -142,7 +183,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 </Link>
               ))
             : thangGan.map((t) => (
-                <Link key={t.thang} href={lk({ thang: t.thang, tk: undefined })}>
+                <Link key={t.thang} href={lk({ thang: t.thang, tk: undefined, ld: undefined })}>
                   <button type="button" className={t.thang === thang ? "primary" : undefined}>
                     {t.thang}
                   </button>
@@ -233,14 +274,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </table>
       </div>
       <p className="muted">
-        {gn === "tien-ve" ? (
-          <>
-            <b>Khớp với Báo cáo tài khoản thu của CMS: {n(khopCms)}.</b> Chênh{" "}
-            {n(tongRows - khopCms)} so với tổng ở trên là do ở đây{" "}
-            <b>không bỏ rơi đợt nào</b>, còn bên CMS loại thẳng đợt chưa ghi tài khoản và đợt
-            chưa duyệt — xem bảng cờ cảnh báo bên dưới để biết chính xác gồm những gì.{" "}
-          </>
-        ) : null}
         Trong đó <b>{n(tienNganHang)} có giao dịch ngân hàng</b>;{" "}
         {n(tong(rows.filter((r) => r.can_tru_coc)))} còn lại là <b>cấn trừ cọc</b> — tiền thật,
         khách đã nộp trước qua combini, nhưng sao kê ghi ở tháng nộp cọc chứ không phải tháng
@@ -253,6 +286,67 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </>
         )}
       </p>
+
+      <h2>Đối chiếu với báo cáo của CMS</h2>
+      <p className="muted">
+        Màn hình này <b>không bỏ rơi đợt nào</b>, còn báo cáo bên CMS lọc bớt. Trừ từng lý do
+        ra thì về đúng con số bên đó — nếu lệch thì là bên em tính sai, không phải &ldquo;hai
+        báo cáo khác nhau&rdquo;.
+      </p>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>Mục</th>
+              <th className="num">Số đợt</th>
+              <th className="num">Số tiền</th>
+              <th>Vì sao CMS loại</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <b>Tổng đầy đủ — màn hình này</b>
+              </td>
+              <td className="num mono">{n(doiChieu.tatCaRows.length)}</td>
+              <td className="num mono">{n(tong(doiChieu.tatCaRows))}</td>
+              <td className="muted">mọi đợt trong phạm vi, không lọc gì</td>
+            </tr>
+            {doiChieu.ly_do.map(([ten, d]) => (
+              <tr key={ten}>
+                <td>
+                  − <Link href={lk({ ld: ten, tk: undefined })}>{ten}</Link>
+                </td>
+                <td className="num mono muted">{n(d.length)}</td>
+                <td className="num mono bad">−{n(tong(d))}</td>
+                <td className="muted">
+                  {GIAI_THICH[ten] ?? "bộ lọc của báo cáo bên CMS"}
+                  {" · "}
+                  <Link href={lk({ ld: ten, tk: undefined })}>xem danh sách →</Link>
+                </td>
+              </tr>
+            ))}
+            {doiChieu.bi_cap > 0 && (
+              <tr>
+                <td>− Phần vượt cước tháng bị cắt</td>
+                <td className="num mono muted">—</td>
+                <td className="num mono bad">−{n(doiChieu.bi_cap)}</td>
+                <td className="muted">
+                  báo cáo tài khoản thu cap mỗi đợt ở mức cước tháng của hợp đồng
+                </td>
+              </tr>
+            )}
+            <tr className="hang-tong">
+              <td>
+                <b>= {doiChieu.ten_bao_cao}</b>
+              </td>
+              <td className="num mono">{n(doiChieu.khopRows.length)}</td>
+              <td className="num mono">{n(doiChieu.khop)}</td>
+              <td className="muted">phải bằng đúng số hiện trên CMS</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <h2>Phân rã theo {tenTrucSuy}</h2>
       <div className="scroller">
@@ -350,11 +444,22 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       </p>
 
       {mo && (
-        <NganKeo dongLai={lk({ tk: undefined })}>
-          <h1>{TEN_TK[mo] ?? mo}</h1>
+        <NganKeo dongLai={lk({ tk: undefined, ld: undefined })}>
+          <h1>{moTk ? (TEN_TK[moTk] ?? moTk) : moLd}</h1>
           <p className="muted">
-            {gn === "ky" ? "Cước" : "Tiền về"} {khung} qua tài khoản này: {n(tong(moRows))} yên,{" "}
-            {n(moRows.length)} đợt.
+            {moTk ? (
+              <>
+                {gn === "ky" ? "Cước" : "Tiền về"} {khung} qua tài khoản này:{" "}
+                {n(tong(moRows))} yên, {n(moRows.length)} đợt.
+              </>
+            ) : (
+              <>
+                {n(moRows.length)} đợt · {n(tong(moRows))} yên bị{" "}
+                <b>{doiChieu.ten_bao_cao}</b> loại khỏi thống kê.{" "}
+                {GIAI_THICH[moLd] ?? "bộ lọc của báo cáo bên CMS"}. Tiền vẫn có thật, chỉ là
+                bên đó không đếm.
+              </>
+            )}
           </p>
           <div className="scroller">
             <table>
