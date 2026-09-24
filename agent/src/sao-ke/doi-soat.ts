@@ -8,6 +8,11 @@ import { ghep, type Dot, type GiaoDich } from "./ghep.js";
  * Đối soát sao kê ngân hàng với phần mềm ở mức TỪNG GIAO DỊCH.
  *
  *   npm run sao-ke:doi-soat
+ *   npm run sao-ke:doi-soat -- --tu=2026-01-01 --den=2026-09-30
+ *
+ * Phép ghép luôn chạy trên TOÀN BỘ dữ liệu rồi mới lọc lúc xuất. Cắt dữ liệu
+ * trước khi ghép thì đợt thu cuối tháng 12 khớp giao dịch đầu tháng 1 sẽ thành
+ * "chưa ghép" giả ngay ở mép khoảng.
  *
  * Bảng theo tháng chỉ nói tháng nào lệch bao nhiêu, không nói lệch ở giao dịch
  * nào. Trang "Từng giao dịch" đặt mỗi dòng sao kê cạnh đợt thu đã ghép được,
@@ -57,7 +62,18 @@ const tienPm = (rows: Thang[], tk: string) =>
 
 
 
+/** Cờ dạng --ten=giá trị; thiếu thì trả undefined. */
+const co = (ten: string) =>
+  process.argv.find((a) => a.startsWith(`--${ten}=`))?.split("=")[1];
+
 async function main() {
+  const tu = co("tu") ?? "";
+  const den = co("den") ?? "";
+  const trong = (ngay: string | null) =>
+    ngay !== null && (!tu || ngay >= tu) && (!den || ngay <= den);
+  const nhanKhoang = tu || den
+    ? `Chỉ tính ${tu ? `từ ${tu}` : "đến"}${tu && den ? " đến " : ""}${den && !tu ? den : den}`
+    : "Toàn bộ lịch sử";
   const gdAll = await q<GdRow & { tien_vao: string; id: string }>(`
     select r.id::text, r.tai_khoan, r.ngay::text as ngay, r.tien_vao::text,
            r.ma_hd, r.trang, r.dong, r.ten_gd, r.loai_gd, r.noi_bo
@@ -114,7 +130,9 @@ async function main() {
   // Mỗi tháng hiện đủ mọi tài khoản, tháng nào tài khoản đó không phát sinh thì
   // để 0 — bảng đều hàng nên so mắt theo cột được, không phải dò xem tháng này
   // có thiếu dòng nào không.
-  const thangCo = [...new Set(thang.map((r) => r.thang))].sort();
+  const thangCo = [...new Set(thang.map((r) => r.thang))]
+    .filter((th) => (!tu || th >= tu.slice(0, 7)) && (!den || th <= den.slice(0, 7)))
+    .sort();
   const tkNganHang = [...new Set(thang.filter((r) => num(r.so_gd) > 0).map((r) => r.tai_khoan))];
   const tkKhac = [...new Set(thang.map((r) => r.tai_khoan))]
     .filter((t) => !tkNganHang.includes(t))
@@ -170,6 +188,7 @@ async function main() {
     { header: "PHẦN MỀM · ID đợt", key: "source_id", width: 38 },
   ];
   for (const g of gds) {
+    if (!trong(g.ngay)) continue;
     const c = capTheoGd.get(g.id);
     // Một lần nộp có thể gồm nhiều kỳ; lấy đợt đầu làm đại diện cho các cột
     // chung và gộp danh sách kỳ vào một ô.
@@ -231,7 +250,9 @@ async function main() {
       if (g.ngay > c.den) c.den = g.ngay;
     }
   }
-  const leTheoTien = [...kq.dot_le].sort((a, b) => b.so_tien - a.so_tien);
+  const leTheoTien = [...kq.dot_le]
+    .filter((d) => trong(d.ngay_thu))
+    .sort((a, b) => b.so_tien - a.so_tien);
   for (const d of leTheoTien) {
     const r = dotTheoId.get(d.source_id)!;
     // Giao dịch còn trống, cùng tài khoản, cùng số tiền, gần ngày thu nhất —
@@ -271,7 +292,7 @@ async function main() {
     `nhập lúc ${gio(nguon?.nhap_luc ?? null)}). ` +
     "Nguồn 2 — THÔNG TIN BÁO CÁO KHOẢN THU của CMS wifi cố định (report/collection-account), " +
     `lấy đủ mọi đợt kể cả đợt chưa ghi tài khoản và đợt chưa duyệt, chốt lúc ${gio(nguon?.dong_bo ?? null)}. ` +
-    `File xuất lúc ${new Date().toLocaleString("vi-VN")}.`;
+    `Phạm vi: ${nhanKhoang.toLowerCase()}. File xuất lúc ${new Date().toLocaleString("vi-VN")}.`;
   dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 9);
   // dauTrang chèn hai dòng nên mọi chỉ số dòng dịch xuống 2.
   khoi.forEach((k, i) => {
@@ -292,10 +313,16 @@ async function main() {
   // ── Trang 4: ghi chú ──────────────────────────────────────────────────────
   const ws4 = wb.addWorksheet("Ghi chú");
   ws4.columns = [{ width: 34 }, { width: 110 }];
-  const capGop = kq.cap.filter((c) => c.khoan.dot.length > 1);
-  const tienCap = kq.cap.reduce((t, c) => t + c.gd.tien_vao, 0);
-  const tienGdLe = kq.gd_le.reduce((t, g) => t + g.tien_vao, 0);
-  const tienDotLe = kq.dot_le.reduce((t, d) => t + d.so_tien, 0);
+  // Mọi con số tóm tắt đếm trên tập đã lọc theo phạm vi, để console và file
+  // không nói hai chuyện khác nhau.
+  const gdHien = gds.filter((g) => trong(g.ngay));
+  const capHien = kq.cap.filter((c) => trong(c.gd.ngay));
+  const gdLeHien = kq.gd_le.filter((g) => trong(g.ngay));
+  const dotLeHien = kq.dot_le.filter((d) => trong(d.ngay_thu));
+  const capGop = capHien.filter((c) => c.khoan.dot.length > 1);
+  const tienCap = capHien.reduce((t, c) => t + c.gd.tien_vao, 0);
+  const tienGdLe = gdLeHien.reduce((t, g) => t + g.tien_vao, 0);
+  const tienDotLe = dotLeHien.reduce((t, d) => t + d.so_tien, 0);
   const t = (n: number) => n.toLocaleString("vi-VN");
   for (const [a, b] of [
     ["Mục", "Nội dung"],
@@ -303,15 +330,17 @@ async function main() {
      `${nguon?.ten_file ?? "?"} — 3 trang: Yucho Thương, Yucho Arai cố định, GMO. File sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}.`],
     ["Nguồn 2 · thông tin báo cáo khoản thu",
      `Đợt thu của CMS wifi cố định, cùng dữ liệu dựng nên Báo cáo tài khoản thu (report/collection-account), toàn bộ lịch sử. Khác một chỗ: ở đây lấy đủ mọi đợt, kể cả đợt chưa ghi tài khoản và đợt chưa duyệt mà báo cáo của CMS loại ra. Chốt lúc ${gio(nguon?.dong_bo ?? null)}.`],
+    ["Phạm vi",
+     `${nhanKhoang} (theo ngày giao dịch của sao kê và ngày thu của phần mềm). Phép ghép vẫn chạy trên toàn bộ lịch sử rồi mới lọc, nên không sinh ra "chưa ghép" giả ở mép khoảng.`],
     ["Chốt lúc", new Date().toLocaleString("vi-VN")],
     ["", ""],
-    ["Giao dịch sao kê", `${gds.length} dòng · ${t(gds.reduce((s, g) => s + g.tien_vao, 0))}`],
-    ["  trong đó nội bộ", `${gds.length - gdKhach.length} dòng · ${t(gds.reduce((s, g) => s + (g.noi_bo ? g.tien_vao : 0), 0))}`],
-    ["Ghép được", `${kq.cap.length} cặp · ${t(tienCap)}`],
+    ["Giao dịch sao kê", `${gdHien.length} dòng · ${t(gdHien.reduce((s, g) => s + g.tien_vao, 0))}`],
+    ["  trong đó nội bộ", `${gdHien.filter((g) => g.noi_bo).length} dòng · ${t(gdHien.reduce((s, g) => s + (g.noi_bo ? g.tien_vao : 0), 0))}`],
+    ["Ghép được", `${capHien.length} cặp · ${t(tienCap)}`],
     ["  trong đó khách nộp gộp",
      `${capGop.length} giao dịch gom ${capGop.reduce((s2, c) => s2 + c.khoan.dot.length, 0)} kỳ · ${t(capGop.reduce((s2, c) => s2 + c.gd.tien_vao, 0))}`],
-    ["GD sao kê chưa ghép", `${kq.gd_le.length} dòng · ${t(tienGdLe)}`],
-    ["Đợt phần mềm chưa ghép", `${kq.dot_le.length} đợt · ${t(tienDotLe)}`],
+    ["GD sao kê chưa ghép", `${gdLeHien.length} dòng · ${t(tienGdLe)}`],
+    ["Đợt phần mềm chưa ghép", `${dotLeHien.length} đợt · ${t(tienDotLe)}`],
     ["", ""],
     ["Vì sao sao kê nhiều tiền hơn",
      "Ba tài khoản này còn nhận cả tiền ngoài cước wifi cố định, nên giao dịch không ghép được là bình thường, không mặc nhiên là lỗi."],
@@ -324,20 +353,21 @@ async function main() {
 
   datFont(wb, "Consolas");
 
-  const ra = process.argv[2] ?? banKeTiep("../data", "doi-soat-sao-ke-tung-giao-dich");
+  const duoi = tu || den ? `-tu-${tu || "dau"}-den-${den || "nay"}` : "";
+  const ra = co("ra") ?? banKeTiep("../data", `doi-soat-sao-ke-tung-giao-dich${duoi}`);
   await wb.xlsx.writeFile(ra);
 
-  console.log(`Đã ghi ${ra}`);
-  console.log(`  giao dịch sao kê   ${String(gds.length).padStart(5)} dòng · ${t(gds.reduce((s, g) => s + g.tien_vao, 0)).padStart(11)}`);
-  console.log(`  ghép được          ${String(kq.cap.length).padStart(5)} cặp  · ${t(tienCap).padStart(11)}`);
+  console.log(`Đã ghi ${ra}  ·  ${nhanKhoang}`);
+  console.log(`  giao dịch sao kê   ${String(gdHien.length).padStart(5)} dòng · ${t(gdHien.reduce((s, g) => s + g.tien_vao, 0)).padStart(11)}`);
+  console.log(`  ghép được          ${String(capHien.length).padStart(5)} cặp  · ${t(tienCap).padStart(11)}`);
   console.log(`    khách nộp gộp    ${String(capGop.length).padStart(5)} GD gom ${capGop.reduce((s2, c) => s2 + c.khoan.dot.length, 0)} kỳ · ${t(capGop.reduce((s2, c) => s2 + c.gd.tien_vao, 0))}`);
   for (const b of [1, 2, 3, 4]) {
-    const c = kq.cap.filter((x) => x.bac === b);
+    const c = capHien.filter((x) => x.bac === b);
     if (c.length === 0) continue;
     console.log(`    bậc ${b}            ${String(c.length).padStart(5)} cặp  · ${t(c.reduce((s, x) => s + x.gd.tien_vao, 0)).padStart(11)}  ${BAC_TEN[b]!.ten}`);
   }
-  console.log(`  GD sao kê chưa ghép${String(kq.gd_le.length).padStart(5)} dòng · ${t(tienGdLe).padStart(11)}`);
-  console.log(`  đợt PM chưa ghép   ${String(kq.dot_le.length).padStart(5)} đợt  · ${t(tienDotLe).padStart(11)}`);
+  console.log(`  GD sao kê chưa ghép${String(gdLeHien.length).padStart(5)} dòng · ${t(tienGdLe).padStart(11)}`);
+  console.log(`  đợt PM chưa ghép   ${String(dotLeHien.length).padStart(5)} đợt  · ${t(tienDotLe).padStart(11)}`);
   await pool.end();
 }
 
