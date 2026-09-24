@@ -225,9 +225,11 @@ async function main() {
 
 
   const moc =
-    `Nguồn 1 — SAO KÊ NGÂN HÀNG: ${nguon?.ten_file ?? "?"} (file sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}). ` +
-    `Nguồn 2 — PHẦN MỀM wifi cố định: kho 3m_warehouse, đồng bộ từ CMS lúc ${gio(nguon?.dong_bo ?? null)}. ` +
-    `File chốt lúc ${new Date().toLocaleString("vi-VN")}.`;
+    `Nguồn 1 — SAO KÊ NGÂN HÀNG: ${nguon?.ten_file ?? "?"} (file sửa ${gio(nguon?.sua_luc ?? null)}, ` +
+    `nhập lúc ${gio(nguon?.nhap_luc ?? null)}). ` +
+    "Nguồn 2 — THÔNG TIN BÁO CÁO KHOẢN THU của CMS wifi cố định (report/collection-account), " +
+    `lấy đủ mọi đợt kể cả đợt chưa ghi tài khoản và đợt chưa duyệt, chốt lúc ${gio(nguon?.dong_bo ?? null)}. ` +
+    `File xuất lúc ${new Date().toLocaleString("vi-VN")}.`;
   dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 9);
   // dauTrang chèn hai dòng nên mọi chỉ số dòng dịch xuống 2.
   khoi.forEach((k, i) => {
@@ -257,8 +259,8 @@ async function main() {
     ["Mục", "Nội dung"],
     ["Nguồn 1 · sao kê ngân hàng",
      `${nguon?.ten_file ?? "?"} — 3 trang: Yucho Thương, Yucho Arai cố định, GMO. File sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}.`],
-    ["Nguồn 2 · phần mềm wifi cố định",
-     `v_fixed_dot_thu trong kho 3m_warehouse — đợt thu toàn bộ lịch sử, đồng bộ từ CMS (MySQL wifi-api) lúc ${gio(nguon?.dong_bo ?? null)}.`],
+    ["Nguồn 2 · thông tin báo cáo khoản thu",
+     `Đợt thu của CMS wifi cố định, cùng dữ liệu dựng nên Báo cáo tài khoản thu (report/collection-account), toàn bộ lịch sử. Khác một chỗ: ở đây lấy đủ mọi đợt, kể cả đợt chưa ghi tài khoản và đợt chưa duyệt mà báo cáo của CMS loại ra. Chốt lúc ${gio(nguon?.dong_bo ?? null)}.`],
     ["Chốt lúc", new Date().toLocaleString("vi-VN")],
     ["", ""],
     ["Giao dịch sao kê", `${gds.length} dòng · ${t(gds.reduce((s, g) => s + g.tien_vao, 0))}`],

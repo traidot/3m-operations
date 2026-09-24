@@ -152,8 +152,9 @@ async function main() {
   const chenh = Number(tong!.cuoc) - Number(tong!.tk);
   dong(["Đối chiếu báo cáo cước phí và báo cáo tài khoản thu"], "tieu-de");
   dong([
-    "Wifi cố định · toàn bộ lịch sử, không cắt mốc tháng · nguồn: kho 3m_warehouse " +
-    `(v_fixed_dot_thu), đồng bộ từ CMS lúc ${gio(dongBo?.luc ?? null)} · chốt lúc ${new Date().toLocaleString("vi-VN")}`,
+    "Wifi cố định · toàn bộ lịch sử, không cắt mốc tháng · nguồn: đợt thu của CMS, " +
+    "cùng dữ liệu dựng nên thông tin thu cước và thông tin báo cáo khoản thu · " +
+    `chốt lúc ${gio(dongBo?.luc ?? null)} · xuất lúc ${new Date().toLocaleString("vi-VN")}`,
   ], "phu");
   d++;
 
@@ -259,9 +260,10 @@ async function main() {
   }
 
   const moc =
-    "Nguồn: kho 3m_warehouse, view v_fixed_dot_thu — đợt thu wifi cố định đồng bộ từ CMS " +
-    `(MySQL wifi-api) lúc ${gio(dongBo?.luc ?? null)}. Toàn bộ lịch sử, không cắt mốc tháng. ` +
-    `File chốt lúc ${new Date().toLocaleString("vi-VN")}.`;
+    "Nguồn: đợt thu của CMS wifi cố định — cùng dữ liệu dựng nên (2) THÔNG TIN THU CƯỚC " +
+    "(report/fee-payment) và (3) THÔNG TIN BÁO CÁO KHOẢN THU (report/collection-account). " +
+    `Toàn bộ lịch sử, không cắt mốc tháng, chốt lúc ${gio(dongBo?.luc ?? null)}. ` +
+    `File xuất lúc ${new Date().toLocaleString("vi-VN")}.`;
   dauTrang(ws2, "Đối chiếu hai báo cáo CMS — theo tài khoản", moc, 8);
   dauTrang(ws3, "Danh sách từng đợt làm hai báo cáo lệch nhau", moc, 13);
 
