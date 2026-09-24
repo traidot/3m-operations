@@ -96,6 +96,13 @@ export async function GET(req: Request) {
   dong([
     "Có giao dịch ngân hàng", null, null, null, null, tong(rows.filter((r) => !r.can_tru_coc)),
   ], "dam");
+  if (gn === "tien-ve") {
+    const khop = tong(rows.filter((r) => r.vao_bao_cao_tai_khoan));
+    dong(["Khớp Báo cáo tài khoản thu của CMS", null, null, null, null, khop], "dam");
+    dong([null, null, null, null, null,
+      `Chênh ${(tong(rows) - khop).toLocaleString("vi-VN")} vì ở đây không bỏ rơi đợt nào; ` +
+      "CMS loại đợt chưa ghi tài khoản và đợt chưa duyệt."], "phu");
+  }
   d++;
 
   dong([`2 · Phân rã theo ${tenTrucSuy}`], "muc");

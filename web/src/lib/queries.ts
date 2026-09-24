@@ -1927,6 +1927,7 @@ export type DotThuCoDinh = {
   trang_thai_phieu: string | null;
   phieu_da_xoa: boolean;
   vao_bao_cao_cuoc: boolean;
+  vao_bao_cao_tai_khoan: boolean;
   cho_duyet: boolean;
   can_tru_coc: boolean;
 };
@@ -1943,7 +1944,7 @@ export const getDotThuCoDinh = (tu: string, den: string) =>
     `select source_id, ky, thang_tien_ve, ngay_thu::text, tai_khoan, so_tien::text,
             ma_hd, dia_chi, cuoc_thang::text, trang_thai_hop_dong,
             trang_thai_dot, trang_thai_phieu, phieu_da_xoa, vao_bao_cao_cuoc,
-            cho_duyet, can_tru_coc
+            vao_bao_cao_tai_khoan, cho_duyet, can_tru_coc
        from v_fixed_dot_thu
       where (ky >= coalesce(nullif($1, ''), ky) and ky <= $2)
          or (thang_tien_ve >= coalesce(nullif($1, ''), thang_tien_ve)

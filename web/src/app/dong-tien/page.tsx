@@ -70,6 +70,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const taiKhoan = xepTaiKhoan(rows);
   const tienNganHang = tong(rows.filter((r) => !r.can_tru_coc));
   const tongRows = tong(rows);
+  // Bộ lọc của CMS bỏ đợt chưa ghi tài khoản và đợt chưa duyệt, nên tổng bên đó
+  // luôn nhỏ hơn. Hiện cả hai để người đọc không tưởng là lệch số.
+  const khopCms = tong(rows.filter((r) => r.vao_bao_cao_tai_khoan));
 
   const lk = (t: Record<string, string | undefined>) => {
     const p = new URLSearchParams({ pv, gn, thang });
@@ -230,6 +233,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </table>
       </div>
       <p className="muted">
+        {gn === "tien-ve" ? (
+          <>
+            <b>Khớp với Báo cáo tài khoản thu của CMS: {n(khopCms)}.</b> Chênh{" "}
+            {n(tongRows - khopCms)} so với tổng ở trên là do ở đây{" "}
+            <b>không bỏ rơi đợt nào</b>, còn bên CMS loại thẳng đợt chưa ghi tài khoản và đợt
+            chưa duyệt — xem bảng cờ cảnh báo bên dưới để biết chính xác gồm những gì.{" "}
+          </>
+        ) : null}
         Trong đó <b>{n(tienNganHang)} có giao dịch ngân hàng</b>;{" "}
         {n(tong(rows.filter((r) => r.can_tru_coc)))} còn lại là <b>cấn trừ cọc</b> — tiền thật,
         khách đã nộp trước qua combini, nhưng sao kê ghi ở tháng nộp cọc chứ không phải tháng
