@@ -54,6 +54,7 @@ type Thang = {
   chenh: string; so_dot_cms: string; tien_cms: string;
   tien_cho_duyet: string; chenh_cms: string;
   cms_loai_ra: string; cho_duyet_trong_cms: string;
+  so_dot_cuoc: string; tien_cuoc: string;
 };
 
 const num = (v: unknown) => Number(v);
@@ -113,7 +114,8 @@ async function main() {
     select thang, tai_khoan, so_gd::text, tien_tho::text, noi_bo::text,
            tien_khach::text, so_dot_pm::text, tien_pm::text, chenh::text,
            so_dot_cms::text, tien_cms::text, tien_cho_duyet::text, chenh_cms::text,
-           cms_loai_ra::text, cho_duyet_trong_cms::text
+           cms_loai_ra::text, cho_duyet_trong_cms::text,
+           so_dot_cuoc::text, tien_cuoc::text
       from v_sao_ke_thang order by thang, tai_khoan`);
 
   const wb = new ExcelJS.Workbook();
@@ -129,12 +131,12 @@ async function main() {
     { header: "tiền khách", key: "tien_khach", width: 16, style: { numFmt: TIEN } },
     { header: "số đợt", key: "so_dot_cms", width: 12 },
     { header: "tiền", key: "tien_cms", width: 15, style: { numFmt: TIEN } },
-    { header: "số đợt", key: "so_dot_pm", width: 12 },
-    { header: "tiền", key: "tien_pm", width: 15, style: { numFmt: TIEN } },
-    { header: "CMS loại ra", key: "cms_loai_ra", width: 16, style: { numFmt: TIEN } },
-    { header: "chưa approve mà CMS vẫn tính", key: "cho_duyet_trong_cms", width: 28, style: { numFmt: TIEN } },
-    { header: "so với CMS", key: "chenh_cms", width: 15, style: { numFmt: TIEN } },
-    { header: "so với bỏ lọc duyệt", key: "chenh", width: 20, style: { numFmt: TIEN } },
+    { header: "chưa approve mà vẫn tính", key: "cho_duyet_trong_cms", width: 25, style: { numFmt: TIEN } },
+    { header: "số đợt", key: "so_dot_cuoc", width: 12 },
+    { header: "tiền", key: "tien_cuoc", width: 15, style: { numFmt: TIEN } },
+    { header: "khoản thu − đã thu", key: "chenh_hai_bc", width: 19, style: { numFmt: TIEN } },
+    { header: "tiền khách − khoản thu", key: "chenh_cms", width: 23, style: { numFmt: TIEN } },
+    { header: "tiền khách − đã thu", key: "chenh_cuoc", width: 21, style: { numFmt: TIEN } },
   ];
   // Mỗi tháng hiện đủ mọi tài khoản, tháng nào tài khoản đó không phát sinh thì
   // để 0 — bảng đều hàng nên so mắt theo cột được, không phải dò xem tháng này
@@ -162,20 +164,26 @@ async function main() {
         so_gd: num(r?.so_gd ?? 0), tien_tho: num(r?.tien_tho ?? 0),
         noi_bo: num(r?.noi_bo ?? 0), tien_khach: num(r?.tien_khach ?? 0),
         so_dot_cms: num(r?.so_dot_cms ?? 0), tien_cms: num(r?.tien_cms ?? 0),
-        so_dot_pm: num(r?.so_dot_pm ?? 0), tien_pm: num(r?.tien_pm ?? 0),
         cho_duyet_trong_cms: num(r?.cho_duyet_trong_cms ?? 0),
+        so_dot_cuoc: num(r?.so_dot_cuoc ?? 0), tien_cuoc: num(r?.tien_cuoc ?? 0),
         // Cột "CMS loại ra" và hai cột chênh gán công thức sau, khi đã biết số
         // dòng thật.
       });
       d1++;
-      for (const k of ["chenh_cms", "chenh"])
-        if (num(r?.[k as "chenh"] ?? 0) !== 0) {
+      const khach = num(r?.tien_khach ?? 0);
+      for (const [k, v] of [
+        ["chenh_hai_bc", num(r?.tien_cms ?? 0) - num(r?.tien_cuoc ?? 0)],
+        ["chenh_cms", khach - num(r?.tien_cms ?? 0)],
+        ["chenh_cuoc", khach - num(r?.tien_cuoc ?? 0)],
+      ] as const)
+        if (v !== 0) {
           h.getCell(k).font = { bold: true, color: { argb: MAU.chuDo } };
           h.getCell(k).fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
         }
-      for (const k of ["cms_loai_ra", "cho_duyet_trong_cms"])
-        if (num(r?.[k as "cms_loai_ra"] ?? 0) !== 0)
-          h.getCell(k).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.vang } };
+      if (num(r?.cho_duyet_trong_cms ?? 0) !== 0)
+        h.getCell("cho_duyet_trong_cms").fill = {
+          type: "pattern", pattern: "solid", fgColor: { argb: MAU.vang },
+        };
     }
     khoi.push({ tu, den: d1 });
   }
@@ -194,9 +202,9 @@ async function main() {
     tien_khach: congCot((r) => num(r.tien_khach)),
     so_dot_cms: congCot((r) => num(r.so_dot_cms)),
     tien_cms: congCot((r) => num(r.tien_cms)),
-    so_dot_pm: congCot((r) => num(r.so_dot_pm)),
-    tien_pm: congCot((r) => num(r.tien_pm)),
     cho_duyet_trong_cms: congCot((r) => num(r.cho_duyet_trong_cms)),
+    so_dot_cuoc: congCot((r) => num(r.so_dot_cuoc)),
+    tien_cuoc: congCot((r) => num(r.tien_cuoc)),
   });
   hTong.font = { bold: true };
   for (let c = 1; c <= 14; c++)
@@ -334,9 +342,9 @@ async function main() {
   dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 14, [
     { ten: "", tu: 1, den: 2, mau: "FFFFFFFF" },
     { ten: "SAO KÊ NGÂN HÀNG", tu: 3, den: 6, mau: NEN_NHOM.saoKe },
-    { ten: "PHẦN MỀM · GIỐNG CMS (report/collection-account)", tu: 7, den: 8, mau: NEN_NHOM.phanMem },
-    { ten: "PHẦN MỀM · BỎ ĐIỀU KIỆN DUYỆT (mọi đợt) — cột tiền = tiền giống CMS + CMS loại ra", tu: 9, den: 12, mau: NEN_NHOM.phanMem },
-    { ten: "CHÊNH = tiền khách − phần mềm", tu: 13, den: 14, mau: NEN_NHOM.chenh },
+    { ten: "PHẦN MỀM · BÁO CÁO KHOẢN THU (report/collection-account)", tu: 7, den: 9, mau: NEN_NHOM.phanMem },
+    { ten: "PHẦN MỀM · BÁO CÁO CƯỚC PHÍ — Đã thu (report/fee-payment)", tu: 10, den: 11, mau: NEN_NHOM.phanMem },
+    { ten: "CHÊNH", tu: 12, den: 14, mau: NEN_NHOM.chenh },
   ]);
   // dauTrang chèn ba dòng (tên, nguồn, nhóm) nên chỉ số dòng dịch xuống 3.
   const GIU = new Set<string>([DO, MAU.vang]);
@@ -357,12 +365,12 @@ async function main() {
   const so = (r: number, c: number) => giaTri(ws1.getCell(r, c).value);
   const cot = (c: number) => String.fromCharCode(64 + c);
   for (let r = dDau; r <= dCuoi; r++) {
-    // K = phần CMS gạt đi, để H + K đóng lại đúng bằng J.
-    ws1.getCell(r, 11).value = { formula: `J${r}-H${r}`, result: so(r, 10) - so(r, 8) };
-    // chênh = tiền khách (F) trừ đi số của phần mềm — H giống CMS, J bỏ lọc.
+    // H = tiền báo cáo khoản thu, K = tiền báo cáo cước phí (Đã thu),
+    // F = tiền khách trên sao kê.
     const khach = so(r, 6);
+    ws1.getCell(r, 12).value = { formula: `H${r}-K${r}`, result: so(r, 8) - so(r, 11) };
     ws1.getCell(r, 13).value = { formula: `F${r}-H${r}`, result: khach - so(r, 8) };
-    ws1.getCell(r, 14).value = { formula: `F${r}-J${r}`, result: khach - so(r, 10) };
+    ws1.getCell(r, 14).value = { formula: `F${r}-K${r}`, result: khach - so(r, 11) };
   }
   for (let c = 3; c <= 14; c++) {
     let tong = 0;
@@ -422,9 +430,11 @@ async function main() {
     ["Vì sao trang này ít giao dịch hơn trang Từng giao dịch",
      `Bảng theo tháng chỉ gom được dòng sao kê đọc ra ngày. ${soThieuNgay} dòng không có ngày (${t(tienThieuNgay)}) nằm ngoài bảng này nhưng vẫn có trong trang Từng giao dịch.`],
     ["Hai cột tiền của phần mềm",
-     "GIỐNG CMS = đúng bộ lọc của Báo cáo tài khoản thu: bỏ đợt chưa ghi tài khoản và bỏ đợt mà cả đợt lẫn phiếu cha đều chưa duyệt. BỎ ĐIỀU KIỆN DUYỆT = mọi đợt trong kho. Hiệu hai cột chính là phần CMS gạt ra."],
-    ["Hai cột nhỏ bên phải cột tiền",
-     "CMS LOẠI RA = tiền − tiền giống CMS, tức phần CMS gạt đi (đợt chưa ghi tài khoản, và đợt mà cả đợt lẫn phiếu cha đều chưa duyệt). Cộng nó vào cột giống CMS ra đúng cột tiền. CHƯA APPROVE MÀ CMS VẪN TÍNH = đợt đã duyệt nhưng phiếu cha chưa duyệt — CMS vẫn tính nên nó nằm sẵn trong cột giống CMS, KHÔNG được cộng thêm. Hai cột này rời nhau, cộng lại ra tổng tiền còn chờ duyệt."],
+     "BÁO CÁO KHOẢN THU = bộ lọc của report/collection-account: có ghi tài khoản, không miễn phí, ĐỢT đã duyệt (hoặc phiếu cha tuỳ chỉnh số tiền), tiền > 0. BÁO CÁO CƯỚC PHÍ (Đã thu) = bộ lọc của report/fee-payment: PHIẾU CHA đã duyệt, không miễn phí, hợp đồng đã lắp xong và có cước tháng > 0. Khác nhau chủ yếu ở chỗ xét duyệt cấp đợt hay cấp phiếu cha."],
+    ["Cột \"chưa approve mà vẫn tính\"",
+     "Đợt đã duyệt nhưng phiếu cha còn chờ duyệt. Báo cáo khoản thu chỉ xét trạng thái đợt nên vẫn tính, tức số này nằm SẴN trong cột tiền bên trái, KHÔNG được cộng thêm."],
+    ["Vì sao số Đã thu ở đây không trùng màn hình fee-payment",
+     "Cùng bộ lọc nhưng khác trục thời gian: bảng này xếp theo THÁNG TIỀN VỀ để đặt cạnh sao kê ngân hàng, màn hình fee-payment xếp theo KỲ CƯỚC. Số của một tháng lẻ sẽ khác, chỉ tổng cả quãng mới trùng."],
     ["Phạm vi",
      `${nhanKhoang} (theo ngày giao dịch của sao kê và ngày thu của phần mềm). Phép ghép vẫn chạy trên toàn bộ lịch sử rồi mới lọc, nên không sinh ra "chưa ghép" giả ở mép khoảng.`],
     ["Chốt lúc", new Date().toLocaleString("vi-VN")],
