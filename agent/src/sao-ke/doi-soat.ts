@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
-import { MAU, SO_LE, TIEN, datFont, dauTrang, gio } from "../excel.js";
+import { MAU, NEN_NHOM, SO_LE, TIEN, datFont, dauTrang, gio } from "../excel.js";
 import { banKeTiep } from "../ten-file.js";
 import { ghep, type Dot, type GiaoDich } from "./ghep.js";
 
@@ -51,7 +51,8 @@ type DotRow = Dot & {
 type Thang = {
   thang: string; tai_khoan: string; so_gd: string; tien_tho: string;
   noi_bo: string; tien_khach: string; so_dot_pm: string; tien_pm: string;
-  chenh: string;
+  chenh: string; so_dot_cms: string; tien_cms: string;
+  tien_cho_duyet: string; chenh_cms: string;
 };
 
 const num = (v: unknown) => Number(v);
@@ -109,7 +110,8 @@ async function main() {
 
   const thang = await q<Thang>(`
     select thang, tai_khoan, so_gd::text, tien_tho::text, noi_bo::text,
-           tien_khach::text, so_dot_pm::text, tien_pm::text, chenh::text
+           tien_khach::text, so_dot_pm::text, tien_pm::text, chenh::text,
+           so_dot_cms::text, tien_cms::text, tien_cho_duyet::text, chenh_cms::text
       from v_sao_ke_thang order by thang, tai_khoan`);
 
   const wb = new ExcelJS.Workbook();
@@ -119,13 +121,17 @@ async function main() {
   ws1.columns = [
     { header: "Tháng", key: "thang", width: 10 },
     { header: "Tài khoản", key: "tai_khoan", width: 20 },
-    { header: "SAO KÊ NH · số GD", key: "so_gd", width: 16 },
-    { header: "SAO KÊ NH · tiền vào thô", key: "tien_tho", width: 21, style: { numFmt: TIEN } },
-    { header: "SAO KÊ NH · chuyển khoản nội bộ", key: "noi_bo", width: 27, style: { numFmt: TIEN } },
-    { header: "SAO KÊ NH · tiền khách", key: "tien_khach", width: 20, style: { numFmt: TIEN } },
-    { header: "PHẦN MỀM · số đợt", key: "so_dot_pm", width: 17 },
-    { header: "PHẦN MỀM · tiền", key: "tien_pm", width: 16, style: { numFmt: TIEN } },
-    { header: "Chênh = tiền khách − phần mềm", key: "chenh", width: 26, style: { numFmt: TIEN } },
+    { header: "số GD", key: "so_gd", width: 10 },
+    { header: "tiền vào thô", key: "tien_tho", width: 16, style: { numFmt: TIEN } },
+    { header: "chuyển khoản nội bộ", key: "noi_bo", width: 21, style: { numFmt: TIEN } },
+    { header: "tiền khách", key: "tien_khach", width: 16, style: { numFmt: TIEN } },
+    { header: "số đợt", key: "so_dot_cms", width: 12 },
+    { header: "tiền", key: "tien_cms", width: 15, style: { numFmt: TIEN } },
+    { header: "số đợt", key: "so_dot_pm", width: 12 },
+    { header: "tiền", key: "tien_pm", width: 15, style: { numFmt: TIEN } },
+    { header: "trong đó chưa approve", key: "tien_cho_duyet", width: 22, style: { numFmt: TIEN } },
+    { header: "so với CMS", key: "chenh_cms", width: 15, style: { numFmt: TIEN } },
+    { header: "so với bỏ lọc duyệt", key: "chenh", width: 20, style: { numFmt: TIEN } },
   ];
   // Mỗi tháng hiện đủ mọi tài khoản, tháng nào tài khoản đó không phát sinh thì
   // để 0 — bảng đều hàng nên so mắt theo cột được, không phải dò xem tháng này
@@ -152,14 +158,21 @@ async function main() {
         tai_khoan: tk === "CHUA_GHI" ? "(chưa ghi tài khoản)" : tk,
         so_gd: num(r?.so_gd ?? 0), tien_tho: num(r?.tien_tho ?? 0),
         noi_bo: num(r?.noi_bo ?? 0), tien_khach: num(r?.tien_khach ?? 0),
+        so_dot_cms: num(r?.so_dot_cms ?? 0), tien_cms: num(r?.tien_cms ?? 0),
         so_dot_pm: num(r?.so_dot_pm ?? 0), tien_pm: num(r?.tien_pm ?? 0),
-        chenh: num(r?.chenh ?? 0),
+        tien_cho_duyet: num(r?.tien_cho_duyet ?? 0),
+        chenh_cms: num(r?.chenh_cms ?? 0), chenh: num(r?.chenh ?? 0),
       });
       d1++;
-      if (num(r?.chenh ?? 0) !== 0) {
-        h.getCell("chenh").font = { bold: true, color: { argb: MAU.chuDo } };
-        h.getCell("chenh").fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
-      }
+      for (const k of ["chenh_cms", "chenh"])
+        if (num(r?.[k as "chenh"] ?? 0) !== 0) {
+          h.getCell(k).font = { bold: true, color: { argb: MAU.chuDo } };
+          h.getCell(k).fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
+        }
+      if (num(r?.tien_cho_duyet ?? 0) !== 0)
+        h.getCell("tien_cho_duyet").fill = {
+          type: "pattern", pattern: "solid", fgColor: { argb: MAU.vang },
+        };
     }
     khoi.push({ tu, den: d1 });
   }
@@ -168,24 +181,24 @@ async function main() {
   // ── Trang 2: từng giao dịch sao kê ────────────────────────────────────────
   const ws2 = wb.addWorksheet("Từng giao dịch");
   ws2.columns = [
-    { header: "SAO KÊ NH · ngày", key: "ngay", width: 15 },
-    { header: "SAO KÊ NH · tài khoản", key: "tai_khoan", width: 20 },
-    { header: "SAO KÊ NH · số tiền", key: "tien_vao", width: 18, style: { numFmt: TIEN } },
-    { header: "SAO KÊ NH · loại GD", key: "loai_gd", width: 18 },
-    { header: "SAO KÊ NH · người chuyển", key: "ten_gd", width: 26 },
-    { header: "SAO KÊ NH · mã HĐ kế toán dò", key: "ma_hd_sk", width: 25 },
-    { header: "SAO KÊ NH · trang gốc", key: "trang", width: 20 },
-    { header: "SAO KÊ NH · dòng gốc", key: "dong", width: 19 },
+    { header: "ngày", key: "ngay", width: 15 },
+    { header: "tài khoản", key: "tai_khoan", width: 20 },
+    { header: "số tiền", key: "tien_vao", width: 18, style: { numFmt: TIEN } },
+    { header: "loại GD", key: "loai_gd", width: 18 },
+    { header: "người chuyển", key: "ten_gd", width: 26 },
+    { header: "mã HĐ kế toán dò", key: "ma_hd_sk", width: 25 },
+    { header: "trang gốc", key: "trang", width: 20 },
+    { header: "dòng gốc", key: "dong", width: 19 },
     { header: "Kết quả đối soát", key: "ket_qua", width: 62 },
-    { header: "PHẦN MỀM · mã HĐ", key: "ma_hd_pm", width: 17 },
-    { header: "PHẦN MỀM · kỳ cước", key: "ky", width: 24 },
-    { header: "PHẦN MỀM · số kỳ gộp", key: "so_ky", width: 19 },
-    { header: "PHẦN MỀM · ngày thu", key: "ngay_thu", width: 19 },
+    { header: "mã HĐ", key: "ma_hd_pm", width: 17 },
+    { header: "kỳ cước", key: "ky", width: 24 },
+    { header: "số kỳ gộp", key: "so_ky", width: 19 },
+    { header: "ngày thu", key: "ngay_thu", width: 19 },
     { header: "Lệch ngày", key: "lech_ngay", width: 11 },
-    { header: "PHẦN MỀM · tài khoản", key: "tk_pm", width: 20 },
-    { header: "PHẦN MỀM · trạng thái đợt", key: "trang_thai_dot", width: 23 },
-    { header: "PHẦN MỀM · trạng thái phiếu cha", key: "trang_thai_phieu", width: 28 },
-    { header: "PHẦN MỀM · ID đợt", key: "source_id", width: 38 },
+    { header: "tài khoản", key: "tk_pm", width: 20 },
+    { header: "trạng thái đợt", key: "trang_thai_dot", width: 23 },
+    { header: "trạng thái phiếu cha", key: "trang_thai_phieu", width: 28 },
+    { header: "ID đợt", key: "source_id", width: 38 },
   ];
   for (const g of gds) {
     if (!trong(g.ngay)) continue;
@@ -293,21 +306,33 @@ async function main() {
     "Nguồn 2 — THÔNG TIN BÁO CÁO KHOẢN THU của CMS wifi cố định (report/collection-account), " +
     `lấy đủ mọi đợt kể cả đợt chưa ghi tài khoản và đợt chưa duyệt, chốt lúc ${gio(nguon?.dong_bo ?? null)}. ` +
     `Phạm vi: ${nhanKhoang.toLowerCase()}. File xuất lúc ${new Date().toLocaleString("vi-VN")}.`;
-  dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 9);
-  // dauTrang chèn hai dòng nên mọi chỉ số dòng dịch xuống 2.
+  dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 13, [
+    { ten: "", tu: 1, den: 2, mau: "FFFFFFFF" },
+    { ten: "SAO KÊ NGÂN HÀNG", tu: 3, den: 6, mau: NEN_NHOM.saoKe },
+    { ten: "PHẦN MỀM · GIỐNG CMS (report/collection-account)", tu: 7, den: 8, mau: NEN_NHOM.phanMem },
+    { ten: "PHẦN MỀM · BỎ ĐIỀU KIỆN DUYỆT (mọi đợt)", tu: 9, den: 11, mau: NEN_NHOM.phanMem },
+    { ten: "CHÊNH = tiền khách − phần mềm", tu: 12, den: 13, mau: NEN_NHOM.chenh },
+  ]);
+  // dauTrang chèn ba dòng (tên, nguồn, nhóm) nên chỉ số dòng dịch xuống 3.
+  const GIU = new Set<string>([DO, MAU.vang]);
   khoi.forEach((k, i) => {
-    ws1.mergeCells(k.tu + 2, 1, k.den + 2, 1);
-    ws1.getCell(k.tu + 2, 1).alignment = { vertical: "middle", horizontal: "center" };
+    ws1.mergeCells(k.tu + 3, 1, k.den + 3, 1);
+    ws1.getCell(k.tu + 3, 1).alignment = { vertical: "middle", horizontal: "center" };
     const nen = SO_LE[i % 2]!;
-    for (let r = k.tu + 2; r <= k.den + 2; r++)
-      for (let c = 1; c <= 9; c++) {
+    for (let r = k.tu + 3; r <= k.den + 3; r++)
+      for (let c = 1; c <= 13; c++) {
         const o = ws1.getCell(r, c);
-        // Ô chênh đã tô đỏ thì giữ, đừng phủ nền so le lên.
-        if (!o.fill || (o.fill as ExcelJS.FillPattern).fgColor?.argb !== DO)
+        // Ô đã tô cảnh báo thì giữ, đừng phủ nền so le lên.
+        const cu = (o.fill as ExcelJS.FillPattern | undefined)?.fgColor?.argb;
+        if (!cu || !GIU.has(cu))
           o.fill = { type: "pattern", pattern: "solid", fgColor: { argb: nen } };
       }
   });
-  dauTrang(ws2, "Từng giao dịch sao kê, ghép với khoản thu bên phần mềm", moc, 18);
+  dauTrang(ws2, "Từng giao dịch sao kê, ghép với khoản thu bên phần mềm", moc, 18, [
+    { ten: "SAO KÊ NGÂN HÀNG", tu: 1, den: 8, mau: NEN_NHOM.saoKe },
+    { ten: "KẾT QUẢ ĐỐI SOÁT", tu: 9, den: 9, mau: NEN_NHOM.chenh },
+    { ten: "PHẦN MỀM · khoản thu đã ghép được", tu: 10, den: 18, mau: NEN_NHOM.phanMem },
+  ]);
   dauTrang(ws3, "Đợt thu bên phần mềm không tìm được giao dịch nào trên sao kê", moc, 12);
 
   // ── Trang 4: ghi chú ──────────────────────────────────────────────────────
@@ -330,6 +355,10 @@ async function main() {
      `${nguon?.ten_file ?? "?"} — 3 trang: Yucho Thương, Yucho Arai cố định, GMO. File sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}.`],
     ["Nguồn 2 · thông tin báo cáo khoản thu",
      `Đợt thu của CMS wifi cố định, cùng dữ liệu dựng nên Báo cáo tài khoản thu (report/collection-account), toàn bộ lịch sử. Khác một chỗ: ở đây lấy đủ mọi đợt, kể cả đợt chưa ghi tài khoản và đợt chưa duyệt mà báo cáo của CMS loại ra. Chốt lúc ${gio(nguon?.dong_bo ?? null)}.`],
+    ["Hai cột tiền của phần mềm",
+     "GIỐNG CMS = đúng bộ lọc của Báo cáo tài khoản thu: bỏ đợt chưa ghi tài khoản và bỏ đợt mà cả đợt lẫn phiếu cha đều chưa duyệt. BỎ ĐIỀU KIỆN DUYỆT = mọi đợt trong kho. Hiệu hai cột chính là phần CMS gạt ra."],
+    ["Cột \"trong đó chưa approve\"",
+     "Tiền của các đợt còn chờ duyệt, tính trên cột bỏ lọc. Lưu ý một phần trong đó (đợt đã duyệt nhưng phiếu cha chưa duyệt) vẫn được CMS tính, nên con số này không bằng hiệu hai cột."],
     ["Phạm vi",
      `${nhanKhoang} (theo ngày giao dịch của sao kê và ngày thu của phần mềm). Phép ghép vẫn chạy trên toàn bộ lịch sử rồi mới lọc, nên không sinh ra "chưa ghép" giả ở mép khoảng.`],
     ["Chốt lúc", new Date().toLocaleString("vi-VN")],

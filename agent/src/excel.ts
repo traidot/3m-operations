@@ -18,21 +18,42 @@ export const MAU = {
  * của sao kê hay của phần mềm thì rất dễ đọc ngược, nên nguồn phải nằm ngay
  * trên đầu chứ không chỉ nằm ở trang Ghi chú.
  */
+/** Một dải cột cùng một nguồn, hiện thành ô gộp trên hàng tiêu đề nhóm. */
+export type Nhom = { ten: string; tu: number; den: number; mau?: string };
+
 export function dauTrang(
   ws: ExcelJS.Worksheet,
   ten: string,
   nguon: string,
   soCot: number,
+  nhom?: Nhom[],
 ) {
-  ws.spliceRows(1, 0, [ten], [nguon]);
+  ws.spliceRows(1, 0, [ten], [nguon], ...(nhom ? [[]] : []));
   ws.getRow(1).font = { bold: true, size: 13 };
   ws.getRow(2).font = { italic: true, size: 10, color: { argb: "FF666666" } };
   ws.mergeCells(1, 1, 1, soCot);
   ws.mergeCells(2, 1, 2, soCot);
-  ws.getRow(3).font = { bold: true };
-  ws.getRow(3).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.xam } };
-  ws.views = [{ state: "frozen", ySplit: 3 }];
-  ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: soCot } };
+
+  const dHeader = nhom ? 4 : 3;
+  if (nhom) {
+    for (const g of nhom) {
+      if (g.den > g.tu) ws.mergeCells(3, g.tu, 3, g.den);
+      const o = ws.getCell(3, g.tu);
+      o.value = g.ten;
+      o.alignment = { horizontal: "center", vertical: "middle" };
+      o.font = { bold: true, size: 11 };
+      for (let c = g.tu; c <= g.den; c++)
+        ws.getCell(3, c).fill = {
+          type: "pattern", pattern: "solid",
+          fgColor: { argb: g.mau ?? MAU.xam },
+        };
+    }
+    ws.getRow(3).height = 20;
+  }
+  ws.getRow(dHeader).font = { bold: true };
+  ws.getRow(dHeader).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.xam } };
+  ws.views = [{ state: "frozen", ySplit: dHeader }];
+  ws.autoFilter = { from: { row: dHeader, column: 1 }, to: { row: dHeader, column: soCot } };
 }
 
 export const gio = (s: string | null) =>
@@ -52,3 +73,10 @@ export function datFont(wb: ExcelJS.Workbook, name: string) {
 
 /** Nền so le theo khối, để mắt bám được dòng trên bảng dài. */
 export const SO_LE = ["FFFFFFFF", "FFF4F6F8"] as const;
+
+/** Nền nhạt phân biệt hai nguồn trên hàng tiêu đề nhóm. */
+export const NEN_NHOM = {
+  saoKe: "FFFCE8D8",
+  phanMem: "FFDCEBF7",
+  chenh: "FFF0E4F5",
+} as const;

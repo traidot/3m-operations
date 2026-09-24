@@ -1,14 +1,20 @@
-import { existsSync } from "node:fs";
+import { readdirSync } from "node:fs";
 
 /**
- * Tên file báo cáo có đánh version, không bao giờ ghi đè bản cũ: dò các bản đã
- * có rồi lấy số kế tiếp. Chạy lại lần nữa là ra v2, v3 — giữ lại để so hai lần
- * chạy với nhau.
+ * Tên file báo cáo có đánh version, không bao giờ ghi đè bản cũ.
+ *
+ * Lấy số LỚN NHẤT đang có rồi cộng một, chứ không lấy chỗ trống đầu tiên: dọn
+ * bớt bản cũ xong mà vẫn còn v8, v9 thì bản mới phải là v10, không thể quay về
+ * v1 rồi nằm lẫn với bản cũ hơn.
  */
 export function banKeTiep(thuMuc: string, tenGoc: string, duoi = ".xlsx"): string {
-  for (let v = 1; v < 1000; v++) {
-    const duong = `${thuMuc}/${tenGoc}-v${v}${duoi}`;
-    if (!existsSync(duong)) return duong;
+  const mau = new RegExp(
+    `^${tenGoc.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-v(\\d+)${duoi.replace(".", "\\.")}$`,
+  );
+  let cao = 0;
+  for (const f of readdirSync(thuMuc)) {
+    const m = mau.exec(f);
+    if (m) cao = Math.max(cao, Number(m[1]));
   }
-  throw new Error(`Quá 999 bản của ${tenGoc} trong ${thuMuc} — dọn bớt đi`);
+  return `${thuMuc}/${tenGoc}-v${cao + 1}${duoi}`;
 }
