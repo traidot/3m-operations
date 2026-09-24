@@ -177,6 +177,29 @@ async function main() {
     khoi.push({ tu, den: d1 });
   }
 
+  // Dòng tổng, cách một dòng trống để bộ lọc của Excel không kéo nó theo.
+  const congCot = (lay: (r: Thang) => number) =>
+    thang.reduce((t, r) => (thangCo.includes(r.thang) ? t + lay(r) : t), 0);
+  ws1.addRow({});
+  d1++;
+  const hTong = ws1.addRow({
+    tai_khoan: "TỔNG",
+    so_gd: congCot((r) => num(r.so_gd)),
+    tien_tho: congCot((r) => num(r.tien_tho)),
+    noi_bo: congCot((r) => num(r.noi_bo)),
+    tien_khach: congCot((r) => num(r.tien_khach)),
+    so_dot_cms: congCot((r) => num(r.so_dot_cms)),
+    tien_cms: congCot((r) => num(r.tien_cms)),
+    so_dot_pm: congCot((r) => num(r.so_dot_pm)),
+    tien_pm: congCot((r) => num(r.tien_pm)),
+    tien_cho_duyet: congCot((r) => num(r.tien_cho_duyet)),
+    chenh_cms: congCot((r) => num(r.chenh_cms)),
+    chenh: congCot((r) => num(r.chenh)),
+  });
+  hTong.font = { bold: true };
+  for (let c = 1; c <= 13; c++)
+    hTong.getCell(c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.xam } };
+
 
   // ── Trang 2: từng giao dịch sao kê ────────────────────────────────────────
   const ws2 = wb.addWorksheet("Từng giao dịch");
@@ -315,6 +338,7 @@ async function main() {
   ]);
   // dauTrang chèn ba dòng (tên, nguồn, nhóm) nên chỉ số dòng dịch xuống 3.
   const GIU = new Set<string>([DO, MAU.vang]);
+  // Vòng so le chỉ phủ các khối tháng; dòng tổng nằm ngoài nên giữ nguyên nền.
   khoi.forEach((k, i) => {
     ws1.mergeCells(k.tu + 3, 1, k.den + 3, 1);
     ws1.getCell(k.tu + 3, 1).alignment = { vertical: "middle", horizontal: "center" };
@@ -341,6 +365,11 @@ async function main() {
   // Mọi con số tóm tắt đếm trên tập đã lọc theo phạm vi, để console và file
   // không nói hai chuyện khác nhau.
   const gdHien = gds.filter((g) => trong(g.ngay));
+  // Bảng theo tháng gom theo cột `thang`, nên dòng không đọc ra ngày rơi ra
+  // ngoài. Nói rõ ở Ghi chú, không thì cộng tay hai trang thấy lệch.
+  const thieuNgay = gds.filter((g) => g.ngay === null);
+  const soThieuNgay = thieuNgay.length;
+  const tienThieuNgay = thieuNgay.reduce((x, g) => x + g.tien_vao, 0);
   const capHien = kq.cap.filter((c) => trong(c.gd.ngay));
   const gdLeHien = kq.gd_le.filter((g) => trong(g.ngay));
   const dotLeHien = kq.dot_le.filter((d) => trong(d.ngay_thu));
@@ -355,6 +384,8 @@ async function main() {
      `${nguon?.ten_file ?? "?"} — 3 trang: Yucho Thương, Yucho Arai cố định, GMO. File sửa ${gio(nguon?.sua_luc ?? null)}, nhập vào kho ${gio(nguon?.nhap_luc ?? null)}.`],
     ["Nguồn 2 · thông tin báo cáo khoản thu",
      `Đợt thu của CMS wifi cố định, cùng dữ liệu dựng nên Báo cáo tài khoản thu (report/collection-account), toàn bộ lịch sử. Khác một chỗ: ở đây lấy đủ mọi đợt, kể cả đợt chưa ghi tài khoản và đợt chưa duyệt mà báo cáo của CMS loại ra. Chốt lúc ${gio(nguon?.dong_bo ?? null)}.`],
+    ["Vì sao trang này ít giao dịch hơn trang Từng giao dịch",
+     `Bảng theo tháng chỉ gom được dòng sao kê đọc ra ngày. ${soThieuNgay} dòng không có ngày (${t(tienThieuNgay)}) nằm ngoài bảng này nhưng vẫn có trong trang Từng giao dịch.`],
     ["Hai cột tiền của phần mềm",
      "GIỐNG CMS = đúng bộ lọc của Báo cáo tài khoản thu: bỏ đợt chưa ghi tài khoản và bỏ đợt mà cả đợt lẫn phiếu cha đều chưa duyệt. BỎ ĐIỀU KIỆN DUYỆT = mọi đợt trong kho. Hiệu hai cột chính là phần CMS gạt ra."],
     ["Cột \"trong đó chưa approve\"",
