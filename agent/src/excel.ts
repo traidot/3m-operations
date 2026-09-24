@@ -37,3 +37,18 @@ export function dauTrang(
 
 export const gio = (s: string | null) =>
   s ? new Date(s).toLocaleString("vi-VN") : "không rõ";
+
+/**
+ * Đặt một font cho cả sổ, giữ nguyên đậm/nghiêng/cỡ/màu đã set. ExcelJS không
+ * có font mặc định ở mức workbook nên phải quét từng ô.
+ */
+export function datFont(wb: ExcelJS.Workbook, name: string) {
+  for (const ws of wb.worksheets)
+    ws.eachRow({ includeEmpty: false }, (row) =>
+      row.eachCell({ includeEmpty: false }, (cell) => {
+        cell.font = { ...cell.font, name };
+      }));
+}
+
+/** Nền so le theo khối, để mắt bám được dòng trên bảng dài. */
+export const SO_LE = ["FFFFFFFF", "FFF4F6F8"] as const;

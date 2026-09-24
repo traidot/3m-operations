@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
-import { MAU, TIEN, dauTrang, gio } from "../excel.js";
+import { MAU, SO_LE, TIEN, datFont, dauTrang, gio } from "../excel.js";
 import { banKeTiep } from "../ten-file.js";
 import { ghep, type Dot, type GiaoDich } from "./ghep.js";
 
@@ -49,6 +49,10 @@ type Thang = {
 };
 
 const num = (v: unknown) => Number(v);
+
+/** Tổng tiền phần mềm của một tài khoản, để xếp các mục không phải ngân hàng. */
+const tienPm = (rows: Thang[], tk: string) =>
+  rows.reduce((t, r) => t + (r.tai_khoan === tk ? num(r.tien_pm) : 0), 0);
 
 
 
@@ -105,18 +109,39 @@ async function main() {
     { header: "PHẦN MỀM · tiền", key: "tien_pm", width: 16, style: { numFmt: TIEN } },
     { header: "Chênh = tiền khách − phần mềm", key: "chenh", width: 26, style: { numFmt: TIEN } },
   ];
-  for (const r of thang) {
-    const h = ws1.addRow({
-      thang: r.thang,
-      tai_khoan: r.tai_khoan === "CHUA_GHI" ? "(chưa ghi tài khoản)" : r.tai_khoan,
-      so_gd: num(r.so_gd), tien_tho: num(r.tien_tho), noi_bo: num(r.noi_bo),
-      tien_khach: num(r.tien_khach), so_dot_pm: num(r.so_dot_pm),
-      tien_pm: num(r.tien_pm), chenh: num(r.chenh),
-    });
-    if (num(r.chenh) !== 0) {
-      h.getCell("chenh").font = { bold: true, color: { argb: "FFC00000" } };
-      h.getCell("chenh").fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
+  // Mỗi tháng hiện đủ mọi tài khoản, tháng nào tài khoản đó không phát sinh thì
+  // để 0 — bảng đều hàng nên so mắt theo cột được, không phải dò xem tháng này
+  // có thiếu dòng nào không.
+  const thangCo = [...new Set(thang.map((r) => r.thang))].sort();
+  const tkNganHang = [...new Set(thang.filter((r) => num(r.so_gd) > 0).map((r) => r.tai_khoan))];
+  const tkKhac = [...new Set(thang.map((r) => r.tai_khoan))]
+    .filter((t) => !tkNganHang.includes(t))
+    .sort((a, b) => tienPm(thang, b) - tienPm(thang, a));
+  const moiTk = [...tkNganHang.sort(), ...tkKhac];
+  const oTheoKhoa = new Map(thang.map((r) => [`${r.thang}|${r.tai_khoan}`, r]));
+
+  // Ghi lại khối dòng của từng tháng để gộp ô và tô so le sau khi thêm đầu trang.
+  const khoi: { tu: number; den: number }[] = [];
+  let d1 = 1;
+  for (const th of thangCo) {
+    const tu = d1 + 1;
+    for (const tk of moiTk) {
+      const r = oTheoKhoa.get(`${th}|${tk}`);
+      const h = ws1.addRow({
+        thang: th,
+        tai_khoan: tk === "CHUA_GHI" ? "(chưa ghi tài khoản)" : tk,
+        so_gd: num(r?.so_gd ?? 0), tien_tho: num(r?.tien_tho ?? 0),
+        noi_bo: num(r?.noi_bo ?? 0), tien_khach: num(r?.tien_khach ?? 0),
+        so_dot_pm: num(r?.so_dot_pm ?? 0), tien_pm: num(r?.tien_pm ?? 0),
+        chenh: num(r?.chenh ?? 0),
+      });
+      d1++;
+      if (num(r?.chenh ?? 0) !== 0) {
+        h.getCell("chenh").font = { bold: true, color: { argb: MAU.chuDo } };
+        h.getCell("chenh").fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
+      }
     }
+    khoi.push({ tu, den: d1 });
   }
 
 
@@ -204,6 +229,19 @@ async function main() {
     `Nguồn 2 — PHẦN MỀM wifi cố định: kho 3m_warehouse, đồng bộ từ CMS lúc ${gio(nguon?.dong_bo ?? null)}. ` +
     `File chốt lúc ${new Date().toLocaleString("vi-VN")}.`;
   dauTrang(ws1, "Sao kê ngân hàng đặt cạnh phần mềm — theo tháng và tài khoản", moc, 9);
+  // dauTrang chèn hai dòng nên mọi chỉ số dòng dịch xuống 2.
+  khoi.forEach((k, i) => {
+    ws1.mergeCells(k.tu + 2, 1, k.den + 2, 1);
+    ws1.getCell(k.tu + 2, 1).alignment = { vertical: "middle", horizontal: "center" };
+    const nen = SO_LE[i % 2]!;
+    for (let r = k.tu + 2; r <= k.den + 2; r++)
+      for (let c = 1; c <= 9; c++) {
+        const o = ws1.getCell(r, c);
+        // Ô chênh đã tô đỏ thì giữ, đừng phủ nền so le lên.
+        if (!o.fill || (o.fill as ExcelJS.FillPattern).fgColor?.argb !== DO)
+          o.fill = { type: "pattern", pattern: "solid", fgColor: { argb: nen } };
+      }
+  });
   dauTrang(ws2, "Từng giao dịch sao kê, ghép với khoản thu bên phần mềm", moc, 18);
   dauTrang(ws3, "Đợt thu bên phần mềm không tìm được giao dịch nào trên sao kê", moc, 9);
 
@@ -239,6 +277,8 @@ async function main() {
   ]) ws4.addRow([a, b]);
   ws4.getRow(1).font = { bold: true };
   ws4.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: XAM } };
+
+  datFont(wb, "Consolas");
 
   const ra = process.argv[2] ?? banKeTiep("../data", "doi-soat-sao-ke-tung-giao-dich");
   await wb.xlsx.writeFile(ra);

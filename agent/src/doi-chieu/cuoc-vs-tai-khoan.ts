@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
-import { MAU, TIEN, dauTrang, gio } from "../excel.js";
+import { MAU, TIEN, datFont, dauTrang, gio } from "../excel.js";
 import { banKeTiep } from "../ten-file.js";
 
 /**
@@ -264,6 +264,8 @@ async function main() {
     `File chốt lúc ${new Date().toLocaleString("vi-VN")}.`;
   dauTrang(ws2, "Đối chiếu hai báo cáo CMS — theo tài khoản", moc, 8);
   dauTrang(ws3, "Danh sách từng đợt làm hai báo cáo lệch nhau", moc, 13);
+
+  datFont(wb, "Consolas");
 
   const ra = process.argv[2] ?? banKeTiep("../data", "doi-chieu-cuoc-vs-tai-khoan");
   await wb.xlsx.writeFile(ra);
