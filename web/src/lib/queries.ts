@@ -1932,20 +1932,24 @@ export type DotThuCoDinh = {
 };
 
 /**
- * Đợt thu cước cố định của một tháng, lấy theo CẢ HAI trục rồi mới lọc ở màn
- * hình: kỳ cước bằng tháng đó, HOẶC tiền về trong tháng đó. Một truy vấn cho
- * cả hai khối vì phần lớn dòng thuộc cả hai — xem db/153.
+ * Đợt thu cước cố định trong một khoảng tháng, lấy theo CẢ HAI trục rồi mới lọc
+ * ở màn hình: kỳ cước nằm trong khoảng, HOẶC tiền về nằm trong khoảng. Một truy
+ * vấn cho mọi góc nhìn vì phần lớn dòng thuộc cả hai — xem db/153.
+ *
+ * `tu` để rỗng nghĩa là không chặn đầu dưới (xem từ đầu đến hết `den`).
  */
-export const getDotThuCoDinhThang = (thang: string) =>
+export const getDotThuCoDinh = (tu: string, den: string) =>
   query<DotThuCoDinh>(
     `select source_id, ky, thang_tien_ve, ngay_thu::text, tai_khoan, so_tien::text,
             ma_hd, dia_chi, cuoc_thang::text, trang_thai_hop_dong,
             trang_thai_dot, trang_thai_phieu, phieu_da_xoa, vao_bao_cao_cuoc,
             cho_duyet, can_tru_coc
        from v_fixed_dot_thu
-      where ky = $1 or thang_tien_ve = $1
+      where (ky >= coalesce(nullif($1, ''), ky) and ky <= $2)
+         or (thang_tien_ve >= coalesce(nullif($1, ''), thang_tien_ve)
+             and thang_tien_ve <= $2)
       order by ky, ngay_thu nulls last, ma_hd`,
-    [thang],
+    [tu, den],
   );
 
 /**

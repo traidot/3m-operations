@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { NganKeo } from "../ngan-keo";
+import { getDotThuChotLuc, getDotThuCoDinh, getThangCoSoLieu, type DotThuCoDinh } from "@/lib/queries";
 import {
-  getDotThuChotLuc, getDotThuCoDinhThang, getThangCoSoLieu, type DotThuCoDinh,
-} from "@/lib/queries";
+  CHUA_GHI, TEN_TK, TRU_COC, khoang, nhanCot, nhanKhoang, nhip, nhipCua, tapNeo, tong,
+  xepTaiKhoan, type GocNhin, type PhamVi,
+} from "./pham-vi";
 
 export const dynamic = "force-dynamic";
 
@@ -12,59 +14,87 @@ const n = (v: string | number | null) =>
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-const CHUA_GHI = "CHUA_GHI";
-const TRU_COC = "cần trừ cọc";
-
-/** Số tháng cho người dùng bấm chọn; xa hơn thì gõ thẳng vào ô. */
+/** Số tháng cho người dùng bấm chọn; xa hơn thì đổi phạm vi sang năm. */
 const SO_THANG_HIEN = 14;
 
-const tong = (rows: DotThuCoDinh[]) =>
-  rows.reduce((t, r) => t + Number(r.so_tien), 0);
+const PV: PhamVi[] = ["tat-ca", "nam", "thang"];
+const NHAN_PV: Record<PhamVi, string> = {
+  "tat-ca": "Từ đầu đến hết một tháng",
+  nam: "Cả năm",
+  thang: "Một tháng",
+};
 
-/** Đợt về sớm hơn kỳ, đúng tháng của kỳ, hay muộn hơn. */
-const nhip = (r: DotThuCoDinh) =>
-  r.thang_tien_ve < r.ky ? "truoc" : r.thang_tien_ve === r.ky ? "dung" : "muon";
+const NHAN_NHIP: Record<string, string> = { truoc: "trước", dung: "trong", sau: "sau" };
 
-const TEN_TK: Record<string, string> = { [CHUA_GHI]: "(chưa ghi tài khoản)" };
+const GN: GocNhin[] = ["ky", "tien-ve"];
+const NHAN_GN: Record<GocNhin, string> = {
+  ky: "Theo kỳ cước",
+  "tien-ve": "Theo tiền về tài khoản",
+};
+
+const TEN_NHIP: Record<GocNhin, Record<string, string>> = {
+  ky: {
+    truoc: "Khách trả trước — tiền về sớm hơn kỳ",
+    dung: "Đúng nhịp — tiền về trong khoảng",
+    sau: "Thu muộn — tiền về sau khoảng",
+  },
+  "tien-ve": {
+    truoc: "Trả nợ kỳ cũ",
+    dung: "Đúng kỳ",
+    sau: "Nộp trước cho kỳ sau",
+  },
+};
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [danhSachThang, chot] = await Promise.all([getThangCoSoLieu(), getDotThuChotLuc()]);
-  const thang = mot(sp.thang) || danhSachThang.find((t) => t.thang <= new Date().toISOString().slice(0, 7))?.thang
-    || danhSachThang[0]?.thang || new Date().toISOString().slice(0, 7);
-  const tatCa = await getDotThuCoDinhThang(thang);
-  const [, m] = thang.split("-");
 
-  // Khối 1 — trục KỲ CƯỚC. Đúng bộ lọc của "Báo cáo thống kê cước phí" bên CMS,
-  // nên tổng ở đây phải khớp từng đồng với ô "Tổng đã thu" của tháng đó.
-  const theoKy = tatCa.filter((r) => r.ky === thang && r.vao_bao_cao_cuoc);
-  // Khối 2 — trục NGÀY TIỀN VỀ. Cùng dòng tiền, câu hỏi khác.
-  const theoTienVe = tatCa.filter((r) => r.thang_tien_ve === thang);
+  const thangNay = new Date().toISOString().slice(0, 7);
+  const thang =
+    mot(sp.thang) ||
+    danhSachThang.find((t) => t.thang <= thangNay)?.thang ||
+    danhSachThang[0]?.thang ||
+    thangNay;
+  const pv: PhamVi = (PV as string[]).includes(mot(sp.pv)) ? (mot(sp.pv) as PhamVi) : "thang";
+  const gn: GocNhin = (GN as string[]).includes(mot(sp.gn)) ? (mot(sp.gn) as GocNhin) : "ky";
 
-  const taiKhoan = [...new Set(theoKy.map((r) => r.tai_khoan))].sort(
-    (a, b) => tong(theoKy.filter((r) => r.tai_khoan === b)) - tong(theoKy.filter((r) => r.tai_khoan === a)),
-  );
-  const tienNganHang = tong(theoKy.filter((r) => !r.can_tru_coc));
+  const { tu, den } = khoang(pv, thang);
+  const nhipHien = nhipCua(pv);
+  const tatCa = await getDotThuCoDinh(tu, den);
+  const rows = tapNeo(tatCa, gn, tu, den);
 
-  const nhomKy = [
-    { ma: "truoc", ten: "Kỳ trước — trả nợ kỳ cũ", rows: theoTienVe.filter((r) => r.ky < thang) },
-    { ma: "dung", ten: `Kỳ ${thang} — đúng kỳ`, rows: theoTienVe.filter((r) => r.ky === thang) },
-    { ma: "sau", ten: "Kỳ sau — khách nộp trước", rows: theoTienVe.filter((r) => r.ky > thang) },
-  ];
+  const khung = nhanKhoang(pv, thang);
+  const cot = nhanCot(pv, thang);
+  // Góc nhìn kỳ cước thì trục suy ra là tháng tiền về, và ngược lại.
+  const tenTrucSuy = gn === "ky" ? "tiền về" : "kỳ cước";
+  const taiKhoan = xepTaiKhoan(rows);
+  const tienNganHang = tong(rows.filter((r) => !r.can_tru_coc));
+  const tongRows = tong(rows);
+
+  const lk = (t: Record<string, string | undefined>) => {
+    const p = new URLSearchParams({ pv, gn, thang });
+    for (const [k, v] of Object.entries(t)) {
+      if (v === undefined) p.delete(k);
+      else p.set(k, v);
+    }
+    return `/dong-tien?${p}`;
+  };
 
   const mo = mot(sp.tk);
-  const moRows = mo ? theoKy.filter((r) => r.tai_khoan === mo) : [];
-
+  const moRows = mo ? rows.filter((r) => r.tai_khoan === mo) : [];
   const thangGan = danhSachThang.slice(0, SO_THANG_HIEN).reverse();
+  const cacNam = [...new Set(danhSachThang.map((t) => t.thang.slice(0, 4)))].sort();
+
+  const co = (hop: (r: DotThuCoDinh) => boolean) => rows.filter(hop);
 
   return (
     <main>
-      <h1>Kỳ cước và dòng tiền · tháng {Number(m)}/{thang.slice(0, 4)}</h1>
+      <h1>Kỳ cước và dòng tiền · {khung}</h1>
       <p className="muted">
-        Wifi cố định. Hai báo cáo bên CMS đo cùng một dòng tiền bằng <b>hai trục khác nhau</b> —
-        một cái theo <b>kỳ cước</b> (tiền này là cước tháng nào), một cái theo <b>ngày tiền về</b>
-        {" "}(tiền vào tháng nào). 3M thu trước một tháng nên hai trục lệch gần đúng một nhịp;
-        đặt cạnh nhau ở đây để nhìn ra chỗ lệch chứ không phải để chúng bằng nhau.
+        Wifi cố định. Cùng một dòng tiền nhưng <b>hai trục khác nhau</b> — kỳ cước (tiền này
+        là cước tháng nào) và ngày tiền về (tiền vào tháng nào). 3M thu trước một tháng nên
+        hai trục lệch gần đúng một nhịp. Chọn <b>góc nhìn</b> để neo vào một trục; trục kia
+        được suy ra ở ba cột &ldquo;trước / trong / sau&rdquo;.
       </p>
       <p className="muted">
         Số liệu chốt lúc{" "}
@@ -72,21 +102,72 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         viên vẫn đang nhập phiếu, nên so hai bên phải so cùng thời điểm.
       </p>
 
-      <p className="actions">
-        {thangGan.map((t) => (
-          <Link key={t.thang} href={`/dong-tien?thang=${t.thang}`}>
-            <button type="button" className={t.thang === thang ? "primary" : undefined}>
-              {t.thang}
-            </button>
-          </Link>
-        ))}
-      </p>
+      <div className="nhom-loc">
+        <div className="muted nhan-nhom">Góc nhìn — neo vào trục nào</div>
+        <p className="actions">
+          {GN.map((g) => (
+            <Link key={g} href={lk({ gn: g, tk: undefined })}>
+              <button type="button" className={gn === g ? "primary" : undefined}>
+                {NHAN_GN[g]}
+              </button>
+            </Link>
+          ))}
+        </p>
+      </div>
 
-      <h2>1 · Cước kỳ {thang} đã thu {n(tong(theoKy))} — về những tài khoản nào</h2>
+      <div className="nhom-loc">
+        <div className="muted nhan-nhom">Phạm vi thời gian</div>
+        <p className="actions">
+          {PV.map((p) => (
+            <Link key={p} href={lk({ pv: p, tk: undefined })}>
+              <button type="button" className={pv === p ? "primary" : undefined}>
+                {NHAN_PV[p]}
+              </button>
+            </Link>
+          ))}
+        </p>
+        <p className="actions">
+          {pv === "nam"
+            ? cacNam.map((y) => (
+                <Link key={y} href={lk({ thang: `${y}-12`, tk: undefined })}>
+                  <button
+                    type="button"
+                    className={thang.slice(0, 4) === y ? "primary" : undefined}
+                  >
+                    {y}
+                  </button>
+                </Link>
+              ))
+            : thangGan.map((t) => (
+                <Link key={t.thang} href={lk({ thang: t.thang, tk: undefined })}>
+                  <button type="button" className={t.thang === thang ? "primary" : undefined}>
+                    {t.thang}
+                  </button>
+                </Link>
+              ))}
+        </p>
+      </div>
+
+      <h2>
+        {gn === "ky"
+          ? `Cước ${khung} đã thu ${n(tongRows)} — về những tài khoản nào`
+          : `Tiền về ${khung} là ${n(tongRows)} — vào những tài khoản nào`}
+      </h2>
       <p className="muted">
-        Con số này dựng đúng bộ lọc của <b>Báo cáo thống kê cước phí</b> bên CMS, nên phải khớp
-        từng đồng với ô &ldquo;Tổng đã thu&rdquo; của tháng {Number(m)}. Khác với báo cáo tài khoản
-        thu của CMS, ở đây <b>không đợt nào bị bỏ rơi</b>: đợt chưa ghi tài khoản vẫn có dòng riêng.
+        {gn === "ky" ? (
+          <>
+            Neo vào <b>kỳ cước</b>, dựng đúng bộ lọc của <b>Báo cáo thống kê cước phí</b> bên
+            CMS nên khớp từng đồng với ô &ldquo;Tổng đã thu&rdquo;. Khác với báo cáo tài khoản
+            thu của CMS, ở đây <b>không đợt nào bị bỏ rơi</b>: đợt chưa ghi tài khoản vẫn có
+            dòng riêng. Ba cột giữa cho biết tiền của các kỳ này về <b>lúc nào</b>.
+          </>
+        ) : (
+          <>
+            Neo vào <b>ngày tiền về</b> — đây là góc nhìn của báo cáo tài khoản thu bên CMS,
+            hợp để đối chiếu sao kê ngân hàng. Ba cột giữa cho biết tiền này là cước của{" "}
+            <b>kỳ nào</b>.
+          </>
+        )}{" "}
         Bấm một tài khoản để xem từng đợt.
       </p>
       <div className="scroller">
@@ -95,120 +176,110 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <tr>
               <th>Tài khoản</th>
               <th className="num">Số đợt</th>
-              <th className="num">Thu trước tháng {Number(m)}</th>
-              <th className="num">Thu trong tháng {Number(m)}</th>
-              <th className="num">Thu sau tháng {Number(m)}</th>
+              {nhipHien.map((k) => (
+                <th key={k} className="num">
+                  {tenTrucSuy} {NHAN_NHIP[k]} {cot}
+                </th>
+              ))}
               <th className="num">Tổng</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {taiKhoan.map((tk) => {
-              const d = theoKy.filter((r) => r.tai_khoan === tk);
+              const d = rows.filter((r) => r.tai_khoan === tk);
               const canh =
                 tk === TRU_COC
-                  ? "cọc khách nộp trước qua combini, nay trừ sang cước — giao dịch ngân hàng nằm ở tháng nộp cọc"
+                  ? "cọc khách nộp trước qua combini, nay trừ sang cước — sao kê ghi ở tháng nộp cọc"
                   : tk === CHUA_GHI
                     ? "báo cáo tài khoản thu của CMS loại thẳng nhóm này"
                     : null;
               return (
                 <tr key={tk}>
                   <td>
-                    <Link href={`/dong-tien?thang=${thang}&tk=${encodeURIComponent(tk)}`}>
-                      {TEN_TK[tk] ?? tk}
-                    </Link>
+                    <Link href={lk({ tk })}>{TEN_TK[tk] ?? tk}</Link>
                     {canh && <div className="muted">{canh}</div>}
                   </td>
                   <td className="num mono muted">{n(d.length)}</td>
-                  {["truoc", "dung", "muon"].map((k) => (
+                  {nhipHien.map((k) => (
                     <td key={k} className="num mono">
-                      {n(tong(d.filter((r) => nhip(r) === k)))}
+                      {n(tong(d.filter((r) => nhip(r, gn, tu, den) === k)))}
                     </td>
                   ))}
                   <td className="num mono">{n(tong(d))}</td>
                   <td className="khong-xuong-dong">
-                    <Link href={`/dong-tien?thang=${thang}&tk=${encodeURIComponent(tk)}`}>
-                      xem →
-                    </Link>
+                    <Link href={lk({ tk })}>xem →</Link>
                   </td>
                 </tr>
               );
             })}
             <tr className="hang-tong">
               <td>
-                <b>Tổng đã thu của kỳ {thang}</b>
+                <b>Tổng</b>
               </td>
-              <td className="num mono">{n(theoKy.length)}</td>
-              {["truoc", "dung", "muon"].map((k) => (
+              <td className="num mono">{n(rows.length)}</td>
+              {nhipHien.map((k) => (
                 <td key={k} className="num mono">
-                  {n(tong(theoKy.filter((r) => nhip(r) === k)))}
+                  {n(tong(rows.filter((r) => nhip(r, gn, tu, den) === k)))}
                 </td>
               ))}
-              <td className="num mono">{n(tong(theoKy))}</td>
+              <td className="num mono">{n(tongRows)}</td>
               <td />
             </tr>
           </tbody>
         </table>
       </div>
       <p className="muted">
-        Trong đó <b>{n(tienNganHang)} có giao dịch ngân hàng gắn với chính kỳ này</b>;{" "}
-        {n(tong(theoKy.filter((r) => r.can_tru_coc)))} còn lại là <b>cấn trừ cọc</b> — tiền
-        thật, khách đã nộp trước qua combini, nhưng sao kê ghi ở tháng nộp cọc chứ không phải
-        tháng này, nên đừng đi tìm nó trong sao kê của kỳ này. Cột &ldquo;thu trước&rdquo; là
-        tiền đã về từ các tháng trước, cột &ldquo;thu sau&rdquo; nghĩa là kỳ này{" "}
-        <b>vẫn đang thu tiếp</b> nên con số còn tăng.
+        Trong đó <b>{n(tienNganHang)} có giao dịch ngân hàng</b>;{" "}
+        {n(tong(rows.filter((r) => r.can_tru_coc)))} còn lại là <b>cấn trừ cọc</b> — tiền thật,
+        khách đã nộp trước qua combini, nhưng sao kê ghi ở tháng nộp cọc chứ không phải tháng
+        trừ sang cước.
+        {gn === "ky" && (
+          <>
+            {" "}
+            Cột &ldquo;sau&rdquo; nghĩa là những kỳ này <b>vẫn đang thu tiếp</b> nên con số
+            còn tăng.
+          </>
+        )}
       </p>
 
-      <h2>2 · Tiền về trong tháng {Number(m)} là cước của kỳ nào</h2>
-      <p className="muted">
-        Đây là câu hỏi <b>khác</b> với khối 1, và là thứ báo cáo tài khoản thu của CMS đang trả
-        lời. Cùng một dòng tiền nhưng cắt theo ngày tiền vào, nên tổng không bằng khối 1 — đó là
-        bình thường, không phải lệch số.
-      </p>
+      <h2>Phân rã theo {tenTrucSuy}</h2>
       <div className="scroller">
         <table className="bang-thang">
           <thead>
             <tr>
-              <th>Nhóm kỳ</th>
+              <th>Nhóm</th>
               <th className="num">Số đợt</th>
               <th className="num">Số tiền</th>
               <th className="num">Tỉ lệ</th>
             </tr>
           </thead>
           <tbody>
-            {nhomKy.map((g) => (
-              <tr key={g.ma}>
-                <td>{g.ten}</td>
-                <td className="num mono muted">{n(g.rows.length)}</td>
-                <td className="num mono">{n(tong(g.rows))}</td>
-                <td className="num mono muted">
-                  {((tong(g.rows) / Math.max(tong(theoTienVe), 1)) * 100).toFixed(1)}%
-                </td>
-              </tr>
-            ))}
-            <tr className="hang-tong">
-              <td>
-                <b>Tổng tiền về trong tháng {Number(m)}</b>
-              </td>
-              <td className="num mono">{n(theoTienVe.length)}</td>
-              <td className="num mono">{n(tong(theoTienVe))}</td>
-              <td />
-            </tr>
+            {nhipHien.map((k) => {
+              const d = rows.filter((r) => nhip(r, gn, tu, den) === k);
+              return (
+                <tr key={k}>
+                  <td>{TEN_NHIP[gn][k]}</td>
+                  <td className="num mono muted">{n(d.length)}</td>
+                  <td className="num mono">{n(tong(d))}</td>
+                  <td className="num mono muted">
+                    {((tong(d) / Math.max(tongRows, 1)) * 100).toFixed(1)}%
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      <h2>3 · Cờ cảnh báo</h2>
-      <p className="muted">
-        Hai cột tách riêng vì một đợt có thể thuộc khối này mà không thuộc khối kia.
-      </p>
+      <h2>Cờ cảnh báo</h2>
       <div className="scroller">
         <table className="bang-thang">
           <thead>
             <tr>
               <th>Cần xử lý</th>
-              <th className="num">Ở khối 1 (kỳ {thang})</th>
-              <th className="num">Ở khối 2 (tiền về T{Number(m)})</th>
+              <th className="num">Số đợt</th>
+              <th className="num">Số tiền</th>
               <th>Việc</th>
             </tr>
           </thead>
@@ -216,65 +287,63 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             {[
               {
                 ten: "Đợt chưa ghi tài khoản thu",
-                hop: (r: DotThuCoDinh) => r.tai_khoan === CHUA_GHI,
+                rows: co((r) => r.tai_khoan === CHUA_GHI),
                 viec: "Người thu mở đợt, chọn tài khoản đã nhận tiền",
                 nang: true,
               },
               {
                 ten: "Đợt hoặc phiếu cha chưa duyệt",
-                hop: (r: DotThuCoDinh) => r.cho_duyet,
+                rows: co((r) => r.cho_duyet),
                 viec: "Duyệt nốt; soát các đợt số tiền lẻ trước khi duyệt",
                 nang: true,
               },
               {
                 ten: "Phiếu cha đã bị xoá ở nguồn",
-                hop: (r: DotThuCoDinh) => r.phieu_da_xoa,
+                rows: co((r) => r.phieu_da_xoa),
                 viec: "Đợt còn sống mà phiếu cha mất — kiểm tra trên CMS",
                 nang: true,
               },
               {
-                ten: "Cấn trừ cọc — không phải tiền mặt",
-                hop: (r: DotThuCoDinh) => r.can_tru_coc,
-                viec: "Không phải lỗi, chỉ cần nhớ trừ ra khi đối chiếu ngân hàng",
+                ten: "Cấn trừ cọc — sao kê nằm ở tháng nộp cọc",
+                rows: co((r) => r.can_tru_coc),
+                viec: "Không phải lỗi: tiền thật đã vào qua combini từ trước, chỉ khác tháng",
                 nang: false,
               },
-            ].map((c) => {
-              const a = tong(tatCa.filter((r) => r.ky === thang && r.vao_bao_cao_cuoc && c.hop(r)));
-              const b = tong(tatCa.filter((r) => r.thang_tien_ve === thang && c.hop(r)));
-              if (a === 0 && b === 0) return null;
-              return (
+            ].map((c) =>
+              c.rows.length === 0 ? null : (
                 <tr key={c.ten}>
                   <td>{c.ten}</td>
-                  <td className={`num mono${a > 0 && c.nang ? " bad" : ""}`}>{a === 0 ? "—" : n(a)}</td>
-                  <td className={`num mono${b > 0 && c.nang ? " bad" : ""}`}>{b === 0 ? "—" : n(b)}</td>
+                  <td className="num mono muted">{n(c.rows.length)}</td>
+                  <td className={`num mono${c.nang ? " bad" : ""}`}>{n(tong(c.rows))}</td>
                   <td className="muted">{c.viec}</td>
                 </tr>
-              );
-            })}
+              ),
+            )}
           </tbody>
         </table>
       </div>
 
       <p className="actions">
-        <a href={`/dong-tien/xuat?thang=${thang}`}>
+        <a href={`/dong-tien/xuat?pv=${pv}&gn=${gn}&thang=${thang}`}>
           <button type="button" className="primary">
-            Xuất Excel tháng {Number(m)}
+            Xuất Excel {khung}
           </button>
         </a>
       </p>
 
       <p className="muted khoi-ghi-chu">
-        Màn hình này <b>không dựng lại &ldquo;tổng phải thu&rdquo; và &ldquo;chưa thu&rdquo;</b> của
-        CMS. Hai số đó tính theo luật dồn tích riêng bên đó (khoảng thu phí của từng hợp đồng,
-        tháng miễn phí, khoản tất toán tay), dựng lại mà lệch một đồng thì hại hơn là không có —
-        cần thì xem thẳng ở Báo cáo thống kê cước phí.
+        Màn hình này <b>không dựng lại &ldquo;tổng phải thu&rdquo; và &ldquo;chưa thu&rdquo;</b>{" "}
+        của CMS. Hai số đó tính theo luật dồn tích riêng bên đó (khoảng thu phí của từng hợp
+        đồng, tháng miễn phí, khoản tất toán tay), dựng lại mà lệch một đồng thì hại hơn là
+        không có — cần thì xem thẳng ở Báo cáo thống kê cước phí.
       </p>
 
       {mo && (
-        <NganKeo dongLai={`/dong-tien?thang=${thang}`}>
+        <NganKeo dongLai={lk({ tk: undefined })}>
           <h1>{TEN_TK[mo] ?? mo}</h1>
           <p className="muted">
-            Cước kỳ {thang} đã thu qua tài khoản này: {n(tong(moRows))} yên, {n(moRows.length)} đợt.
+            {gn === "ky" ? "Cước" : "Tiền về"} {khung} qua tài khoản này: {n(tong(moRows))} yên,{" "}
+            {n(moRows.length)} đợt.
           </p>
           <div className="scroller">
             <table>
@@ -282,7 +351,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <tr>
                   <th>Mã hợp đồng</th>
                   <th>Địa chỉ lắp</th>
-                  <th className="num">Cước tháng</th>
+                  <th>Kỳ cước</th>
                   <th>Ngày thu</th>
                   <th className="num">Số tiền</th>
                   <th>Nhịp</th>
@@ -294,15 +363,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <tr key={r.source_id}>
                     <td className="mono">{r.ma_hd ?? "—"}</td>
                     <td className="muted">{r.dia_chi ?? "—"}</td>
-                    <td className="num mono muted">{n(r.cuoc_thang)}</td>
+                    <td className="mono">{r.ky}</td>
                     <td className="mono">{r.ngay_thu ?? "chưa ghi ngày"}</td>
                     <td className="num mono">{n(r.so_tien)}</td>
                     <td className="muted">
-                      {nhip(r) === "truoc"
-                        ? `thu trước, từ ${r.thang_tien_ve}`
-                        : nhip(r) === "muon"
-                          ? `thu muộn, sang ${r.thang_tien_ve}`
-                          : "đúng tháng"}
+                      {tenTrucSuy} {NHAN_NHIP[nhip(r, gn, tu, den)]} {cot}
                     </td>
                     <td className="muted">
                       {r.cho_duyet ? <span className="chip cho">chờ duyệt</span> : r.trang_thai_dot}

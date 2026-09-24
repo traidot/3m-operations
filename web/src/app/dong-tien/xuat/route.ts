@@ -1,36 +1,52 @@
 import ExcelJS from "exceljs";
-import { getDotThuCoDinhThang, type DotThuCoDinh } from "@/lib/queries";
+import { getDotThuCoDinh, type DotThuCoDinh } from "@/lib/queries";
+import {
+  CHUA_GHI, TRU_COC, khoang, nhanCot, nhanKhoang, nhip, nhipCua, tapNeo, tong, xepTaiKhoan,
+  type GocNhin, type PhamVi,
+} from "../pham-vi";
 
-const CHUA_GHI = "CHUA_GHI";
-const TRU_COC = "cần trừ cọc";
 const TIEN = "#,##0";
 
-const tong = (rows: DotThuCoDinh[]) => rows.reduce((t, r) => t + Number(r.so_tien), 0);
-const nhip = (r: DotThuCoDinh) =>
-  r.thang_tien_ve < r.ky ? "truoc" : r.thang_tien_ve === r.ky ? "dung" : "muon";
+const TEN_NHIP: Record<GocNhin, Record<string, string>> = {
+  ky: {
+    truoc: "Khách trả trước — tiền về sớm hơn kỳ",
+    dung: "Đúng nhịp — tiền về trong khoảng",
+    sau: "Thu muộn — tiền về sau khoảng",
+  },
+  "tien-ve": {
+    truoc: "Trả nợ kỳ cũ",
+    dung: "Đúng kỳ",
+    sau: "Nộp trước cho kỳ sau",
+  },
+};
 
 /**
- * Cùng ba khối với màn hình, một luật chung nên cộng ngang cộng dọc đều khớp.
- * Trang đầu để đọc, trang sau để lọc — cột "Vai trò trong tháng" nói rõ mỗi đợt
- * rơi vào khối nào.
+ * Xuất đúng những gì màn hình đang hiện — dùng chung hàm neo và hàm nhịp với
+ * trang nên bảng và file không thể lệch nhau.
  */
 export async function GET(req: Request) {
-  const thang = new URL(req.url).searchParams.get("thang") ?? new Date().toISOString().slice(0, 7);
-  const m = Number(thang.split("-")[1]);
-  const tatCa = await getDotThuCoDinhThang(thang);
-  const theoKy = tatCa.filter((r) => r.ky === thang && r.vao_bao_cao_cuoc);
-  const theoTienVe = tatCa.filter((r) => r.thang_tien_ve === thang);
+  const sp = new URL(req.url).searchParams;
+  const thang = sp.get("thang") ?? new Date().toISOString().slice(0, 7);
+  const pv = (sp.get("pv") ?? "thang") as PhamVi;
+  const gn = (sp.get("gn") ?? "ky") as GocNhin;
+
+  const { tu, den } = khoang(pv, thang);
+  const nhipHien = nhipCua(pv);
+  const rows = tapNeo(await getDotThuCoDinh(tu, den), gn, tu, den);
+  const khung = nhanKhoang(pv, thang);
+  const cot = nhanCot(pv, thang);
+  const tenTrucSuy = gn === "ky" ? "tiền về" : "kỳ cước";
 
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet(`Tháng ${thang}`);
-  ws.columns = [{ width: 36 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 16 }, { width: 52 }];
+  const ws = wb.addWorksheet("Tổng hợp");
+  ws.columns = [{ width: 40 }, { width: 14 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 54 }];
   let d = 0;
   const dong = (v: (string | number | null)[], dang?: "tieu-de" | "muc" | "dam" | "phu") => {
     const h = ws.getRow(++d);
     v.forEach((x, i) => {
       if (x !== null) h.getCell(i + 1).value = x;
     });
-    for (let i = 2; i <= 5; i++) h.getCell(i).numFmt = TIEN;
+    for (let i = 2; i <= 6; i++) h.getCell(i).numFmt = TIEN;
     if (dang === "tieu-de") h.font = { bold: true, size: 14 };
     if (dang === "muc") {
       h.font = { bold: true, size: 11 };
@@ -41,55 +57,58 @@ export async function GET(req: Request) {
     return h;
   };
 
-  dong([`Kỳ cước và dòng tiền — tháng ${m}/${thang.slice(0, 4)}`], "tieu-de");
-  dong([`Wifi cố định · chốt lúc ${new Date().toLocaleString("vi-VN")}`], "phu");
+  dong([`Kỳ cước và dòng tiền — ${khung}`], "tieu-de");
+  dong([
+    `Wifi cố định · góc nhìn: ${gn === "ky" ? "theo kỳ cước" : "theo tiền về tài khoản"}` +
+      ` · chốt lúc ${new Date().toLocaleString("vi-VN")}`,
+  ], "phu");
   d++;
 
-  dong([`1 · Cước kỳ ${thang} đã thu, về tài khoản nào`], "muc");
-  dong(["Tài khoản", "Số đợt", `Thu trước T${m}`, `Thu trong T${m}`, `Thu sau T${m}`, "Tổng"], "dam");
-  const taiKhoan = [...new Set(theoKy.map((r) => r.tai_khoan))].sort(
-    (a, b) => tong(theoKy.filter((r) => r.tai_khoan === b)) - tong(theoKy.filter((r) => r.tai_khoan === a)),
-  );
-  for (const tk of taiKhoan) {
-    const r = theoKy.filter((x) => x.tai_khoan === tk);
+  dong([
+    gn === "ky"
+      ? `1 · Cước ${khung} đã thu, về tài khoản nào`
+      : `1 · Tiền về ${khung}, vào tài khoản nào`,
+  ], "muc");
+  const NHAN_NHIP_COT = { truoc: "trước", dung: "trong", sau: "sau" };
+  dong([
+    "Tài khoản", "Số đợt",
+    ...nhipHien.map((k) => `${tenTrucSuy} ${NHAN_NHIP_COT[k]} ${cot}`),
+    "Tổng",
+  ], "dam");
+  for (const tk of xepTaiKhoan(rows)) {
+    const r = rows.filter((x) => x.tai_khoan === tk);
     const h = dong([
       tk === CHUA_GHI ? "(chưa ghi tài khoản)" : tk,
       r.length,
-      ...["truoc", "dung", "muon"].map((k) => tong(r.filter((x) => nhip(x) === k))),
+      ...nhipHien.map((k) => tong(r.filter((x) => nhip(x, gn, tu, den) === k))),
       tong(r),
     ]);
-    // Cột thứ 6 là "Tổng" nên ghi chú phải sang cột 7.
     if (tk === TRU_COC)
       h.getCell(7).value =
         "Cọc khách nộp trước qua combini, nay trừ sang cước — sao kê ghi ở tháng nộp cọc";
     if (tk === CHUA_GHI) h.getCell(7).value = "Báo cáo tài khoản thu của CMS loại thẳng nhóm này";
   }
   dong([
-    `Tổng đã thu của kỳ ${thang}`,
-    theoKy.length,
-    ...["truoc", "dung", "muon"].map((k) => tong(theoKy.filter((x) => nhip(x) === k))),
-    tong(theoKy),
+    "Tổng", rows.length,
+    ...nhipHien.map((k) => tong(rows.filter((x) => nhip(x, gn, tu, den) === k))),
+    tong(rows),
   ], "dam");
-  dong(["Có giao dịch ngân hàng gắn với chính kỳ này", null, null, null, null,
-    tong(theoKy.filter((r) => !r.can_tru_coc))], "dam");
-  dong([null, null, null, null, null, "Khớp với ô “Tổng đã thu” tháng này của Báo cáo thống kê cước phí bên CMS."], "phu");
+  dong([
+    "Có giao dịch ngân hàng", null, null, null, null, tong(rows.filter((r) => !r.can_tru_coc)),
+  ], "dam");
   d++;
 
-  dong([`2 · Tiền về trong tháng ${m} là cước của kỳ nào`], "muc");
-  dong(["Nhóm kỳ", "Số đợt", "Số tiền", "Tỉ lệ"], "dam");
-  for (const g of [
-    { ten: "Kỳ trước — trả nợ kỳ cũ", rows: theoTienVe.filter((r) => r.ky < thang) },
-    { ten: `Kỳ ${thang} — đúng kỳ`, rows: theoTienVe.filter((r) => r.ky === thang) },
-    { ten: "Kỳ sau — khách nộp trước", rows: theoTienVe.filter((r) => r.ky > thang) },
-  ]) {
-    const h = dong([g.ten, g.rows.length, tong(g.rows), tong(g.rows) / Math.max(tong(theoTienVe), 1)]);
+  dong([`2 · Phân rã theo ${tenTrucSuy}`], "muc");
+  dong(["Nhóm", "Số đợt", "Số tiền", "Tỉ lệ"], "dam");
+  for (const k of nhipHien) {
+    const r = rows.filter((x) => nhip(x, gn, tu, den) === k);
+    const h = dong([TEN_NHIP[gn][k]!, r.length, tong(r), tong(r) / Math.max(tong(rows), 1)]);
     h.getCell(4).numFmt = "0.0%";
   }
-  dong([`Tổng tiền về trong tháng ${m}`, theoTienVe.length, tong(theoTienVe)], "dam");
   d++;
 
   dong(["3 · Cờ cảnh báo"], "muc");
-  dong(["Cần xử lý", `Ở khối 1 (kỳ ${thang})`, `Ở khối 2 (tiền về T${m})`, null, null, "Việc"], "dam");
+  dong(["Cần xử lý", "Số đợt", "Số tiền", null, null, "Việc"], "dam");
   for (const c of [
     { ten: "Đợt chưa ghi tài khoản thu", hop: (r: DotThuCoDinh) => r.tai_khoan === CHUA_GHI,
       viec: "Người thu mở đợt, chọn tài khoản đã nhận tiền" },
@@ -100,15 +119,14 @@ export async function GET(req: Request) {
     { ten: "Cấn trừ cọc — sao kê nằm ở tháng nộp cọc", hop: (r: DotThuCoDinh) => r.can_tru_coc,
       viec: "Không phải lỗi: tiền thật đã vào qua combini từ trước, chỉ khác tháng" },
   ]) {
-    const a = tong(theoKy.filter(c.hop));
-    const b = tong(theoTienVe.filter(c.hop));
-    if (a === 0 && b === 0) continue;
-    dong([c.ten, a, b, null, null, c.viec]);
+    const r = rows.filter(c.hop);
+    if (r.length === 0) continue;
+    dong([c.ten, r.length, tong(r), null, null, c.viec]);
   }
 
   const ws2 = wb.addWorksheet("Chi tiết từng đợt", { views: [{ state: "frozen", ySplit: 1 }] });
   ws2.columns = [
-    { header: "Vai trò trong tháng", key: "vai_tro", width: 34 },
+    { header: "Nhịp", key: "vai_tro", width: 34 },
     { header: "Mã hợp đồng", key: "ma_hd", width: 16 },
     { header: "Địa chỉ lắp", key: "dia_chi", width: 42 },
     { header: "Cước tháng", key: "cuoc_thang", width: 11, style: { numFmt: TIEN } },
@@ -122,20 +140,10 @@ export async function GET(req: Request) {
     { header: "ID đợt", key: "source_id", width: 38 },
   ];
   ws2.getRow(1).font = { bold: true };
-  for (const r of tatCa) {
-    const vai =
-      r.ky === thang && r.thang_tien_ve === thang
-        ? "đúng kỳ, đúng tháng"
-        : r.ky === thang && r.thang_tien_ve < thang
-          ? "cước kỳ này, thu trước"
-          : r.ky === thang
-            ? "cước kỳ này, thu muộn"
-            : r.ky < thang
-              ? "tiền tháng này, trả nợ kỳ cũ"
-              : "tiền tháng này, nộp trước kỳ sau";
+  for (const r of rows) {
     ws2.addRow({
       ...r,
-      vai_tro: vai,
+      vai_tro: `${tenTrucSuy} ${{ truoc: "trước", dung: "trong", sau: "sau" }[nhip(r, gn, tu, den)]} ${cot}`,
       tai_khoan: r.tai_khoan === CHUA_GHI ? "(chưa ghi tài khoản)" : r.tai_khoan,
       cuoc_thang: r.cuoc_thang === null ? null : Number(r.cuoc_thang),
       so_tien: Number(r.so_tien),
@@ -147,7 +155,7 @@ export async function GET(req: Request) {
   return new Response(new Uint8Array(buf as ArrayBuffer), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="ky-cuoc-va-dong-tien-${thang}.xlsx"`,
+      "Content-Disposition": `attachment; filename="ky-cuoc-va-dong-tien-${gn}-${pv}-${thang}.xlsx"`,
     },
   });
 }
