@@ -1,7 +1,8 @@
 import ExcelJS from "exceljs";
 import { getDotThuCoDinh, type DotThuCoDinh } from "@/lib/queries";
 import {
-  CHUA_GHI, TRU_COC, khoang, nhanCot, nhanKhoang, nhip, nhipCua, tapNeo, tong, xepTaiKhoan,
+  CHUA_GHI, TRU_COC, duoiTenFile, khoang, nhanCot, nhanKhoang, nhip, nhipCua, tapNeo,
+  tong, xepTaiKhoan,
   type GocNhin, type PhamVi,
 } from "../pham-vi";
 
@@ -32,6 +33,7 @@ export async function GET(req: Request) {
 
   const { tu, den } = khoang(pv, thang);
   const nhipHien = nhipCua(pv);
+  const duoi = duoiTenFile(pv, thang);
   const tatCa = await getDotThuCoDinh(tu, den);
   const rows = tapNeo(tatCa, gn, tu, den);
   const khung = nhanKhoang(pv, thang);
@@ -91,7 +93,7 @@ export async function GET(req: Request) {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         // Tên file thuần ASCII: header HTTP chỉ nhận latin1.
-        "Content-Disposition": `attachment; filename="dong-tien-${gn}-${pv}-${thang}-chi-tiet.xlsx"`,
+        "Content-Disposition": `attachment; filename="dong-tien-${gn}-${pv}-${duoi}-chi-tiet.xlsx"`,
       },
     });
   }
@@ -197,7 +199,7 @@ export async function GET(req: Request) {
   return new Response(new Uint8Array(buf as ArrayBuffer), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="ky-cuoc-va-dong-tien-${gn}-${pv}-${thang}.xlsx"`,
+      "Content-Disposition": `attachment; filename="ky-cuoc-va-dong-tien-${gn}-${pv}-${duoi}.xlsx"`,
     },
   });
 }

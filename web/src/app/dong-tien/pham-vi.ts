@@ -93,3 +93,11 @@ export const xepTaiKhoan = (rows: DotThuCoDinh[]) =>
     (a, b) =>
       tong(rows.filter((r) => r.tai_khoan === b)) - tong(rows.filter((r) => r.tai_khoan === a)),
   );
+
+/**
+ * Đuôi tên file, suy từ PHẠM VI chứ không từ tham số `thang`. Khi xem cả năm
+ * thì `thang` vẫn giữ tháng chọn lần trước, lấy thẳng nó ra là file cả năm mà
+ * tên lại ghi một tháng.
+ */
+export const duoiTenFile = (pv: PhamVi, thang: string): string =>
+  pv === "nam" ? thang.slice(0, 4) : pv === "tat-ca" ? `den-${thang}` : thang;

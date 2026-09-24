@@ -163,7 +163,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <div className="muted nhan-nhom">Phạm vi thời gian</div>
         <p className="actions">
           {PV.map((p) => (
-            <Link key={p} href={lk({ pv: p, tk: undefined, ld: undefined })}>
+            <Link
+              key={p}
+              href={lk({
+                pv: p,
+                // Cả năm thì chốt tháng về cuối năm: giữ tháng cũ thì URL và tên
+                // file Excel đọc ra như đang xem một tháng.
+                thang: p === "nam" ? `${thang.slice(0, 4)}-12` : thang,
+                tk: undefined,
+                ld: undefined,
+              })}
+            >
               <button type="button" className={pv === p ? "primary" : undefined}>
                 {NHAN_PV[p]}
               </button>
