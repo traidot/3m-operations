@@ -127,7 +127,92 @@ async function main() {
   for (let c = 1; c <= 5; c++)
     ws2.getCell(4, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.xam } };
 
-  // ── Trang 3: chi tiết từng đợt ────────────────────────────────────────────
+  // ── Trang 3: map hai báo cáo với nhau ─────────────────────────────────────
+  // Trục chung duy nhất là KỲ CƯỚC: (3) gom theo tháng tiền về để soi ngân
+  // hàng, nhưng mỗi đợt vẫn mang kỳ của nó nên gom lại theo kỳ là so được.
+  const ss = await q<{
+    ky: string; bc2: string; bc3: string; cap: string; chi_bc3: string;
+  }>(`
+    with a as (
+      select ky, sum(da_thu) as bc2, sum(tien_dot_da_duyet - da_thu) as cap
+        from v_fixed_da_thu_cuoc group by 1
+    ), b as (
+      select ky, sum(so_tien) as bc3,
+             -- Đợt chưa duyệt mà phiếu cha "tùy chỉnh số tiền thu": báo cáo
+             -- khoản thu tính, báo cáo cước phí thì không.
+             coalesce(sum(so_tien) filter (
+               where trang_thai_dot is not null and trang_thai_dot <> 'APPROVED'), 0) as chi_bc3
+        from v_fixed_dot_thu where vao_bao_cao_tai_khoan group by 1
+    )
+    select coalesce(a.ky, b.ky) as ky,
+           coalesce(a.bc2, 0)::text as bc2, coalesce(b.bc3, 0)::text as bc3,
+           coalesce(a.cap, 0)::text as cap, coalesce(b.chi_bc3, 0)::text as chi_bc3
+      from a full join b on b.ky = a.ky order by 1`);
+
+  const wsS = wb.addWorksheet("So sánh (2) ↔ (3)");
+  wsS.columns = [
+    { header: "Kỳ cước", key: "ky", width: 12 },
+    { header: "(2) Đã thu", key: "bc2", width: 16, style: { numFmt: TIEN } },
+    { header: "(3) Khoản thu", key: "bc3", width: 16, style: { numFmt: TIEN } },
+    { header: "Chênh (2)−(3)", key: "chenh", width: 16, style: { numFmt: TIEN } },
+    { header: "bị cap ở (2)", key: "cap", width: 15, style: { numFmt: TIEN } },
+    { header: "chỉ (3) tính", key: "chi_bc3", width: 15, style: { numFmt: TIEN } },
+    { header: "còn lại chưa giải thích", key: "con_lai", width: 23, style: { numFmt: TIEN } },
+  ];
+  for (const r of ss)
+    wsS.addRow({
+      ky: r.ky, bc2: n(r.bc2), bc3: n(r.bc3), cap: n(r.cap), chi_bc3: n(r.chi_bc3),
+    });
+  wsS.addRow({});
+  const hTongS = wsS.addRow({
+    ky: "TỔNG",
+    bc2: ss.reduce((t, r) => t + n(r.bc2), 0),
+    bc3: ss.reduce((t, r) => t + n(r.bc3), 0),
+    cap: ss.reduce((t, r) => t + n(r.cap), 0),
+    chi_bc3: ss.reduce((t, r) => t + n(r.chi_bc3), 0),
+  });
+  hTongS.font = { bold: true };
+  dauTrang(wsS, "Map hai báo cáo theo kỳ cước và phân rã chỗ lệch", moc, 7, [
+    { ten: "", tu: 1, den: 1, mau: "FFFFFFFF" },
+    { ten: "HAI BÁO CÁO", tu: 2, den: 3, mau: NEN_NHOM.phanMem },
+    { ten: "CHÊNH VÀ LÝ DO", tu: 4, den: 7, mau: NEN_NHOM.chenh },
+  ]);
+  const dSDau = 5;
+  const dSCuoi = dSDau + ss.length - 1;
+  const dSTong = dSCuoi + 2;
+  for (let r = dSDau; r <= dSCuoi; r++) {
+    const b2 = Number(wsS.getCell(r, 2).value ?? 0);
+    const b3 = Number(wsS.getCell(r, 3).value ?? 0);
+    const cap = Number(wsS.getCell(r, 5).value ?? 0);
+    const chi3 = Number(wsS.getCell(r, 6).value ?? 0);
+    wsS.getCell(r, 4).value = { formula: `B${r}-C${r}`, result: b2 - b3 };
+    // Chênh phải bằng đúng −(bị cap) − (chỉ (3) tính); cột này còn khác 0 là
+    // dấu hiệu còn nguyên nhân chưa tìm ra.
+    wsS.getCell(r, 7).value = { formula: `D${r}+E${r}+F${r}`, result: b2 - b3 + cap + chi3 };
+    for (const c of [4, 7]) {
+      const v = Number((wsS.getCell(r, c).value as { result?: number }).result ?? 0);
+      if (v !== 0) {
+        wsS.getCell(r, c).font = { bold: true, color: { argb: MAU.chuDo } };
+        wsS.getCell(r, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.do } };
+      }
+    }
+  }
+  for (const c of [2, 3, 4, 5, 6, 7]) {
+    const cot = String.fromCharCode(64 + c);
+    let tong = 0;
+    for (let r = dSDau; r <= dSCuoi; r++) {
+      const v = wsS.getCell(r, c).value;
+      tong += typeof v === "object" && v !== null && "formula" in v
+        ? Number((v as ExcelJS.CellFormulaValue).result ?? 0)
+        : Number(v ?? 0);
+    }
+    wsS.getCell(dSTong, c).value = { formula: `SUM(${cot}${dSDau}:${cot}${dSCuoi})`, result: tong };
+    wsS.getCell(dSTong, c).numFmt = TIEN;
+  }
+  for (let c = 1; c <= 7; c++)
+    wsS.getCell(dSTong, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.xam } };
+
+  // ── Trang 4: chi tiết từng đợt ────────────────────────────────────────────
   const ct = await q<Record<string, string | null>>(`
     select ma_hd, dia_chi, ky, thang_tien_ve, ngay_thu::text as ngay_thu,
            so_tien::text, tai_khoan, trang_thai_dot, trang_thai_phieu,
@@ -177,6 +262,10 @@ async function main() {
     ["(2) Cước phí · phải thu / chưa thu",
      "CHƯA DỰNG. Thử hai cách đều lệch xa màn hình (tháng 1: kho 111.300 so với màn hình 65.700), vì bên đó còn chia theo ngày trong tháng và loại hợp đồng theo nhiều mốc khác. Để trống thay vì đưa số sai."],
     ["", ""],
+    ["Trang So sánh (2) ↔ (3)",
+     "Map theo KỲ CƯỚC — trục chung duy nhất, vì mỗi đợt mang sẵn kỳ của nó. Chênh phải bằng đúng −(bị cap ở (2)) − (chỉ (3) tính); cột cuối còn khác 0 là dấu hiệu còn nguyên nhân chưa tìm ra."],
+    ["Cột \"chỉ (3) tính\"",
+     "Đợt chưa duyệt mà phiếu cha đánh dấu tùy chỉnh số tiền thu: báo cáo khoản thu tính, báo cáo cước phí thì không vì bên đó chỉ cộng đợt đã duyệt."],
     ["Vì sao hai báo cáo không bằng nhau",
      "Khác TRỤC (kỳ cước so với ngày tiền về), khác CẤP XÉT DUYỆT (phiếu cha so với đợt con), và khác ĐƠN VỊ ĐO ((2) cap theo cước tháng nên không đo tiền thực nhận, (3) đo tiền thật về tài khoản)."],
   ]) ws4.addRow([a, b]);
