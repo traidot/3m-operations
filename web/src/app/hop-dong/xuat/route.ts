@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import ExcelJS from "exceljs";
 import { getContractsForExport, type ContractFilter } from "@/lib/queries";
 import { HOP_DONG, KY_CUOC, LAP_DAT, LY_DO_HUY, TINH_TRANG_CUOC, CANH_BAO } from "@/lib/nhan";
+import { lyDoCanhBao } from "@/lib/ly-do-canh-bao";
 
 /** Toàn bộ hợp đồng wifi cố định khớp bộ lọc đang chọn trên trang. */
 const so = (v: string | null) => (v === null ? null : Math.round(Number(v)));
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
     { header: "Khó đòi", key: "kho_doi", width: 8 },
     { header: "Tình trạng cước", key: "tinh_trang_cuoc", width: 16 },
     { header: "Cảnh báo", key: "canh_bao", width: 40 },
+    { header: "Lý do cụ thể", key: "ly_do_canh_bao", width: 90 },
     { header: "Link CMS", key: "link_cms", width: 60 },
   ];
   ws.getRow(1).font = { bold: true };
@@ -68,9 +70,13 @@ export async function GET(request: NextRequest) {
       kho_doi: r.kho_doi ? "x" : "",
       tinh_trang_cuoc: TINH_TRANG_CUOC[r.tinh_trang_cuoc] ?? r.tinh_trang_cuoc,
       canh_bao: r.canh_bao.map((cb) => CANH_BAO[cb] ?? cb).join(", "),
+      // Mỗi cảnh báo một dòng trong cùng ô: đọc được mà vẫn lọc được theo cột
+      // "Cảnh báo" bên cạnh.
+      ly_do_canh_bao: lyDoCanhBao(r).join("\n"),
       link_cms: `https://cms-wifi.deepsync.vn/contracts/${r.subscription_id}`,
     });
   }
+  ws.getColumn("ly_do_canh_bao").alignment = { wrapText: true, vertical: "top" };
   ws.autoFilter = { from: "A1", to: { row: 1, column: ws.columns.length } };
 
   const buf = await wb.xlsx.writeBuffer();

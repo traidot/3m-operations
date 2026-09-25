@@ -1,4 +1,5 @@
 import { Chip } from "../chip";
+import { cauHuyLechKy, lechKetThucThu } from "@/lib/ly-do-canh-bao";
 import { NganKeo } from "../ngan-keo";
 import {
   getContract,
@@ -70,12 +71,7 @@ export async function ChiTiet({
 
   // Hai mốc rời nhau bên nguồn: thu tới đâu và dịch vụ dừng lúc nào. Lệch bao
   // nhiêu ngày mới là thứ người xem cần, chứ không phải "có lệch".
-  const lechKetThuc =
-    hd?.fee_end_on && hd.ngay_huy
-      ? Math.round(
-          (Date.parse(hd.ngay_huy) - Date.parse(hd.fee_end_on)) / 86_400_000,
-        )
-      : null;
+  const lechKetThuc = hd ? lechKetThucThu(hd) : null;
   const lechNang = hd?.canh_bao.includes("HUY_LECH_KY") ?? false;
 
   return (
@@ -187,9 +183,7 @@ export async function ChiTiet({
           {lechNang && lechKetThuc !== null && (
             <p className="stale">
               Ngày kết thúc thu lệch ngày huỷ <b>{Math.abs(lechKetThuc)} ngày</b>:{" "}
-              {lechKetThuc > 0
-                ? `sổ ngừng thu từ ${hd.fee_end_on} nhưng dịch vụ tới ${hd.ngay_huy} mới dừng — mấy tháng ở giữa khách vẫn dùng mà không ra kỳ cước nào.`
-                : `dịch vụ dừng từ ${hd.ngay_huy} nhưng sổ vẫn thu tới ${hd.fee_end_on} — phần sau ngày huỷ là thu thừa.`}
+              {cauHuyLechKy(hd)}
             </p>
           )}
 
