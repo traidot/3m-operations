@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { pool, q } from "../db.js";
-import { MAU, TIEN, datFont, dauTrang, gio } from "../excel.js";
+import { MAU, NEN_NHOM, TIEN, datFont, dauTrang, gio } from "../excel.js";
 import { banKeTiep } from "../ten-file.js";
 
 /**
@@ -113,6 +113,19 @@ async function main() {
            coalesce(sum(so_tien) filter (where vao_bao_cao_cuoc),0)::text as cuoc,
            coalesce(sum(so_tien) filter (where vao_bao_cao_tai_khoan),0)::text as tk
       from v_fixed_dot_thu group by 1 order by 6 desc`);
+
+  // Theo KỲ CƯỚC: chỗ duy nhất so được số "Đã thu" của báo cáo cước phí, vì nó
+  // cap theo cước tháng ở mức (hợp đồng, kỳ) nên không chia được theo tài khoản
+  // và không đặt cạnh sao kê ngân hàng được.
+  const theoKy = await q<{ ky: string; da_thu: string; khoan_thu: string }>(`
+    select coalesce(a.ky, b.ky) as ky,
+           coalesce(a.da_thu, 0)::text as da_thu,
+           coalesce(b.tien, 0)::text   as khoan_thu
+      from (select ky, sum(da_thu) as da_thu from v_fixed_da_thu_cuoc group by 1) a
+      full join (select ky, sum(so_tien) as tien from v_fixed_dot_thu
+                  where vao_bao_cao_tai_khoan group by 1) b
+        on b.ky = a.ky
+     order by 1`);
 
   const chiTiet = await q<Dong>(`
     select nhom, ma_hd, dia_chi, ky, thang_tien_ve, ngay_thu::text as ngay_thu,
@@ -264,6 +277,58 @@ async function main() {
     "(report/fee-payment) và (3) THÔNG TIN BÁO CÁO KHOẢN THU (report/collection-account). " +
     `Toàn bộ lịch sử, không cắt mốc tháng, chốt lúc ${gio(dongBo?.luc ?? null)}. ` +
     `File xuất lúc ${new Date().toLocaleString("vi-VN")}.`;
+  // ── Trang: theo kỳ cước ───────────────────────────────────────────────────
+  const wsK = wb.addWorksheet("Theo kỳ cước");
+  wsK.columns = [
+    { header: "Kỳ cước", key: "ky", width: 12 },
+    { header: "Đã thu", key: "da_thu", width: 16, style: { numFmt: TIEN } },
+    { header: "Tiền các đợt", key: "khoan_thu", width: 16, style: { numFmt: TIEN } },
+    { header: "Chênh", key: "chenh", width: 16, style: { numFmt: TIEN } },
+  ];
+  // Truy vấn đã coalesce nên không có null, dùng thẳng Number.
+  for (const r of theoKy)
+    wsK.addRow({ ky: r.ky, da_thu: Number(r.da_thu), khoan_thu: Number(r.khoan_thu) });
+  wsK.addRow({});
+  const hTongK = wsK.addRow({
+    ky: "TỔNG",
+    da_thu: theoKy.reduce((t, r) => t + Number(r.da_thu), 0),
+    khoan_thu: theoKy.reduce((t, r) => t + Number(r.khoan_thu), 0),
+  });
+  hTongK.font = { bold: true };
+  dauTrang(wsK, "Đối chiếu theo kỳ cước — hai thước đo khác nhau", moc, 4, [
+    { ten: "", tu: 1, den: 1, mau: "FFFFFFFF" },
+    { ten: "BÁO CÁO CƯỚC PHÍ (report/fee-payment)", tu: 2, den: 2, mau: NEN_NHOM.phanMem },
+    { ten: "BÁO CÁO KHOẢN THU (report/collection-account)", tu: 3, den: 3, mau: NEN_NHOM.phanMem },
+    { ten: "CHÊNH", tu: 4, den: 4, mau: NEN_NHOM.chenh },
+  ]);
+  const dKDau = 5;
+  const dKCuoi = dKDau + theoKy.length - 1;
+  for (let r = dKDau; r <= dKCuoi; r++) {
+    const b = Number(wsK.getCell(r, 2).value ?? 0);
+    const c = Number(wsK.getCell(r, 3).value ?? 0);
+    const o = wsK.getCell(r, 4);
+    o.value = { formula: `B${r}-C${r}`, result: b - c };
+    if (b - c !== 0) {
+      o.font = { bold: true, color: { argb: MAU.chuDo } };
+      o.fill = { type: "pattern", pattern: "solid", fgColor: { argb: DO } };
+    }
+  }
+  const dKTong = dKCuoi + 2;
+  for (let c = 2; c <= 4; c++) {
+    const cot = String.fromCharCode(64 + c);
+    let tong = 0;
+    for (let r = dKDau; r <= dKCuoi; r++) {
+      const v = wsK.getCell(r, c).value;
+      tong += typeof v === "object" && v !== null && "formula" in v
+        ? Number((v as ExcelJS.CellFormulaValue).result ?? 0)
+        : Number(v ?? 0);
+    }
+    wsK.getCell(dKTong, c).value = { formula: `SUM(${cot}${dKDau}:${cot}${dKCuoi})`, result: tong };
+    wsK.getCell(dKTong, c).numFmt = TIEN;
+  }
+  for (let c = 1; c <= 4; c++)
+    wsK.getCell(dKTong, c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: XAM } };
+
   dauTrang(ws2, "Đối chiếu hai báo cáo CMS — theo tài khoản", moc, 8);
   dauTrang(ws3, "Danh sách từng đợt làm hai báo cáo lệch nhau", moc, 13);
 
