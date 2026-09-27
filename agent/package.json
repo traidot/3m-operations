@@ -16,7 +16,8 @@
     "doi-chieu:cuoc-tk": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/doi-chieu/cuoc-vs-tai-khoan.ts",
     "sao-ke:doi-soat": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/sao-ke/doi-soat.ts",
     "bao-cao:cms": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/doi-chieu/bao-cao-cms.ts",
-    "kiem-ke:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/kiem-ke/nhap.ts"
+    "kiem-ke:nhap": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/kiem-ke/nhap.ts",
+    "kiem-ke:doi-soat": "tsx --env-file-if-exists=../.env.local --env-file-if-exists=.env src/kiem-ke/doi-soat.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",

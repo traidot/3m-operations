@@ -8,10 +8,14 @@ import { pool, q } from "../db.js";
  *
  *   npm run kiem-ke:nhap -- "../data/kiem-ke-telecom.xlsx"
  *
- * Chỉ lấy khối "đang dùng" — cột E đến J của trang Tổng hợp — và năm trang chi
- * tiết đứng sau nó. Mỗi trang một lược đồ khác nhau: trang chờ cố định có
- * người phụ trách và đại lý nội bộ, trang cần thu hồi có nhóm khách hàng mà
- * không có mã đơn. Chỉ rõ từng trang ở đây chứ không dò tiêu đề tự động.
+ * Lấy TOÀN BỘ 15 trang chi tiết, không chỉ khối "đang dùng": so kiểm kê với
+ * phần mềm mà chỉ nạp năm trang đang dùng thì máy nằm trong kho sẽ bị kể là
+ * "kiểm kê không có", ra kết luận sai.
+ *
+ * Mỗi trang một lược đồ khác nhau — trang chờ cố định có người phụ trách và
+ * đại lý nội bộ, trang cần thu hồi có nhóm khách hàng mà không có mã đơn,
+ * trang kho có vị trí kho và trạng thái thiết bị. Chỉ rõ từng trang ở đây chứ
+ * không dò tiêu đề tự động.
  */
 
 type Trang = {
@@ -30,33 +34,78 @@ type Trang = {
   c_nhom_khach?: number;
   c_phu_trach?: number;
   c_dai_ly?: number;
+  c_kho?: number;
+  c_tinh_trang?: number;
+  c_ghi_chu?: number;
+  /** Trang không nằm trong khối "đang dùng" thì không có ô nào bên Tổng hợp. */
+  khoi: "dang_dung" | "kho" | "khac";
 };
 
 const TRANG: Trang[] = [
   {
-    ten: "04_Khach_le_CTV", trang_thai: "khach_le_ctv", cot_tong_hop: 5,
+    ten: "04_Khach_le_CTV", trang_thai: "khach_le_ctv", cot_tong_hop: 5, khoi: "dang_dung",
     c_nhom: 1, c_san_pham: 2, c_ma: 3, c_khach: 5, c_ma_kh: 6, c_ma_dvkh: 7, c_ma_don: 8,
   },
   {
-    ten: "05_Dai_ly", trang_thai: "dai_ly", cot_tong_hop: 6,
+    ten: "05_Dai_ly", trang_thai: "dai_ly", cot_tong_hop: 6, khoi: "dang_dung",
     c_nhom: 1, c_san_pham: 2, c_ma: 3, c_khach: 5, c_ma_kh: 6, c_ma_dvkh: 7, c_ma_don: 8,
   },
   {
-    ten: "06_Cho_co_dinh", trang_thai: "cho_co_dinh", cot_tong_hop: 7,
+    ten: "06_Cho_co_dinh", trang_thai: "cho_co_dinh", cot_tong_hop: 7, khoi: "dang_dung",
     c_nhom: 1, c_san_pham: 2, c_ma: 3, c_ma_dvkh: 4, c_khach: 5,
     c_phu_trach: 6, c_dai_ly: 7, c_ma_don: 8,
   },
   {
-    ten: "07_Cho_kich_hoat", trang_thai: "cho_kich_hoat", cot_tong_hop: 8,
+    ten: "07_Cho_kich_hoat", trang_thai: "cho_kich_hoat", cot_tong_hop: 8, khoi: "dang_dung",
     c_nhom: 1, c_san_pham: 2, c_ma: 3, c_khach: 5, c_ma_kh: 6, c_ma_dvkh: 7, c_ma_don: 8,
   },
   {
-    ten: "08_Can_thu_hoi", trang_thai: "can_thu_hoi", cot_tong_hop: 9,
+    ten: "08_Can_thu_hoi", trang_thai: "can_thu_hoi", cot_tong_hop: 9, khoi: "dang_dung",
     c_nhom: 1, c_san_pham: 2, c_ma: 3, c_ma_kh: 4, c_khach: 5, c_nhom_khach: 6,
+  },
+  {
+    ten: "09_Kho_Viet_Nam", trang_thai: "kho_viet_nam", cot_tong_hop: 12, khoi: "kho",
+    c_nhom: 1, c_san_pham: 2, c_ma: 3, c_kho: 4, c_tinh_trang: 5, c_ghi_chu: 6,
+  },
+  {
+    ten: "10_Kho_Takanoba", trang_thai: "kho_takanoba", cot_tong_hop: 13, khoi: "kho",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0, c_ghi_chu: 6,
+  },
+  {
+    ten: "11_Kho_Ibaraki", trang_thai: "kho_ibaraki", cot_tong_hop: 14, khoi: "kho",
+    c_nhom: 1, c_san_pham: 2, c_ma: 3, c_kho: 4, c_tinh_trang: 5, c_ghi_chu: 6,
+  },
+  {
+    ten: "12_Ibaraki_da_ban", trang_thai: "ibaraki_da_ban", cot_tong_hop: 15, khoi: "kho",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0,
+  },
+  {
+    ten: "13_Sim_tra_nha_mang", trang_thai: "sim_tra_nha_mang", cot_tong_hop: 18, khoi: "khac",
+    c_nhom: 1, c_ma: 2, c_san_pham: 3,
+  },
+  {
+    ten: "14_Sim_da_huy", trang_thai: "sim_da_huy", cot_tong_hop: 19, khoi: "khac",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0, c_khach: 3, c_ma_dvkh: 4,
+  },
+  {
+    ten: "15_Doi_tac_de_lai", trang_thai: "doi_tac_de_lai", cot_tong_hop: 20, khoi: "khac",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0, c_ghi_chu: 3,
+  },
+  {
+    ten: "16_Xuat_dai_ly", trang_thai: "xuat_dai_ly", cot_tong_hop: 21, khoi: "khac",
+    c_nhom: 1, c_san_pham: 2, c_ma: 3, c_khach: 4, c_ma_dvkh: 5, c_tinh_trang: 6,
+  },
+  {
+    ten: "17_Khong_thay_nhap_kho", trang_thai: "khong_thay_nhap_kho", cot_tong_hop: 22, khoi: "khac",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0, c_ghi_chu: 3,
+  },
+  {
+    ten: "18_Hong_tra_NCC", trang_thai: "hong_tra_ncc", cot_tong_hop: 23, khoi: "khac",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0, c_ghi_chu: 3,
   },
 ];
 
-/** Cột J của trang Tổng hợp — tổng của năm cột trên. */
+/** Cột J của trang Tổng hợp — tổng của năm cột "đang dùng". */
 const COT_TONG = 10;
 
 type O = ExcelJS.CellValue;
@@ -92,6 +141,8 @@ type Dong = {
   san_pham: string | null; ma: string; ma_kh: string | null; khach: string | null;
   ma_dvkh: string | null; ma_don: string | null; nhom_khach: string | null;
   phu_trach: string | null; dai_ly: string | null;
+  kho: string | null; tinh_trang: string | null; ghi_chu: string | null;
+  khoi: string;
 };
 
 function doc(wb: ExcelJS.Workbook): Dong[] {
@@ -110,7 +161,9 @@ function doc(wb: ExcelJS.Workbook): Dong[] {
         ma_kh: lay(r, t.c_ma_kh), khach: lay(r, t.c_khach),
         ma_dvkh: lay(r, t.c_ma_dvkh), ma_don: lay(r, t.c_ma_don),
         nhom_khach: lay(r, t.c_nhom_khach), phu_trach: lay(r, t.c_phu_trach),
-        dai_ly: lay(r, t.c_dai_ly),
+        dai_ly: lay(r, t.c_dai_ly), kho: lay(r, t.c_kho),
+        tinh_trang: lay(r, t.c_tinh_trang), ghi_chu: lay(r, t.c_ghi_chu),
+        khoi: t.khoi,
       });
     }
   }
@@ -156,14 +209,16 @@ async function main() {
     const lo = dong.slice(i, i + LO);
     const gt: unknown[] = [];
     const cho = lo.map((d, k) => {
-      const n = k * 14;
+      const n = k * 18;
       gt.push(importId, d.trang, d.dong, d.trang_thai, d.nhom, d.san_pham, d.ma,
-              d.ma_kh, d.khach, d.ma_dvkh, d.ma_don, d.nhom_khach, d.phu_trach, d.dai_ly);
-      return `(${Array.from({ length: 14 }, (_, x) => `$${n + x + 1}`).join(",")})`;
+              d.ma_kh, d.khach, d.ma_dvkh, d.ma_don, d.nhom_khach, d.phu_trach, d.dai_ly,
+              d.kho, d.tinh_trang, d.ghi_chu, d.khoi);
+      return `(${Array.from({ length: 18 }, (_, x) => `$${n + x + 1}`).join(",")})`;
     });
     await q(
       `insert into kiem_ke_may (import_id, trang, dong, trang_thai, nhom, san_pham, ma,
-                                ma_kh, khach, ma_dvkh, ma_don, nhom_khach, phu_trach, dai_ly)
+                                ma_kh, khach, ma_dvkh, ma_don, nhom_khach, phu_trach, dai_ly,
+                                kho, tinh_trang, ghi_chu, khoi)
        values ${cho.join(",")}`,
       gt,
     );
