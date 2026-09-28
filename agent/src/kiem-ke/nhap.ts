@@ -38,7 +38,7 @@ type Trang = {
   c_tinh_trang?: number;
   c_ghi_chu?: number;
   /** Trang không nằm trong khối "đang dùng" thì không có ô nào bên Tổng hợp. */
-  khoi: "dang_dung" | "kho" | "khac";
+  khoi: "dang_dung" | "kho" | "khac" | "nhap_hang" | "tra_luna";
 };
 
 const TRANG: Trang[] = [
@@ -62,6 +62,17 @@ const TRANG: Trang[] = [
   {
     ten: "08_Can_thu_hoi", trang_thai: "can_thu_hoi", cot_tong_hop: 9, khoi: "dang_dung",
     c_nhom: 1, c_san_pham: 2, c_ma: 3, c_ma_kh: 4, c_khach: 5, c_nhom_khach: 6,
+  },
+  // Hai trang gốc: toàn bộ mã nhập về và phần trả lại Luna. Không phải trạng
+  // thái hiện tại nên để khối riêng — đối soát trạng thái phải loại chúng ra,
+  // không thì một mã bị đếm hai lần.
+  {
+    ten: "01_Nhap_hang", trang_thai: "nhap_hang", cot_tong_hop: 2, khoi: "nhap_hang",
+    c_nhom: 1, c_ma: 2, c_san_pham: 3, c_ghi_chu: 4,
+  },
+  {
+    ten: "02_Tra_Luna", trang_thai: "tra_luna", cot_tong_hop: 3, khoi: "tra_luna",
+    c_nhom: 1, c_ma: 2, c_san_pham: 0,
   },
   {
     ten: "09_Kho_Viet_Nam", trang_thai: "kho_viet_nam", cot_tong_hop: 12, khoi: "kho",
@@ -177,7 +188,10 @@ function docTongHop(wb: ExcelJS.Workbook): { nhom: string; cot: string; so_luong
   const ra: { nhom: string; cot: string; so_luong: number }[] = [];
   for (let r = 6; r <= ws.rowCount; r++) {
     const nhom = chu(ws.getCell(r, 1).value);
-    if (!nhom || nhom.toUpperCase() === "TỔNG" || nhom.startsWith("CÁC SHEET")) continue;
+    // Dưới bảng số là mục lục "CÁC SHEET MÃ CHI TIẾT" — cũng có tên ở cột 1 và
+    // số ở cột 2, quét tiếp là đọc số dòng của sheet thành số lượng của nhóm.
+    if (nhom.startsWith("CÁC SHEET")) break;
+    if (!nhom || nhom.toUpperCase() === "TỔNG") continue;
     for (const t of TRANG)
       ra.push({ nhom, cot: t.trang_thai, so_luong: so(ws.getCell(r, t.cot_tong_hop).value) });
     ra.push({ nhom, cot: "tong", so_luong: so(ws.getCell(r, COT_TONG).value) });

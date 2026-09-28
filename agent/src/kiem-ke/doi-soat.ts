@@ -29,6 +29,10 @@ const O_DAU = `
 
 const KIEM_KE = `kiem_ke_may m join kiem_ke_import i on i.id = m.import_id and i.dang_dung`;
 
+/** Chỉ ba khối nói TRẠNG THÁI HIỆN TẠI; hai trang gốc (nhập hàng, trả Luna)
+ *  là danh sách nguồn, gộp vào là một mã bị đếm hai lần. */
+const KHOI_TRANG_THAI = `m.khoi in ('dang_dung', 'kho', 'khac')`;
+
 const NHAN_KHOI: Record<string, string> = {
   dang_dung: "Đang ở ngoài (khách, đại lý, chờ lắp, chờ kích hoạt, cần thu hồi)",
   kho: "Trong kho (VN, Takanoba, Ibaraki)",
@@ -94,7 +98,7 @@ async function main() {
     select m.khoi,
            case when m.ma ~ '^[0-9]{15}$' then 'IMEI' else 'mã sim' end as loai,
            ${O_DAU} as o_dau, count(*)::text as so
-      from ${KIEM_KE} group by 1, 2, 3`);
+      from ${KIEM_KE} where ${KHOI_TRANG_THAI} group by 1, 2, 3`);
 
   const ws1 = wb.addWorksheet("Đối soát");
   const COT_O_DAU = ["v_telecom_may", "device_snapshot", "kho_ncc", "khong_co"];
@@ -136,7 +140,7 @@ async function main() {
   const demLech: Record<string, number> = {};
   for (const l of LECH) {
     const [r] = await q<{ so: string }>(
-      `select count(*)::text as so from ${KIEM_KE} where ${l.loc}`);
+      `select count(*)::text as so from ${KIEM_KE} where ${KHOI_TRANG_THAI} and ${l.loc}`);
     demLech[l.ma_nhom] = n(r?.so);
     const h = ws2.addRow({ ten: l.ten, so: n(r?.so), viec: l.viec });
     for (let c = 1; c <= 3; c++)
@@ -165,7 +169,7 @@ async function main() {
              t.thue_bao_hien_tai as pm_thue_bao, t.ngay_thue::text as pm_ngay_thue
         from ${KIEM_KE}
         left join v_telecom_may t on t.imei = m.ma
-       where ${l.loc}
+       where ${KHOI_TRANG_THAI} and ${l.loc}
        order by m.trang, m.dong`);
     const ws = wb.addWorksheet(l.ma_nhom.slice(0, 31));
     ws.columns = [
