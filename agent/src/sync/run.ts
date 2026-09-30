@@ -146,7 +146,8 @@ const NGUON: Nguon[] = [
         cols: ["source_id", "doc_source_id", "doc_code", "device_code", "doc_type",
                "business_type", "reason_type", "product_name", "product_type",
                "warehouse_code", "warehouse_name", "doc_date",
-               "subscription_source_id", "source_customer_id", "vendor_name"],
+               "subscription_source_id", "source_customer_id", "vendor_name",
+               "is_no_recall", "device_recall_status", "device_recall_note"],
         don: true,
       },
       provider_device: {

@@ -185,7 +185,22 @@ const KHAU: Khau[] = [
         ma: "huy-chua-thu-may", don: "may", ro: true, thu_hoi: true,
         ten: "Huỷ rồi mà máy chưa về",
         y: "không có phiếu nhập nào, cọc còn treo",
-        hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
+        // Trừ nhóm phiếu xuất đánh dấu không thu hồi: máy đó vốn không bao giờ
+        // về kho, kể vào đây là thổi số phải đòi lên hơn hai lần rưỡi.
+        hop: (r) =>
+          r.cho_dung === "O_KHACH" &&
+          r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" &&
+          !r.khong_thu_hoi,
+        tien: (r) => so(r.coc), nhan_tien: "cọc treo",
+      },
+      {
+        ma: "xuat-khong-thu-hoi", don: "may",
+        ten: "Huỷ rồi, nhưng phiếu ghi không cần thu hồi",
+        y: "xuất đi là xong — không phải máy thất lạc, không đòi",
+        hop: (r) =>
+          r.cho_dung === "O_KHACH" &&
+          r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" &&
+          r.khong_thu_hoi,
         tien: (r) => so(r.coc), nhan_tien: "cọc treo",
       },
     ],

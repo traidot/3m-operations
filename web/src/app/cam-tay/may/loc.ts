@@ -34,7 +34,14 @@ export const LOC: Record<
   huy_chua_thu_may: {
     ten: "huỷ rồi, chưa thu máy",
     nhom: "tinh_trang",
-    hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY",
+    // Phiếu xuất đánh dấu không thu hồi thì máy vốn không về kho — tách ra
+    // thành bộ lọc riêng, để đây chỉ còn máy thật sự phải đi đòi.
+    hop: (r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && !r.khong_thu_hoi,
+  },
+  khong_thu_hoi: {
+    ten: "xuất đi không cần thu hồi",
+    nhom: "tinh_trang",
+    hop: (r) => r.khong_thu_hoi,
   },
   chua_gan: {
     ten: "chưa gắn thuê bao",

@@ -102,10 +102,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         lại gồm ba việc cần xử lý và một nhóm không cần quan tâm. Ba việc:{" "}
         <b>{n(String(dem(tatCa, "HUT_CUOC")))}</b> máy thuê bao vẫn ACTIVE mà ngừng ra cước —
         đây là tiền, ước tính {n(String(cong(tatCa, "tien_hut_uoc")))} yên;{" "}
-        <b>{n(String(dem(tatCa, "HUY_CHUA_THU_MAY")))}</b> máy thuê bao đã huỷ nên không ra
-        cước là đúng, nhưng máy chưa đòi về được và{" "}
-        {n(String(cong(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && r.trang_thai_coc === "PENDING"), "coc")))}{" "}
-        yên cọc vẫn đang treo; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy chưa mở dịch vụ
+        <b>
+          {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && !r.khong_thu_hoi).length))}
+        </b>{" "}
+        máy thuê bao đã huỷ nên không ra cước là đúng, nhưng máy chưa đòi về được và{" "}
+        {n(String(cong(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && !r.khong_thu_hoi && r.trang_thai_coc === "PENDING"), "coc")))}{" "}
+        yên cọc vẫn đang treo — đã trừ{" "}
+        {n(String(tatCa.filter((r) => r.khong_thu_hoi).length))} máy mà phiếu xuất ghi
+        <b> không cần thu hồi</b>; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy chưa mở dịch vụ
         lần nào — trong đó{" "}
         {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.cho_muon).length))}{" "}
         máy là đơn <b>cho mượn trong lúc khách chờ lắp wifi cố định</b>, đúng nghiệp vụ chứ

@@ -1576,6 +1576,8 @@ export type TelecomMay = {
   nhom_may: string | null;
   nhom_khach: string | null;
   cho_muon: boolean;
+  /** Phiếu xuất đánh dấu không cần thu hồi — máy này không bao giờ về kho. */
+  khong_thu_hoi: boolean;
 };
 
 /** Máy cho thuê wifi cầm tay, một dòng một máy — xem db/119, db/120. */
@@ -1588,7 +1590,7 @@ export const getTelecomMay = () =>
             phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
             chua_ra_cuoc, link_cms, tinh_trang_cuoc, thue_bao_gan_cuoi,
             trang_thai_tb_gan_cuoi, thang_hut::text, tien_hut_uoc::text,
-            nhom_may, nhom_khach, cho_muon
+            nhom_may, nhom_khach, cho_muon, khong_thu_hoi
        from v_telecom_may
       order by case tinh_trang_cuoc
                  when 'HUT_CUOC' then 1 when 'TB_DA_XOA' then 2
@@ -1615,7 +1617,7 @@ export const getTelecomMayMot = async (imei: string) => {
             phai_thu::text, da_thu::text, chua_thu::text, mat_trang::text,
             chua_ra_cuoc, link_cms, tinh_trang_cuoc, thue_bao_gan_cuoi,
             trang_thai_tb_gan_cuoi, thang_hut::text, tien_hut_uoc::text,
-            nhom_may, nhom_khach, cho_muon
+            nhom_may, nhom_khach, cho_muon, khong_thu_hoi
        from v_telecom_may where imei = $1`,
     [imei],
   );
@@ -1747,6 +1749,8 @@ export type KhoMa = {
   file_vi_tri_so: string | null;
   file_kiem_kho: string | null;
   file_nguoi_giu: string | null;
+  /** Phiếu xuất đánh dấu không cần thu hồi — máy này không bao giờ về kho. */
+  khong_thu_hoi: boolean;
 };
 
 /** Mọi mã thiết bị hai phía biết, không bên nào làm chuẩn — xem db/129. */
@@ -1758,7 +1762,7 @@ export const getKhoMa = () =>
             ky_cuoi, coc::text, trang_thai_coc, chua_thu::text,
             khach, ma_khach, loai_khach, nguon_khach, nha_mang, vendor, link_cms,
             file_co, file_nhom_hang, file_ket_luan, file_vi_tri_so,
-            file_kiem_kho, file_nguoi_giu
+            file_kiem_kho, file_nguoi_giu, khong_thu_hoi
        from v_kho_ma
       order by case cho_dung when 'O_KHACH' then 1 when 'TRONG_KHO' then 2
                              when 'CHI_NHA_MANG' then 3 when 'TRA_NCC' then 4 else 5 end,

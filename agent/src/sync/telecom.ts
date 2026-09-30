@@ -225,7 +225,12 @@ export const STOCK_MOVE = `
     d."documentDate"::date                       as doc_date,
     d."subscriptionId"::text                     as subscription_source_id,
     d."customerId"::text                         as source_customer_id,
-    v.name                                       as vendor_name
+    v.name                                       as vendor_name,
+    -- Ô "không cần thu hồi" trên từng dòng phiếu xuất. Thiếu nó thì mọi màn
+    -- hình đòi máy đều kể oan những máy vốn xuất đi là xong.
+    coalesce(i."isNoRecall", false)              as is_no_recall,
+    i."deviceRecallStatus"::text                 as device_recall_status,
+    nullif(btrim(i."deviceRecallNote"), '')      as device_recall_note
   from inventory_document_item i
   join inventory_document d on d.id = i."inventoryDocumentId" and d."deletedAt" is null
   left join warehouse w on w.id = d."warehouseId"
