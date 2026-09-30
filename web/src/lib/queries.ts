@@ -1849,6 +1849,22 @@ export type DotThu = {
 };
 
 /** Đợt thu cước từng tháng của wifi cầm tay — xem db/140. */
+/**
+ * Tiền đang đòi nhưng KHÔNG phải cước: máy, phí lắp, các khoản của đơn hàng.
+ *
+ * Màn Đợt thu cước chỉ đếm dòng cước, nên tổng "đang đòi" ở đó nhỏ hơn công
+ * nợ thật. Không nói rõ thì người đọc tưởng đó là toàn bộ tiền phải đòi.
+ */
+export const getDangDoiNgoaiCuoc = async () => {
+  const [row] = await query<{ tien: string }>(
+    `select round(
+       (select coalesce(sum(con_lai), 0) from v_telecom_invoice_due where status = 'ISSUED')
+       - (select coalesce(sum(dang_doi), 0) from v_telecom_dot_thu)
+     )::text as tien`,
+  );
+  return row!.tien;
+};
+
 export const getDotThu = () =>
   query<DotThu>(
     `select ky, so_ky::text, so_thue_bao::text, so_may::text, phai_thu::text,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bars } from "../../wifi/bars";
 import { ChiTietDot } from "./chi-tiet";
-import { getDotThu } from "@/lib/queries";
+import { getDotThu, getDangDoiNgoaiCuoc } from "@/lib/queries";
 import { LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ const SO_THANG_VE = 24;
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const rows = await getDotThu();
+  const [rows, ngoaiCuoc] = await Promise.all([getDotThu(), getDangDoiNgoaiCuoc()]);
   const ky = mot(sp.ky);
 
   const cong = (k: keyof (typeof rows)[number]) =>
@@ -48,7 +48,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         <div className="the-so">
           <div className="the-ten">Đang đòi</div>
           <div className="the-gia-tri mono">{n(cong("dang_doi"))}</div>
-          <div className="the-phu">hoá đơn đã phát hành, chưa thấy tiền</div>
+          <div className="the-phu">
+            hoá đơn đã phát hành, chưa thấy tiền — chỉ phần cước; còn{" "}
+            {n(ngoaiCuoc)} yên nữa là tiền máy và phí đơn hàng, không tính ở trang này
+          </div>
         </div>
         <div className="the-so">
           <div className="the-ten">Đã chốt không thu được</div>
