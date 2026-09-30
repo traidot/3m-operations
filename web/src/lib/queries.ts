@@ -823,14 +823,21 @@ export type TelecomTotals = {
  * việc. Xem db/097.
  */
 export const getTelecomTotals = async () => {
+  // Khách và nợ đếm theo NGƯỜI, lấy từ chính view mà trang Khách dùng. Đếm
+  // theo thuê bao thì hụt 29 khách chỉ có hoá đơn mà không có thuê bao nào,
+  // và hụt cả phần nợ của hoá đơn không gắn thuê bao — bấm vào thẻ sang trang
+  // Khách lại thấy số khác, không ai hiểu vì sao.
   const [row] = await query<TelecomTotals>(
-    `select count(distinct party_id)::text                          as khach,
+    `select (select count(*)::text from v_telecom_customer)          as khach,
             count(*)::text                                          as thue_bao,
             count(*) filter (where trang_thai = 'ACTIVE')::text     as dang_chay,
             count(*) filter (where la_dai_ly)::text                 as thue_bao_dai_ly,
-            round(sum(con_no) filter (where not la_dai_ly))::text    as con_no,
-            round(sum(con_no) filter (where 'NO_QUA_HAN' = any(canh_bao)))::text as no_qua_han,
-            round(sum(tien_mat) filter (where not la_dai_ly))::text  as tien_mat,
+            (select round(sum(con_no))::text from v_telecom_customer
+              where not la_dai_ly)                                   as con_no,
+            (select round(sum(con_no))::text from v_telecom_customer
+              where 'NO_QUA_HAN' = any(canh_bao))                    as no_qua_han,
+            (select round(sum(tien_mat))::text from v_telecom_customer
+              where not la_dai_ly)                                   as tien_mat,
             count(*) filter (where 'THIEU_HOA_DON' = any(canh_bao))::text as thieu_hoa_don,
             sum(may_chua_tra)::text                                 as may_chua_tra
        from v_telecom_subscription`,
