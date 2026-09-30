@@ -108,7 +108,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         máy thuê bao đã huỷ nên không ra cước là đúng, nhưng máy chưa đòi về được và{" "}
         {n(String(cong(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && !r.khong_thu_hoi && r.trang_thai_coc === "PENDING"), "coc")))}{" "}
         yên cọc vẫn đang treo — đã trừ{" "}
-        {n(String(tatCa.filter((r) => r.khong_thu_hoi).length))} máy mà phiếu xuất ghi
+        {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" && r.khong_thu_hoi).length))}{" "}
+        máy mà phiếu xuất ghi
         <b> không cần thu hồi</b>; <b>{n(String(dem(tatCa, "CHUA_GAN")))}</b> máy chưa mở dịch vụ
         lần nào — trong đó{" "}
         {n(String(tatCa.filter((r) => r.tinh_trang_cuoc === "CHUA_GAN" && r.cho_muon).length))}{" "}
