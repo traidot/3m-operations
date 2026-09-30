@@ -36,7 +36,7 @@ const SUBSCRIPTION_COLS = [
   "monthly_price", "monthly_cost", "activated_on", "terminated_on", "cancel_on", "expire_on", "anchor_day",
   "fee_start_on", "fee_end_on",
   "order_ref", "device_ref", "sim_ref", "is_renewal", "cancel_timing", "cancel_reason",
-  "is_difficult_debt",
+  "is_difficult_debt", "cho_muon_cd",
   "created_at_src", "updated_at_src", "created_by_src",
 ];
 

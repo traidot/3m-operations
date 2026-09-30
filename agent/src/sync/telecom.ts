@@ -62,6 +62,10 @@ export const SUBSCRIPTION = `
     null                                         as cancel_timing,
     null                                         as cancel_reason,
     false                                        as is_difficult_debt,
+    -- Cờ này trước rỗng ở mọi thuê bao nên phải đọc vòng qua đơn hàng; nay
+    -- nguồn đã ghi thật (684 thuê bao), đọc thẳng ở đây. Nó quyết định link
+    -- sang CMS: nhóm cho mượn nằm ở màn riêng, không có trang chi tiết.
+    coalesce(s."lendForFixedWifi", false)        as cho_muon_cd,
     s."createdAt"                                as created_at_src,
     s."updatedAt"                                as updated_at_src,
     s."authorId"::text                           as created_by_src

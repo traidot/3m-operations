@@ -35,6 +35,8 @@ export const SUBSCRIPTION = `
     c.cancellationTiming                        as cancel_timing,
     nullif(trim(coalesce(c.cancelReasonProvider, c.cancelReasonManager)), '') as cancel_reason,
     c.isDifficultDebt = 1                       as is_difficult_debt,
+    -- Cột dùng chung với wifi cầm tay; bên cố định không có khái niệm cho mượn.
+    false                                       as cho_muon_cd,
     c.createdAt                                 as created_at_src,
     c.updatedAt                                 as updated_at_src,
     c.createBy                                  as created_by_src
