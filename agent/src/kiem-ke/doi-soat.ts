@@ -29,6 +29,12 @@ const O_DAU = `
 
 const KIEM_KE = `kiem_ke_may m join kiem_ke_import i on i.id = m.import_id and i.dang_dung`;
 
+/** Phiếu xuất đánh dấu không cần thu hồi: máy đó không bao giờ về kho. */
+const KHONG_THU_HOI = (cot: string) => `exists (
+  select 1 from stock_move_snapshot sm
+   where sm.source = 'TELECOM' and sm.is_no_recall
+     and ltrim(sm.device_code, '0') = ltrim(${cot}, '0'))`;
+
 /** Chỉ ba khối nói TRẠNG THÁI HIỆN TẠI; hai trang gốc (nhập hàng, trả Luna)
  *  là danh sách nguồn, gộp vào là một mã bị đếm hai lần. */
 const KHOI_TRANG_THAI = `m.khoi in ('dang_dung', 'kho', 'khac')`;
@@ -68,6 +74,12 @@ const LECH: Lech[] = [
     ten: "Kiểm kê thấy ĐANG Ở NGOÀI, phần mềm KHÔNG CÓ dấu vết nào",
     viec: "Máy ở khách mà sổ không có — nhập vào CMS, không thì mất hẳn",
     loc: `m.khoi = 'dang_dung' and ${O_DAU} = 'khong_co'`,
+  },
+  {
+    ma_nhom: "can-thu-hoi-ma-khong-phai-doi", mau: MAU.vang,
+    ten: "Kiểm kê xếp CẦN THU HỒI, nhưng phiếu xuất ghi KHÔNG CẦN thu hồi",
+    viec: "Hai bên nói ngược nhau — bỏ khỏi danh sách đòi, hoặc sửa cờ trên phiếu",
+    loc: `m.trang_thai = 'can_thu_hoi' and ${KHONG_THU_HOI("m.ma")}`,
   },
   {
     ma_nhom: "kho-khong-dau-vet", mau: MAU.tim,
@@ -146,16 +158,27 @@ async function main() {
     for (let c = 1; c <= 3; c++)
       h.getCell(c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: l.mau } };
   }
-  const [nguoc] = await q<{ so: string }>(`
-    select count(*)::text as so from v_telecom_may t
+  // Chiều ngược, tách đôi: máy có cờ không thu hồi thì người kiểm kê không kể
+  // vào là đúng, không phải thất lạc.
+  const [nguoc] = await q<{ that: string; no_recall: string }>(`
+    select count(*) filter (where not ${KHONG_THU_HOI("t.imei")})::text as that,
+           count(*) filter (where ${KHONG_THU_HOI("t.imei")})::text as no_recall
+      from v_telecom_may t
      where t.trang_thai = 'RENTING'
        and not exists (select 1 from ${KIEM_KE} where m.ma = t.imei)`);
   ws2.addRow({
     ten: "Phần mềm ghi ĐANG CHO THUÊ mà kiểm kê không nhắc mã nào",
-    so: n(nguoc?.so),
+    so: n(nguoc?.that),
     viec: "Máy sổ nói đang ở khách nhưng người kiểm kê không thấy — soát trước",
   }).eachCell((c) => {
     c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.do } };
+  });
+  ws2.addRow({
+    ten: "  trong đó phiếu ghi không cần thu hồi — kiểm kê không kể là đúng",
+    so: n(nguoc?.no_recall),
+    viec: "Không phải máy thất lạc: đã xuất đi là xong nên không nằm trong kiểm kê",
+  }).eachCell((c) => {
+    c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: MAU.xanh } };
   });
   dauTrang(ws2, "Các kiểu lệch giữa kiểm kê và phần mềm", moc, 3);
 
@@ -225,7 +248,8 @@ async function main() {
 
   console.log(`Đã ghi ${ra}`);
   for (const l of LECH) console.log(`  ${String(demLech[l.ma_nhom]).padStart(5)} · ${l.ten}`);
-  console.log(`  ${String(n(nguoc?.so)).padStart(5)} · Phần mềm ghi đang cho thuê mà kiểm kê không nhắc`);
+  console.log(`  ${String(n(nguoc?.that)).padStart(5)} · Phần mềm ghi đang cho thuê mà kiểm kê không nhắc`);
+  console.log(`  ${String(n(nguoc?.no_recall)).padStart(5)} ·   trong đó phiếu ghi không cần thu hồi (không phải thất lạc)`);
   await pool.end();
 }
 
