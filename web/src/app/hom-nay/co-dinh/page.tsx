@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bars } from "../../wifi/bars";
 import { Bang7 } from "../bang7";
 import { BangTongHop } from "../tong-hop";
+import { ChiTietTien } from "../chi-tiet-tien";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
@@ -15,10 +16,16 @@ export const dynamic = "force-dynamic";
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
+const DUONG_DAN = "/hom-nay/co-dinh";
+
 const ngayVn = (iso: string | null) =>
   iso === null ? "—" : `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 
-export default async function Page() {
+type Tham = Record<string, string | string[] | undefined>;
+const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+
+export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+  const sp = await searchParams;
   const [ngay7, ngay30, tongHop, quaHan, freshness] = await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
@@ -103,6 +110,7 @@ export default async function Page() {
         y="mỗi tài khoản một dòng, đơn vị yên"
         ds={cua("tien")}
         kieu="tien"
+        moO={DUONG_DAN}
         phu="Mỗi ô là “tiền thật vào ngân hàng / tổng ghi nhận”. Dấu ✓ là hai số bằng nhau, tiền về đủ. Dấu ⚠ là phần chênh đã cấn trừ cọc — khách nộp từ trước, nay trừ sang cước, không có đồng nào mới vào tài khoản."
       />
 
@@ -126,6 +134,13 @@ export default async function Page() {
         kieu="so"
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
+      {(() => {
+        // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
+        // đúng ngăn kéo đó.
+        const [kenh, ngay] = mot(sp.o).split("|");
+        if (!kenh || !ngay) return null;
+        return <ChiTietTien kenh={kenh} ngay={ngay} dongLai={DUONG_DAN} />;
+      })()}
     </main>
   );
 }

@@ -1,6 +1,12 @@
+import Link from "next/link";
 import type { Ngay7 } from "@/lib/queries";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
+
+/** Khoá của một ô, đủ để trang dựng lại ngăn kéo từ URL. Dấu | an toàn vì tên
+ *  tài khoản bên nguồn không có ký tự đó. */
+export const ma = (chiSo: string, ngay: string) =>
+  encodeURIComponent(`${chiSo}|${ngay}`);
 
 /** Cột ngày tô nền xen kẽ: bảy cột số trần nằm cạnh nhau thì mắt dò theo một
  *  hàng rất dễ lạc sang ngày bên cạnh. */
@@ -63,13 +69,16 @@ function Dau({ du, chenh }: { du: boolean; chenh: number }) {
  * như ngày thu tốt, trong khi ngân hàng không nhận thêm đồng nào.
  */
 export function Bang7({
-  ten, y, ds, kieu, phu, congTong = true,
+  ten, y, ds, kieu, phu, congTong = true, moO,
 }: {
   ten: string;
   y: string;
   ds: Ngay7[];
   kieu: "tien" | "so";
   phu?: string;
+  /** Đường dẫn của trang chứa bảng. Có thì mỗi ô có số thành một liên kết mở
+   *  ngăn kéo chi tiết; không có thì ô là chữ thường. */
+  moO?: string;
   /** Tắt khi các dòng lồng nhau — "đơn hẹn" đã gồm cả "đã lắp xong", cộng lại
    *  ra số không tồn tại. */
   congTong?: boolean;
@@ -132,14 +141,23 @@ export function Bang7({
                 </td>
                 {ngays.map((d, i) => {
                   const r = o.get(`${cs}|${d}`);
+                  const co = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
+                  const noi =
+                    kieu === "tien" ? (
+                      oTien(giaTri(r, "that"), giaTri(r, "tien"))
+                    ) : co === 0 ? (
+                      <span className="muted">—</span>
+                    ) : (
+                      n(co)
+                    );
                   return (
                     <td key={d} className={`num mono${xenKe(i)}`}>
-                      {kieu === "tien" ? (
-                        oTien(giaTri(r, "that"), giaTri(r, "tien"))
-                      ) : giaTri(r, "so") === 0 ? (
-                        <span className="muted">—</span>
+                      {moO !== undefined && co > 0 ? (
+                        <Link className="o-mo" href={`${moO}?o=${ma(cs, d)}`} scroll={false}>
+                          {noi}
+                        </Link>
                       ) : (
-                        n(giaTri(r, "so"))
+                        noi
                       )}
                     </td>
                   );

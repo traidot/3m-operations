@@ -1900,6 +1900,28 @@ export const getLapDatQuaHan = async () => {
   return row!;
 };
 
+export type DotThuNgay = {
+  source_id: string;
+  ma_hd: string | null;
+  ky: string | null;
+  tien: string;
+  status: string | null;
+  ngay_go: string | null;
+  nguoi_go: string | null;
+  note: string | null;
+  url: string | null;
+};
+
+/** Từng đợt thu đằng sau một ô của bảng tiền theo ngày — xem db/187. */
+export const getDotThuNgay = (kenh: string, ngay: string) =>
+  query<DotThuNgay>(
+    `select source_id, ma_hd, ky, tien::text, status, ngay_go::text, nguoi_go, note, url
+       from v_fixed_dot_thu_ngay
+      where kenh = $1 and ngay = $2::date
+      order by tien desc, ma_hd`,
+    [kenh, ngay],
+  );
+
 export type TongHopNgay = {
   ngay: string;
   lan_dau: string;

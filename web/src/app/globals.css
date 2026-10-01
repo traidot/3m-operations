@@ -231,6 +231,10 @@ summary:hover { color: var(--ok); }
 /* Dấu ở cuối ô tiền: đủ hay phải cấn trừ. Cỡ nhỏ và không in đậm — nó là chú
    thích cho con số, không phải thứ để đọc trước. */
 .dau { display: inline-block; vertical-align: -3px; margin-left: 7px; }
+/* Ô bấm được: không gạch chân sẵn, chỉ đổi khi rê chuột — bảng toàn số mà gạch
+   chân hết thì rối, nhưng vẫn phải lộ ra là bấm được. */
+.o-mo { color: inherit; text-decoration: none; display: block; }
+.o-mo:hover { color: var(--ok); text-decoration: underline; text-underline-offset: 3px; }
 .dau.du { color: var(--ok); }
 .dau.lech { color: var(--bad); }
 .deu thead th.o-le { background: color-mix(in oklab, var(--ink) 7%, var(--surface-2)); }
