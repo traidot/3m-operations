@@ -14,7 +14,6 @@ const MENU: NhomMenu[] = [
     // không thuộc mảng nào.
     nhom: "Cần xử lý",
     muc: [
-      { ten: "Hôm nay", href: "/hom-nay" },
       { ten: "Thu cước", href: "/thu-cuoc" },
       { ten: "Dự kiến huỷ", href: "/xem-xet-huy" },
       { ten: "Cọc", href: "/cam-tay/coc" },
@@ -40,6 +39,7 @@ const MENU: NhomMenu[] = [
   {
     nhom: "Wifi cố định",
     muc: [
+      { ten: "Hôm nay", href: "/hom-nay/co-dinh" },
       { ten: "Báo cáo", href: "/thang" },
       { ten: "Kỳ cước và dòng tiền", href: "/dong-tien" },
       { ten: "Hợp đồng", href: "/hop-dong" },

@@ -1875,6 +1875,15 @@ export const getBaoCaoNgay = () =>
        from v_bao_cao_ngay order by nhom, chi_so`,
   );
 
+/** Cùng khuôn nhưng riêng wifi cố định — xem db/182. */
+export const getBaoCaoNgayCoDinh = () =>
+  query<BaoCaoNgay>(
+    `select nhom, chi_so, don_vi, so_hom_nay::text, tien_hom_nay::text,
+            so_hom_qua::text, tien_hom_qua::text, so_tb_7::text, tien_tb_7::text
+       from v_bao_cao_ngay_fixed
+      order by nhom, tien_tb_7 desc, chi_so`,
+  );
+
 export const getDangDoiNgoaiCuoc = async () => {
   const [row] = await query<{ tien: string }>(
     `select round(
