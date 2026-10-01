@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { Bars } from "../../wifi/bars";
-import { BangNgay } from "../bang";
+import { Bang7 } from "../bang7";
 import {
-  getBaoCaoNgayCoDinh,
+  getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
   getFreshness,
-  type BaoCaoNgay,
 } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +16,8 @@ const n = (v: string | number | null) =>
 const nhanNgay = (iso: string) => iso.slice(8, 10);
 
 export default async function Page() {
-  const [rows, ngay30, freshness] = await Promise.all([
-    getBaoCaoNgayCoDinh(),
+  const [ngay7, ngay30, freshness] = await Promise.all([
+    getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
     getFreshness(),
   ]);
@@ -37,17 +36,10 @@ export default async function Page() {
 
   // CHUA_GHI là giá trị thô bên nguồn khi đợt thu chưa chọn tài khoản.
   const cua = (nhom: string) =>
-    rows
+    ngay7
       .filter((r) => r.nhom === nhom)
       .map((r) => (r.chi_so === "CHUA_GHI" ? { ...r, chi_so: "(chưa ghi tài khoản)" } : r));
 
-  const tien = cua("tien");
-  const laCoc = (r: BaoCaoNgay) => r.chi_so === "cần trừ cọc";
-  const cong = (ds: BaoCaoNgay[], k: "hom_nay" | "hom_qua" | "tb_7") =>
-    ds.reduce((t, r) => t + Number(r[`tien_${k}`]), 0);
-
-  const veTk = tien.filter((r) => !laCoc(r));
-  const coc = tien.filter(laCoc);
   const nhan = ngay30.map((d) => nhanNgay(d.ngay));
   const tong30 = (k: "ky_moi" | "lap_xong" | "hoat_dong" | "huy") =>
     ngay30.reduce((t, d) => t + Number(d[k]), 0);
@@ -56,10 +48,10 @@ export default async function Page() {
     <main>
       <h1>Hôm nay · wifi cố định</h1>
       <p className="muted">
-        {hom_nay}. Bảng đặt số hôm nay cạnh <b>hôm qua</b> và <b>trung bình 7 ngày</b>{" "}
-        trước đó; lệch từ 50% tô đỏ kể cả lệch xuống — ngày không thu được đồng nào
-        cũng bất thường như ngày thu gấp đôi. Biểu đồ là <b>30 ngày gần nhất</b>, để
-        thấy hình dạng cả tháng chứ không chỉ một ngày.
+        {hom_nay}. Biểu đồ là <b>30 ngày gần nhất</b> để thấy hình dạng cả tháng;
+        các bảng bày thẳng <b>7 ngày gần nhất</b>, mỗi ngày một cột — ba con số
+        hôm nay/hôm qua/trung bình nén cả tuần lại nên không thấy hôm nào thu, hôm
+        nào nghỉ.
       </p>
 
       {cu.length > 0 && (
@@ -98,52 +90,26 @@ export default async function Page() {
         <b>{n(tong30("ky_moi") - tong30("huy"))}</b> hợp đồng.
       </p>
 
-      <h2>
-        2 · Tiền hôm nay <span className="muted">— về tài khoản và cấn trừ cọc</span>
-      </h2>
-      <div className="the-hang gon">
-        <div className="the-so">
-          <div className="the-ten">Về tài khoản</div>
-          <div className="the-gia-tri mono">{n(cong(veTk, "hom_nay"))}</div>
-          <div className="the-phu">
-            tiền thật chạy qua ngân hàng · hôm qua {n(cong(veTk, "hom_qua"))} · TB 7 ngày{" "}
-            {n(cong(veTk, "tb_7"))}
-          </div>
-        </div>
-        <div className="the-so">
-          <div className="the-ten">Cấn trừ cọc</div>
-          <div className="the-gia-tri mono">{n(cong(coc, "hom_nay"))}</div>
-          <div className="the-phu">
-            tiền khách nộp từ trước, nay trừ sang cước — không có đồng nào mới vào ngân
-            hàng hôm nay
-          </div>
-        </div>
-        <div className="the-so">
-          <div className="the-ten">Tổng ghi nhận</div>
-          <div className="the-gia-tri mono">{n(cong(tien, "hom_nay"))}</div>
-          <div className="the-phu">cộng cả hai, đúng số trên báo cáo khoản thu</div>
-        </div>
-      </div>
-      <BangNgay
-        ten="Chia theo tài khoản"
-        y="mỗi tài khoản một dòng"
-        ds={tien}
-        cot="tien"
-        phu="Đơn vị yên. Cột “số lượt” là số đợt thu ghi nhận trong ngày."
+      <Bang7
+        ten="2 · Tiền về theo ngày"
+        y="mỗi tài khoản một dòng, đơn vị yên"
+        ds={cua("tien")}
+        kieu="tien"
+        phu="Ô có hai số là “tiền thật vào ngân hàng / tổng ghi nhận”: phần chênh là cấn trừ cọc — khách đã nộp từ trước, nay trừ sang cước, hôm nay không có đồng nào mới vào tài khoản. Ô một số là cả hai bằng nhau."
       />
 
-      <BangNgay
+      <Bang7
         ten="3 · Lắp đặt"
-        y="lịch hẹn lắp của ngày hôm nay"
+        y="đơn hẹn lịch lắp theo ngày hẹn"
         ds={cua("lap_dat")}
-        cot="so"
+        kieu="so"
       />
 
-      <BangNgay
+      <Bang7
         ten="4 · Nhập liệu"
-        y="người thu đã ghi vào sổ bao nhiêu"
-        ds={cua("duyet")}
-        cot="so"
+        y="người thu ghi vào sổ bao nhiêu mỗi ngày"
+        ds={cua("nhap_lieu")}
+        kieu="so"
         phu="Đếm theo ngày tạo bản ghi, không phải ngày tiền về — cho biết hôm nay có ai ngồi nhập hay không."
       />
     </main>

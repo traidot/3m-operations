@@ -1875,6 +1875,23 @@ export const getBaoCaoNgay = () =>
        from v_bao_cao_ngay order by nhom, chi_so`,
   );
 
+export type Ngay7 = {
+  nhom: string;
+  chi_so: string;
+  don_vi: string;
+  ngay: string;
+  so_luong: string;
+  tien: string;
+  tien_that: string;
+};
+
+/** Bảy ngày gần nhất, một dòng cho mỗi (chỉ số, ngày) — xem db/184. */
+export const getBaoCaoNgayCoDinh7 = () =>
+  query<Ngay7>(
+    `select nhom, chi_so, don_vi, ngay::text, so_luong::text, tien::text, tien_that::text
+       from v_bao_cao_ngay_fixed_7 order by nhom, chi_so, ngay`,
+  );
+
 export type NgayFixed30 = {
   ngay: string;
   ky_moi: string;
@@ -1888,15 +1905,6 @@ export const getBaoCaoNgayCoDinh30 = () =>
   query<NgayFixed30>(
     `select ngay::text, ky_moi::text, lap_xong::text, hoat_dong::text, huy::text
        from v_bao_cao_ngay_fixed_30 order by ngay`,
-  );
-
-/** Cùng khuôn nhưng riêng wifi cố định — xem db/182. */
-export const getBaoCaoNgayCoDinh = () =>
-  query<BaoCaoNgay>(
-    `select nhom, chi_so, don_vi, so_hom_nay::text, tien_hom_nay::text,
-            so_hom_qua::text, tien_hom_qua::text, so_tb_7::text, tien_tb_7::text
-       from v_bao_cao_ngay_fixed
-      order by nhom, tien_tb_7 desc, chi_so`,
   );
 
 export const getDangDoiNgoaiCuoc = async () => {
