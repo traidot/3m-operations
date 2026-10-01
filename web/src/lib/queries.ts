@@ -1855,6 +1855,26 @@ export type DotThu = {
  * Màn Đợt thu cước chỉ đếm dòng cước, nên tổng "đang đòi" ở đó nhỏ hơn công
  * nợ thật. Không nói rõ thì người đọc tưởng đó là toàn bộ tiền phải đòi.
  */
+export type BaoCaoNgay = {
+  nhom: string;
+  chi_so: string;
+  don_vi: string;
+  so_hom_nay: string;
+  tien_hom_nay: string;
+  so_hom_qua: string;
+  tien_hom_qua: string;
+  so_tb_7: string;
+  tien_tb_7: string;
+};
+
+/** Chỉ số hôm nay đặt cạnh hôm qua và trung bình 7 ngày — xem db/181. */
+export const getBaoCaoNgay = () =>
+  query<BaoCaoNgay>(
+    `select nhom, chi_so, don_vi, so_hom_nay::text, tien_hom_nay::text,
+            so_hom_qua::text, tien_hom_qua::text, so_tb_7::text, tien_tb_7::text
+       from v_bao_cao_ngay order by nhom, chi_so`,
+  );
+
 export const getDangDoiNgoaiCuoc = async () => {
   const [row] = await query<{ tien: string }>(
     `select round(
