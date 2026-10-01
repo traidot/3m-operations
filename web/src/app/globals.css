@@ -213,6 +213,11 @@ summary:hover { color: var(--ok); }
    tiêu đề mục. */
 .chart .nhan-hang { fill: var(--muted); font-size: 8.5px; font-family: var(--mono); }
 .chart .tong-hang { fill: var(--body); font-size: 8.5px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+/* Giá trị từng ngày: nằm sẵn trong SVG nhưng trong suốt, chỉ hiện khi rê
+   chuột vào ô ngày. Cột rộng vài pixel nên không có chỗ ghi số cố định. */
+.chart .tip { opacity: 0; fill: var(--ink); font-size: 10px; font-family: var(--mono);
+  paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+.chart .o-ngay:hover .tip { opacity: 1; }
 .chart figcaption { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 .chu-thich { display: inline-flex; align-items: center; gap: 6px; }
 .o-mau { width: 10px; height: 10px; display: inline-block; border-radius: 3px; }

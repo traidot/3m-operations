@@ -81,6 +81,8 @@ export default async function Page() {
         tới đâu.
       </p>
       <Bars
+        moiNhan
+        cao={230}
         nhan={nhan}
         chuoi={[
           { ten: "Ký mới", mau: "var(--muted)", gia_tri: ngay30.map((d) => Number(d.ky_moi)) },
