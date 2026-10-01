@@ -49,6 +49,8 @@ export default async function Page() {
   const veTk = tien.filter((r) => !laCoc(r));
   const coc = tien.filter(laCoc);
   const nhan = ngay30.map((d) => nhanNgay(d.ngay));
+  const tong30 = (k: "ky_moi" | "lap_xong" | "hoat_dong" | "huy") =>
+    ngay30.reduce((t, d) => t + Number(d[k]), 0);
 
   return (
     <main>
@@ -69,12 +71,14 @@ export default async function Page() {
       )}
 
       <h2>
-        1 · Hợp đồng mới <span className="muted">— ký rồi lắp, lắp rồi mới ra tiền</span>
+        1 · Hợp đồng <span className="muted">— vào và ra trong 30 ngày</span>
       </h2>
       <p className="muted">
-        Ba khâu nối nhau nên cột lệch pha là bình thường: ký hôm nay thì vài hôm sau
-        mới lắp, lắp xong còn chờ tới ngày bắt đầu thu mới tính là <b>hoạt động</b> —
-        phần lớn rơi vào mùng 1, nên cột đó dồn thành vài cọc cao chứ không trải đều.
+        Ba khâu đầu nối nhau nên cột lệch pha là bình thường: ký hôm nay thì vài hôm
+        sau mới lắp, lắp xong còn chờ tới ngày bắt đầu thu mới tính là{" "}
+        <b>hoạt động</b> — phần lớn rơi vào mùng 1, nên cột đó dồn thành vài cọc cao
+        chứ không trải đều. Cột <b>huỷ</b> để cùng trục cho thấy vào và ra bù nhau
+        tới đâu.
       </p>
       <Bars
         nhan={nhan}
@@ -82,35 +86,18 @@ export default async function Page() {
           { ten: "Ký mới", mau: "var(--muted)", gia_tri: ngay30.map((d) => Number(d.ky_moi)) },
           { ten: "Lắp xong", mau: "var(--ok)", gia_tri: ngay30.map((d) => Number(d.lap_xong)) },
           { ten: "Hoạt động", mau: "var(--lam)", gia_tri: ngay30.map((d) => Number(d.hoat_dong)) },
+          { ten: "Huỷ", mau: "var(--do)", gia_tri: ngay30.map((d) => Number(d.huy)) },
         ]}
       />
       <p className="muted">
-        Cộng 30 ngày: <b>{n(ngay30.reduce((t, d) => t + Number(d.ky_moi), 0))}</b> ký mới ·{" "}
-        <b>{n(ngay30.reduce((t, d) => t + Number(d.lap_xong), 0))}</b> lắp xong ·{" "}
-        <b>{n(ngay30.reduce((t, d) => t + Number(d.hoat_dong), 0))}</b> bắt đầu thu.
+        Cộng 30 ngày: <b>{n(tong30("ky_moi"))}</b> ký mới ·{" "}
+        <b>{n(tong30("lap_xong"))}</b> lắp xong · <b>{n(tong30("hoat_dong"))}</b> bắt
+        đầu thu · <b>{n(tong30("huy"))}</b> huỷ — ròng{" "}
+        <b>{n(tong30("ky_moi") - tong30("huy"))}</b> hợp đồng.
       </p>
 
       <h2>
-        2 · Hợp đồng huỷ <span className="muted">— khách dừng dịch vụ</span>
-      </h2>
-      <Bars
-        nhan={nhan}
-        chuoi={[{ ten: "Huỷ", mau: "var(--do)", gia_tri: ngay30.map((d) => Number(d.huy)) }]}
-      />
-      <p className="muted">
-        Cộng 30 ngày: <b>{n(ngay30.reduce((t, d) => t + Number(d.huy), 0))}</b> hợp đồng huỷ,
-        so với <b>{n(ngay30.reduce((t, d) => t + Number(d.ky_moi), 0))}</b> ký mới —{" "}
-        ròng{" "}
-        <b>
-          {n(
-            ngay30.reduce((t, d) => t + Number(d.ky_moi) - Number(d.huy), 0),
-          )}
-        </b>{" "}
-        hợp đồng.
-      </p>
-
-      <h2>
-        3 · Tiền hôm nay <span className="muted">— về tài khoản và cấn trừ cọc</span>
+        2 · Tiền hôm nay <span className="muted">— về tài khoản và cấn trừ cọc</span>
       </h2>
       <div className="the-hang gon">
         <div className="the-so">
@@ -144,14 +131,14 @@ export default async function Page() {
       />
 
       <BangNgay
-        ten="4 · Lắp đặt"
+        ten="3 · Lắp đặt"
         y="lịch hẹn lắp của ngày hôm nay"
         ds={cua("lap_dat")}
         cot="so"
       />
 
       <BangNgay
-        ten="5 · Nhập liệu"
+        ten="4 · Nhập liệu"
         y="người thu đã ghi vào sổ bao nhiêu"
         ds={cua("duyet")}
         cot="so"
