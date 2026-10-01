@@ -14,13 +14,16 @@ const nhanCot = (iso: string, homNay: string) =>
  * như ngày thu tốt, trong khi ngân hàng không nhận thêm đồng nào.
  */
 export function Bang7({
-  ten, y, ds, kieu, phu,
+  ten, y, ds, kieu, phu, congTong = true,
 }: {
   ten: string;
   y: string;
   ds: Ngay7[];
   kieu: "tien" | "so";
   phu?: string;
+  /** Tắt khi các dòng lồng nhau — "đơn hẹn" đã gồm cả "đã lắp xong", cộng lại
+   *  ra số không tồn tại. */
+  congTong?: boolean;
 }) {
   if (ds.length === 0) return null;
   const ngays = [...new Set(ds.map((r) => r.ngay))].sort();
@@ -93,7 +96,7 @@ export function Bang7({
                 })}
               </tr>
             ))}
-            {chiSos.length > 1 && (
+            {congTong && chiSos.length > 1 && (
               <tr className="tong">
                 <td>
                   <b>Tổng</b>

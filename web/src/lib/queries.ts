@@ -1889,7 +1889,42 @@ export type Ngay7 = {
 export const getBaoCaoNgayCoDinh7 = () =>
   query<Ngay7>(
     `select nhom, chi_so, don_vi, ngay::text, so_luong::text, tien::text, tien_that::text
-       from v_bao_cao_ngay_fixed_7 order by nhom, chi_so, ngay`,
+       from v_bao_cao_ngay_fixed_7 order by nhom, thu_tu, chi_so, ngay`,
+  );
+
+/** Đơn lắp đã qua ngày hẹn mà chưa lắp xong — xem db/186. */
+export const getLapDatQuaHan = async () => {
+  const [row] = await query<{ don: string; hen_cu_nhat: string | null; trong_30_ngay: string }>(
+    `select don::text, hen_cu_nhat::text, trong_30_ngay::text from v_lap_dat_qua_han`,
+  );
+  return row!;
+};
+
+export type TongHopNgay = {
+  ngay: string;
+  lan_dau: string;
+  dang_ky_lai: string;
+  tong_dang_ky: string;
+  huy_truoc_lich: string;
+  huy_sau_lich: string;
+  huy_sau_lap: string;
+  tong_huy: string;
+  con_lai: string;
+  co_lich_lap: string;
+  chua_co_lich: string;
+  lap_xong: string;
+  co_lich_chua_lap: string;
+  that_bai: string;
+};
+
+/** Báo cáo tổng hợp của CMS vỡ theo ngày, 30 ngày gần nhất — xem db/185. */
+export const getTongHopNgay = () =>
+  query<TongHopNgay>(
+    `select ngay::text, lan_dau::text, dang_ky_lai::text, tong_dang_ky::text,
+            huy_truoc_lich::text, huy_sau_lich::text, huy_sau_lap::text, tong_huy::text,
+            con_lai::text, co_lich_lap::text, chua_co_lich::text, lap_xong::text,
+            co_lich_chua_lap::text, that_bai::text
+       from v_bao_cao_tong_hop_ngay order by ngay desc`,
   );
 
 export type NgayFixed30 = {

@@ -1,139 +1,122 @@
+"use client";
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  type TooltipContentProps,
+} from "recharts";
+
 /**
- * Biểu đồ cột nhóm, vẽ thẳng bằng SVG — không kéo thư viện về cho vài cái cột.
- * Mọi chuỗi trên cùng một trục nên chỉ dùng khi chúng cùng đơn vị.
+ * Biểu đồ cột nhóm. Mọi chuỗi nằm chung một trục nên chỉ dùng khi chúng cùng
+ * đơn vị.
  */
 export type Series = { ten: string; mau: string; gia_tri: (number | null)[] };
+
+const so = (v: number) => v.toLocaleString("vi-VN");
+
+/** Trục dọc phải gọn, không thì "1.430.000" đẩy cả biểu đồ sang phải. */
+const TRIEU = 1_000_000;
+const NGHIN = 1_000;
+const gonTruc = (v: number) => {
+  if (Math.abs(v) >= TRIEU) return `${(v / TRIEU).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}tr`;
+  if (Math.abs(v) >= NGHIN) return `${(v / NGHIN).toLocaleString("vi-VN", { maximumFractionDigits: 1 })}k`;
+  return so(v);
+};
+
+/**
+ * Nhãn trục hoành. Nhận ra nhãn ngày (YYYY-MM-DD) và nhãn kỳ (YYYY-MM) để cắt
+ * cho vừa chỗ — trục đã nói rõ phạm vi, lặp lại năm ở từng cột chỉ tổ chật.
+ * Tooltip thì ngược lại: chỉ hiện ở một cột nên ghi đủ ngày tháng.
+ */
+const NGAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+const KY = /^(\d{4})-(\d{2})$/;
+const nhanNgan = (v: string): string =>
+  NGAY.exec(v)?.[3] ?? KY.exec(v)?.[2] ?? v;
+const nhanDu = (v: string): string => {
+  const d = NGAY.exec(v);
+  return d ? `${d[3]}/${d[2]}` : v;
+};
+
+function Chu({ active, payload, label }: Partial<TooltipContentProps<number, string>>) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tip">
+      <div className="chart-tip-ngay">{nhanDu(String(label))}</div>
+      {payload.map((p) => (
+        <div key={p.name} className="chart-tip-dong">
+          <span className="o-mau" style={{ background: p.color }} />
+          <span className="chart-tip-ten">{p.name}</span>
+          <b>{so(Number(p.value ?? 0))}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function Bars({
   nhan,
   chuoi,
-  dinhDang = (v) => v.toLocaleString("vi-VN"),
   cao = 200,
   moiNhan = false,
 }: {
   nhan: string[];
   chuoi: Series[];
-  dinhDang?: (v: number) => string;
   cao?: number;
   /** Hiện nhãn của MỌI cột, xoay nghiêng cho khỏi chen nhau. Dùng khi trục là
    *  ngày trong tháng — nhảy cóc hai ngày một thì không dò ra cột nào là ngày
    *  nào. */
   moiNhan?: boolean;
 }) {
-  const rong = 720;
-  const leTrai = 8;
-  // Nhãn xoay nghiêng chiếm nhiều chiều cao hơn nhãn nằm ngang.
-  const leDuoi = moiNhan ? 44 : 34;
-  const leTren = 8;
-  const dat = cao - leDuoi - leTren;
+  const du_lieu = nhan.map((ten, i) => {
+    const hang: Record<string, string | number> = { ten };
+    for (const s of chuoi) hang[s.ten] = s.gia_tri[i] ?? 0;
+    return hang;
+  });
 
-  const dinh = Math.max(
-    1,
-    ...chuoi.flatMap((s) => s.gia_tri.map((v) => v ?? 0)),
-  );
-
-  const oRong = (rong - leTrai * 2) / Math.max(nhan.length, 1);
-  // Nhãn ngày chen nhau khi có 30 cột, thưa bớt cho vừa chỗ — trừ khi người
-  // gọi muốn thấy đủ, lúc đó xoay nghiêng thay vì bỏ bớt.
-  const buoc = moiNhan ? 1 : Math.max(1, Math.ceil(34 / Math.max(oRong, 1)));
-  const cotRong = Math.min(18, (oRong - 10) / chuoi.length);
+  // Nhãn xoay nghiêng ăn gấp đôi chiều cao của nhãn nằm ngang.
+  const cheoCao = moiNhan ? 46 : 22;
 
   return (
     <figure className="chart">
-      {/* Không dùng thẻ title trong SVG: React nhấc nó lên head của trang, làm
-          lệch giữa server và client. Mô tả để ở aria-label, số chi tiết nằm ở
-          bảng bên dưới. */}
-      <svg
-        viewBox={`0 0 ${rong} ${cao}`}
-        role="img"
-        width="100%"
-        aria-label={`${chuoi.map((s) => s.ten).join(", ")} theo tháng`}
-      >
-        <line
-          className="truc"
-          x1={leTrai}
-          y1={leTren + dat}
-          x2={rong - leTrai}
-          y2={leTren + dat}
-        />
-
-        {nhan.map((thang, i) => {
-          const goc = leTrai + i * oRong + (oRong - cotRong * chuoi.length) / 2;
-          // Cột hẹp vài pixel thì không ghi số lên được; rê chuột vào đâu trong
-          // ô ngày cũng đọc được cả cụm. Không dùng thẻ title của SVG: React
-          // nhấc nó lên head của trang. Thay bằng text ẩn sẵn, CSS cho hiện
-          // khi hover — không cần JS, không lệch server với client.
-          const chu =
-            `${thang} · ` +
-            chuoi.map((s) => `${s.ten} ${dinhDang(s.gia_tri[i] ?? 0)}`).join(" · ");
-          // Ô ở mép thì neo chữ vào trong, không thì tooltip tràn khỏi khung.
-          const neo = i < 5 ? "start" : i > nhan.length - 6 ? "end" : "middle";
-          return (
-            <g key={thang} className="o-ngay">
-              <rect
-                x={leTrai + i * oRong}
-                y={leTren}
-                width={oRong}
-                height={dat}
-                fill="transparent"
-              />
-              {chuoi.map((s, j) => {
-                const v = s.gia_tri[i] ?? 0;
-                const h = Math.max(v > 0 ? 1.5 : 0, (v / dinh) * dat);
-                return (
-                  <rect
-                    key={s.ten}
-                    x={goc + j * cotRong}
-                    y={leTren + dat - h}
-                    width={cotRong - 2}
-                    height={h}
-                    fill={s.mau}
-                  />
-                );
-              })}
-              {i % buoc === 0 &&
-                (moiNhan ? (
-                  <text
-                    className="nhan-truc"
-                    x={leTrai + i * oRong + oRong / 2}
-                    y={cao - 26}
-                    textAnchor="end"
-                    transform={`rotate(-60 ${leTrai + i * oRong + oRong / 2} ${cao - 26})`}
-                  >
-                    {/* Dùng nguyên nhãn người gọi truyền: ở chế độ này trục là
-                        ngày trong tháng, cắt năm-tháng như nhánh kia thì mất
-                        sạch chữ. */}
-                    {thang}
-                  </text>
-                ) : (
-                  <text
-                    className="nhan-truc"
-                    x={leTrai + i * oRong + oRong / 2}
-                    y={cao - 18}
-                    textAnchor="middle"
-                  >
-                    {thang.slice(5)}
-                  </text>
-                ))}
-              <text
-                className="tip"
-                x={
-                  neo === "start"
-                    ? leTrai
-                    : neo === "end"
-                      ? rong - leTrai
-                      : leTrai + i * oRong + oRong / 2
-                }
-                y={leTren + 10}
-                textAnchor={neo}
-              >
-                {chu}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-
+      <ResponsiveContainer width="100%" height={cao + cheoCao}>
+        <BarChart data={du_lieu} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+          <CartesianGrid stroke="var(--line)" vertical={false} />
+          <XAxis
+            dataKey="ten"
+            tickFormatter={nhanNgan}
+            interval={moiNhan ? 0 : "preserveStartEnd"}
+            angle={moiNhan ? -60 : 0}
+            textAnchor={moiNhan ? "end" : "middle"}
+            height={cheoCao}
+            tickLine={false}
+            stroke="var(--line-strong)"
+            tick={{ fill: "var(--muted)", fontSize: 11, fontFamily: "var(--mono)" }}
+          />
+          <YAxis
+            width={44}
+            tickFormatter={gonTruc}
+            tickLine={false}
+            axisLine={false}
+            tick={{ fill: "var(--muted)", fontSize: 10, fontFamily: "var(--mono)" }}
+          />
+          <Tooltip
+            content={<Chu />}
+            // Vệt sáng chạy theo cột đang rê — không có nó thì không biết
+            // tooltip đang nói về ngày nào.
+            cursor={{ fill: "var(--surface-2)" }}
+          />
+          {chuoi.map((s) => (
+            <Bar key={s.ten} dataKey={s.ten} fill={s.mau} maxBarSize={18} radius={[2, 2, 0, 0]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+      {/* Chú thích tự dựng, không dùng Legend của recharts: nó xếp lại thứ tự
+          khác với thứ tự cột, đọc xong nhìn sang biểu đồ lại phải dò. */}
       <figcaption>
         {chuoi.map((s) => (
           <span key={s.ten} className="chu-thich">
@@ -141,7 +124,6 @@ export function Bars({
             {s.ten}
           </span>
         ))}
-        <span className="dinh-truc">cao nhất {dinhDang(dinh)}</span>
       </figcaption>
     </figure>
   );

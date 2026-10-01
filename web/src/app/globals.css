@@ -206,22 +206,26 @@ summary:hover { color: var(--ok); }
 
 .chart { margin: 0 0 8px; }
 .chart svg { display: block; overflow: visible; }
-.chart .truc { stroke: var(--line-strong); stroke-width: 1; }
-.chart .nhan-truc { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+
 /* Cột chồng ngang vẽ trong viewBox rộng 720 nhưng hiện ra rộng gấp rưỡi, nên
    chữ bị phóng theo. Để 11px như trục ngày tháng thì nhãn hàng đọc ra to bằng
    tiêu đề mục. */
 .chart .nhan-hang { fill: var(--muted); font-size: 8.5px; font-family: var(--mono); }
 .chart .tong-hang { fill: var(--body); font-size: 8.5px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-/* Giá trị từng ngày: nằm sẵn trong SVG nhưng trong suốt, chỉ hiện khi rê
-   chuột vào ô ngày. Cột rộng vài pixel nên không có chỗ ghi số cố định. */
-.chart .tip { opacity: 0; fill: var(--ink); font-size: 10px; font-family: var(--mono);
-  paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
-.chart .o-ngay:hover .tip { opacity: 1; }
 .chart figcaption { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 .chu-thich { display: inline-flex; align-items: center; gap: 6px; }
 .o-mau { width: 10px; height: 10px; display: inline-block; border-radius: 3px; }
 .dinh-truc { margin-left: auto; font-family: var(--mono); font-size: 0.75rem; }
+
+/* Tooltip của recharts: thẻ HTML nổi trên biểu đồ, không phải SVG. */
+.nhom-cot { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
+
+.chart-tip { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--bo); padding: 8px 10px; font-size: 0.78rem; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
+.chart-tip-ngay { font-family: var(--mono); color: var(--muted); font-size: 0.72rem; margin-bottom: 4px; }
+.chart-tip-dong { display: flex; align-items: center; gap: 6px; color: var(--ink); line-height: 1.7; }
+.chart-tip-ten { margin-right: auto; }
+.chart-tip-dong b { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.chart .recharts-legend-item-text { color: var(--muted) !important; }
 
 .pheu .bac-0 { fill: var(--line-strong); }
 .pheu .bac-1 { fill: var(--muted); }

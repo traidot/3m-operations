@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { Bars } from "../../wifi/bars";
 import { Bang7 } from "../bang7";
+import { BangTongHop } from "../tong-hop";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
   getFreshness,
+  getLapDatQuaHan,
+  getTongHopNgay,
 } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -12,13 +15,15 @@ export const dynamic = "force-dynamic";
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
-/** Nhãn trục: chỉ ngày, vì cả dải nằm trong một tháng. */
-const nhanNgay = (iso: string) => iso.slice(8, 10);
+const ngayVn = (iso: string | null) =>
+  iso === null ? "—" : `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 
 export default async function Page() {
-  const [ngay7, ngay30, freshness] = await Promise.all([
+  const [ngay7, ngay30, tongHop, quaHan, freshness] = await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
+    getTongHopNgay(),
+    getLapDatQuaHan(),
     getFreshness(),
   ]);
 
@@ -40,7 +45,8 @@ export default async function Page() {
       .filter((r) => r.nhom === nhom)
       .map((r) => (r.chi_so === "CHUA_GHI" ? { ...r, chi_so: "(chưa ghi tài khoản)" } : r));
 
-  const nhan = ngay30.map((d) => nhanNgay(d.ngay));
+  // Nhãn là ngày ISO đầy đủ: trục tự cắt lấy ngày, tooltip giữ cả tháng.
+  const nhan = ngay30.map((d) => d.ngay);
   const tong30 = (k: "ky_moi" | "lap_xong" | "hoat_dong" | "huy") =>
     ngay30.reduce((t, d) => t + Number(d[k]), 0);
 
@@ -90,8 +96,10 @@ export default async function Page() {
         <b>{n(tong30("ky_moi") - tong30("huy"))}</b> hợp đồng.
       </p>
 
+      <BangTongHop ds={tongHop} />
+
       <Bang7
-        ten="2 · Tiền về theo ngày"
+        ten="3 · Tiền về theo ngày"
         y="mỗi tài khoản một dòng, đơn vị yên"
         ds={cua("tien")}
         kieu="tien"
@@ -99,18 +107,24 @@ export default async function Page() {
       />
 
       <Bang7
-        ten="3 · Lắp đặt"
-        y="đơn hẹn lịch lắp theo ngày hẹn"
+        ten="4 · Lắp đặt"
+        y="theo ngày hẹn, nên ngày mai cũng có số"
         ds={cua("lap_dat")}
         kieu="so"
+        congTong={false}
+        phu={
+          Number(quaHan.don) > 0
+            ? `Ngoài bảng này còn ${n(quaHan.don)} đơn đã qua ngày hẹn mà chưa lắp xong, cũ nhất hẹn từ ${ngayVn(quaHan.hen_cu_nhat)} — ${n(quaHan.trong_30_ngay)} trong số đó hẹn trong 30 ngày gần đây, phần còn lại là tồn đọng cũ.`
+            : undefined
+        }
       />
 
       <Bang7
-        ten="4 · Nhập liệu"
-        y="người thu ghi vào sổ bao nhiêu mỗi ngày"
+        ten="5 · Nhập liệu trễ"
+        y="đợt thu được gõ vào máy ngày nào, tiền về ngày nào"
         ds={cua("nhap_lieu")}
         kieu="so"
-        phu="Đếm theo ngày tạo bản ghi, không phải ngày tiền về — cho biết hôm nay có ai ngồi nhập hay không."
+        phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
     </main>
   );
