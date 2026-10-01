@@ -1,37 +1,43 @@
 import type { TongHopNgay } from "@/lib/queries";
 
-const n = (v: string | number) => {
-  const x = Math.round(Number(v));
-  return x === 0 ? <span className="muted">—</span> : x.toLocaleString("vi-VN");
-};
+const n = (v: number) =>
+  v === 0 ? <span className="muted">—</span> : v.toLocaleString("vi-VN");
 
 const ngayNgan = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 
-/** Khoá số và nhãn của từng cột, theo đúng thứ tự bảng bên CMS. */
-const COT = [
-  { k: "lan_dau", ten: "Lần đầu" },
-  { k: "dang_ky_lai", ten: "Đăng ký lại" },
-  { k: "tong_dang_ky", ten: "Tổng", manh: true },
-  { k: "huy_truoc_lich", ten: "Trước lịch" },
-  { k: "huy_sau_lich", ten: "Sau lịch" },
-  { k: "huy_sau_lap", ten: "Sau lắp" },
-  { k: "tong_huy", ten: "Tổng", manh: true },
-  { k: "con_lai", ten: "Còn lại", manh: true },
-  { k: "co_lich_lap", ten: "Có lịch" },
-  { k: "chua_co_lich", ten: "Chưa có lịch" },
-  { k: "lap_xong", ten: "Lắp xong", manh: true },
-  { k: "co_lich_chua_lap", ten: "Có lịch chưa lắp" },
-  { k: "that_bai", ten: "Thất bại" },
-] as const satisfies readonly { k: keyof TongHopNgay; ten: string; manh?: boolean }[];
+const tyLe = (huy: number, dk: number) =>
+  dk === 0 ? null : Math.round((huy / dk) * 1000) / 10;
 
-/** Các mảng cột gộp đầu bảng, khớp với thứ tự của COT. */
-const NHOM = [
-  { ten: "Đăng ký", rong: 3 },
-  { ten: "Huỷ", rong: 4 },
-  { ten: "", rong: 1 },
-  { ten: "Lịch lắp của địa chỉ chưa huỷ", rong: 2 },
-  { ten: "Lắp đặt", rong: 3 },
+/** Các mảng cột, đúng thứ tự và cách gộp của bảng bên CMS. */
+const NHOM = ["Đăng ký", "Huỷ", "Còn lại sau huỷ", "Lịch lắp của địa chỉ chưa huỷ", "Lắp đặt"];
+
+/**
+ * Cột của bảng. `g` là chỉ số nhóm ở NHOM — dùng cả để gộp ô tiêu đề lẫn để
+ * tô nền xen kẽ, nên không thể suy ra từ thứ tự.
+ *
+ * `ty_le` không có trong dữ liệu, tính từ hai cột huỷ và đăng ký.
+ */
+const COT: readonly { k: keyof TongHopNgay | "ty_le"; ten: string; g: number; manh?: boolean }[] = [
+  { k: "lan_dau", ten: "Lần đầu", g: 0 },
+  { k: "dang_ky_lai", ten: "Đăng ký lại", g: 0 },
+  { k: "tong_dang_ky", ten: "Tổng", g: 0, manh: true },
+  { k: "huy_truoc_lich", ten: "Trước lịch", g: 1 },
+  { k: "huy_sau_lich", ten: "Sau lịch", g: 1 },
+  { k: "huy_sau_lap", ten: "Sau lắp", g: 1 },
+  { k: "tong_huy", ten: "Tổng", g: 1, manh: true },
+  { k: "ty_le", ten: "Tỷ lệ", g: 1 },
+  { k: "con_lai", ten: "Còn lại", g: 2, manh: true },
+  { k: "co_lich_lap", ten: "Có lịch", g: 3 },
+  { k: "chua_co_lich", ten: "Chưa có lịch", g: 3 },
+  { k: "lap_xong", ten: "Lắp xong", g: 4, manh: true },
+  { k: "co_lich_chua_lap", ten: "Có lịch chưa lắp", g: 4 },
+  { k: "that_bai", ten: "Thất bại", g: 4 },
 ];
+
+/** Nền xen kẽ theo nhóm, để mắt dò cột không lạc sang mảng bên cạnh. */
+const nenNhom = (g: number) => (g % 2 === 1 ? " g-le" : "");
+/** Vạch ngăn ở cột đầu của mỗi nhóm. */
+const dauNhom = (i: number) => (i === 0 || COT[i]!.g !== COT[i - 1]!.g ? " mo-nhom" : "");
 
 /**
  * Bảng tổng hợp hợp đồng theo ngày — bản sao của "Báo cáo tổng hợp" bên CMS,
@@ -44,9 +50,15 @@ const NHOM = [
  */
 export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
   if (ds.length === 0) return null;
-  const tong = (k: keyof TongHopNgay) =>
-    ds.reduce((t, r) => t + Number(r[k]), 0);
-  const tyLe = (huy: number, dk: number) => (dk > 0 ? Math.round((huy / dk) * 1000) / 10 : 0);
+
+  const tong = (k: keyof TongHopNgay) => ds.reduce((t, r) => t + Number(r[k]), 0);
+
+  /** Một ô số, dùng chung cho dòng tổng và dòng ngày. */
+  const o = (k: (typeof COT)[number]["k"], lay: (c: keyof TongHopNgay) => number) => {
+    if (k !== "ty_le") return n(lay(k));
+    const t = tyLe(lay("tong_huy"), lay("tong_dang_ky"));
+    return t === null ? <span className="muted">—</span> : `${t}%`;
+  };
 
   return (
     <section>
@@ -66,20 +78,23 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
           <thead>
             <tr>
               <th />
-              {NHOM.map((g, i) => (
-                <th key={g.ten || i} colSpan={g.rong} className="num nhom-cot">
-                  {g.ten}
+              {NHOM.map((ten, g) => (
+                <th
+                  key={ten}
+                  colSpan={COT.filter((c) => c.g === g).length}
+                  className={`nhom-cot mo-nhom${nenNhom(g)}`}
+                >
+                  {ten}
                 </th>
               ))}
             </tr>
             <tr>
               <th>Ngày</th>
-              {COT.map((c) => (
-                <th key={c.k} className="num">
+              {COT.map((c, i) => (
+                <th key={c.k} className={`num${dauNhom(i)}${nenNhom(c.g)}`}>
                   {c.ten}
                 </th>
               ))}
-              <th className="num">Tỷ lệ huỷ</th>
             </tr>
           </thead>
           <tbody>
@@ -87,28 +102,23 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
               <td>
                 <b>30 ngày</b>
               </td>
-              {COT.map((c) => (
-                <td key={c.k} className="num mono">
-                  <b>{n(tong(c.k))}</b>
+              {COT.map((c, i) => (
+                <td key={c.k} className={`num mono${dauNhom(i)}${nenNhom(c.g)}`}>
+                  <b>{o(c.k, tong)}</b>
                 </td>
               ))}
-              <td className="num mono">
-                <b>{tyLe(tong("tong_huy"), tong("tong_dang_ky"))}%</b>
-              </td>
             </tr>
             {ds.map((r) => (
               <tr key={r.ngay}>
                 <td className="mono">{ngayNgan(r.ngay)}</td>
-                {COT.map((c) => (
-                  <td key={c.k} className={`num mono${"manh" in c && c.manh ? "" : " muted"}`}>
-                    {n(r[c.k])}
+                {COT.map((c, i) => (
+                  <td
+                    key={c.k}
+                    className={`num mono${c.manh ? "" : " muted"}${dauNhom(i)}${nenNhom(c.g)}`}
+                  >
+                    {o(c.k, (k) => Number(r[k]))}
                   </td>
                 ))}
-                <td className="num mono muted">
-                  {Number(r.tong_dang_ky) === 0
-                    ? "—"
-                    : `${tyLe(Number(r.tong_huy), Number(r.tong_dang_ky))}%`}
-                </td>
               </tr>
             ))}
           </tbody>

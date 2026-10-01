@@ -221,9 +221,21 @@ summary:hover { color: var(--ok); }
 /* Bảng bảy ngày: cột ngày phải rộng bằng nhau, không thì ngày có số dài
    trông như ngày quan trọng hơn. */
 .deu { table-layout: fixed; width: 100%; min-width: 820px; }
-.deu th:first-child, .deu td:first-child { width: 190px; }
+.deu th:first-child, .deu td:first-child { width: 220px; }
+/* Cột ngày xen kẽ, thật nhạt: đủ để mắt bám theo một cột, chưa đủ để thành
+   bảng kẻ sọc. */
+.deu tbody td.o-le { background: color-mix(in oklab, var(--ink) 4%, transparent); }
+.deu thead th.o-le { background: color-mix(in oklab, var(--ink) 7%, var(--surface-2)); }
 
-.nhom-cot { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
+/* Hàng tiêu đề gộp: tên mảng nằm giữa khối cột của nó, không căn phải theo
+   số như hàng dưới. */
+thead th.nhom-cot { text-align: center; font-size: 0.64rem; letter-spacing: 0.12em; color: var(--muted); font-weight: 500; }
+/* Nền xen kẽ theo mảng cột: bảng mười mấy cột thì mắt lần theo một hàng rất dễ
+   lạc sang mảng bên cạnh, nhất là khi các mảng đều là con số trần. Chỉ tô phần
+   tiêu đề — tô cả thân bảng thì thành kẻ sọc, đọc số còn mệt hơn. */
+thead th.g-le { background: var(--surface); }
+thead th.mo-nhom { border-left: 1px solid var(--line-strong); }
+td.mo-nhom { border-left: 1px solid var(--line); }
 
 .chart-tip { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--bo); padding: 8px 10px; font-size: 0.78rem; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }
 .chart-tip-ngay { font-family: var(--mono); color: var(--muted); font-size: 0.72rem; margin-bottom: 4px; }

@@ -2,6 +2,10 @@ import type { Ngay7 } from "@/lib/queries";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 
+/** Cột ngày tô nền xen kẽ: bảy cột số trần nằm cạnh nhau thì mắt dò theo một
+ *  hàng rất dễ lạc sang ngày bên cạnh. */
+const xenKe = (i: number) => (i % 2 === 1 ? " o-le" : "");
+
 /** Nhãn cột: ngày trong tháng, hôm nay ghi rõ để khỏi đếm ngược. */
 const nhanCot = (iso: string, homNay: string) =>
   iso === homNay ? "hôm nay" : iso.slice(8, 10) + "/" + iso.slice(5, 7);
@@ -60,8 +64,8 @@ export function Bang7({
           <thead>
             <tr>
               <th>Chỉ số</th>
-              {ngays.map((d) => (
-                <th key={d} className="num">
+              {ngays.map((d, i) => (
+                <th key={d} className={`num${xenKe(i)}`}>
                   {nhanCot(d, homNay)}
                 </th>
               ))}
@@ -79,10 +83,10 @@ export function Bang7({
                     </span>
                   )}
                 </td>
-                {ngays.map((d) => {
+                {ngays.map((d, i) => {
                   const r = o.get(`${cs}|${d}`);
                   return (
-                    <td key={d} className="num mono">
+                    <td key={d} className={`num mono${xenKe(i)}`}>
                       {kieu === "tien" ? (
                         oTien(r)
                       ) : giaTri(r, "so") === 0 ? (
@@ -100,8 +104,8 @@ export function Bang7({
                 <td>
                   <b>Tổng</b>
                 </td>
-                {ngays.map((d) => (
-                  <td key={d} className="num mono">
+                {ngays.map((d, i) => (
+                  <td key={d} className={`num mono${xenKe(i)}`}>
                     {kieu === "tien" ? (
                       tongCot(d, "tien") === 0 ? (
                         <span className="muted">—</span>
