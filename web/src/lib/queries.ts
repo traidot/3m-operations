@@ -1875,6 +1875,21 @@ export const getBaoCaoNgay = () =>
        from v_bao_cao_ngay order by nhom, chi_so`,
   );
 
+export type NgayFixed30 = {
+  ngay: string;
+  ky_moi: string;
+  lap_xong: string;
+  hoat_dong: string;
+  huy: string;
+};
+
+/** Hợp đồng cố định theo từng ngày, 30 ngày gần nhất — xem db/183. */
+export const getBaoCaoNgayCoDinh30 = () =>
+  query<NgayFixed30>(
+    `select ngay::text, ky_moi::text, lap_xong::text, hoat_dong::text, huy::text
+       from v_bao_cao_ngay_fixed_30 order by ngay`,
+  );
+
 /** Cùng khuôn nhưng riêng wifi cố định — xem db/182. */
 export const getBaoCaoNgayCoDinh = () =>
   query<BaoCaoNgay>(
