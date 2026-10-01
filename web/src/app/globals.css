@@ -218,6 +218,11 @@ summary:hover { color: var(--ok); }
 .dinh-truc { margin-left: auto; font-family: var(--mono); font-size: 0.75rem; }
 
 /* Tooltip của recharts: thẻ HTML nổi trên biểu đồ, không phải SVG. */
+/* Bảng bảy ngày: cột ngày phải rộng bằng nhau, không thì ngày có số dài
+   trông như ngày quan trọng hơn. */
+.deu { table-layout: fixed; width: 100%; min-width: 820px; }
+.deu th:first-child, .deu td:first-child { width: 190px; }
+
 .nhom-cot { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); }
 
 .chart-tip { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--bo); padding: 8px 10px; font-size: 0.78rem; box-shadow: 0 6px 20px rgb(0 0 0 / 0.18); }

@@ -38,15 +38,14 @@ export function Bang7({
   const tongCot = (ngay: string, cot: "tien" | "that" | "so") =>
     chiSos.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
 
+  // Luôn hai số, kể cả khi bằng nhau: bỏ bớt một bên thì mắt phải tự đoán ô
+  // nào đang nói về cái gì, và ô có cấn trừ trông như ô lỗi.
   const oTien = (r: Ngay7 | undefined) => {
     const tong = giaTri(r, "tien");
-    const that = giaTri(r, "that");
     if (tong === 0) return <span className="muted">—</span>;
-    // Bằng nhau thì không có gì cấn trừ, ghi một số cho đỡ rối mắt.
-    if (that === tong) return n(tong);
     return (
       <>
-        <span className="muted">{n(that)}</span> / {n(tong)}
+        <span className="muted">{n(giaTri(r, "that"))}</span> / {n(tong)}
       </>
     );
   };
@@ -57,7 +56,7 @@ export function Bang7({
         {ten} <span className="muted">— {y}</span>
       </h2>
       <div className="scroller">
-        <table>
+        <table className="deu">
           <thead>
             <tr>
               <th>Chỉ số</th>
@@ -106,8 +105,6 @@ export function Bang7({
                     {kieu === "tien" ? (
                       tongCot(d, "tien") === 0 ? (
                         <span className="muted">—</span>
-                      ) : tongCot(d, "that") === tongCot(d, "tien") ? (
-                        <b>{n(tongCot(d, "tien"))}</b>
                       ) : (
                         <>
                           <span className="muted">{n(tongCot(d, "that"))}</span>{" "}

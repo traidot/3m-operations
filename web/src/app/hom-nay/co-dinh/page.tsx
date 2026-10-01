@@ -103,7 +103,7 @@ export default async function Page() {
         y="mỗi tài khoản một dòng, đơn vị yên"
         ds={cua("tien")}
         kieu="tien"
-        phu="Ô có hai số là “tiền thật vào ngân hàng / tổng ghi nhận”: phần chênh là cấn trừ cọc — khách đã nộp từ trước, nay trừ sang cước, hôm nay không có đồng nào mới vào tài khoản. Ô một số là cả hai bằng nhau."
+        phu="Mỗi ô là “tiền thật vào ngân hàng / tổng ghi nhận”. Hai số bằng nhau là ngày không cấn trừ gì; số trái nhỏ hơn thì phần chênh là cấn trừ cọc — khách đã nộp từ trước, nay trừ sang cước, không có đồng nào mới vào tài khoản."
       />
 
       <Bang7
