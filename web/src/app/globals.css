@@ -20,6 +20,9 @@
   --tim: #6a4a99;
   --cam: #b5560d;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Sọc xen kẽ dùng chung cho bảng và biểu đồ. Pha từ --ink nên tự đổi theo
+     nền sáng hay tối mà không phải khai báo hai lần. */
+  --soc: color-mix(in oklab, var(--ink) 4%, transparent);
   --bo-nho: 5px;   /* ô nhỏ trong dải kỳ, ô màu chú giải */
   --bo: 8px;       /* ô nhập, nút, thẻ */
   --bo-to: 12px;   /* khối lớn: card, khung cảnh báo */
@@ -224,7 +227,12 @@ summary:hover { color: var(--ok); }
 .deu th:first-child, .deu td:first-child { width: 220px; }
 /* Cột ngày xen kẽ, thật nhạt: đủ để mắt bám theo một cột, chưa đủ để thành
    bảng kẻ sọc. */
-.deu tbody td.o-le { background: color-mix(in oklab, var(--ink) 4%, transparent); }
+.deu tbody td.o-le { background: var(--soc); }
+/* Dấu ở cuối ô tiền: đủ hay phải cấn trừ. Cỡ nhỏ và không in đậm — nó là chú
+   thích cho con số, không phải thứ để đọc trước. */
+.dau { display: inline-block; vertical-align: -3px; margin-left: 7px; }
+.dau.du { color: var(--ok); }
+.dau.lech { color: var(--bad); }
 .deu thead th.o-le { background: color-mix(in oklab, var(--ink) 7%, var(--surface-2)); }
 
 /* Hàng tiêu đề gộp: tên mảng nằm giữa khối cột của nó, không căn phải theo

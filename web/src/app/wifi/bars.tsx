@@ -84,7 +84,27 @@ export function Bars({
   return (
     <figure className="chart">
       <ResponsiveContainer width="100%" height={cao + cheoCao}>
-        <BarChart data={du_lieu} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+        <BarChart
+          data={du_lieu}
+          margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+          // Chừa khoảng trống rộng giữa hai ngày, và các cột trong cùng một
+          // ngày dính sát nhau: có vậy mắt mới đọc ra đâu là một cụm, thay vì
+          // thấy một hàng cột đều tăm tắp không biết cột nào thuộc ngày nào.
+          barCategoryGap="28%"
+          barGap={1}
+        >
+          {/* Sọc nền xen kẽ theo ngày, vẽ trước nên nằm dưới cột. Lưới của
+              recharts chỉ kẻ ở tâm mỗi cột, nên phải tự sinh toạ độ ranh giới
+              ô — kẻ ở tâm thì sọc cắt đôi cụm cột, nhìn còn rối hơn không có. */}
+          <CartesianGrid
+            horizontal={false}
+            stroke="transparent"
+            verticalFill={["transparent", "var(--soc)"]}
+            verticalCoordinatesGenerator={({ offset }) => {
+              const o = offset.width / Math.max(nhan.length, 1);
+              return Array.from({ length: nhan.length + 1 }, (_, i) => offset.left + i * o);
+            }}
+          />
           <CartesianGrid stroke="var(--line)" vertical={false} />
           <XAxis
             dataKey="ten"
