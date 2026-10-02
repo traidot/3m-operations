@@ -15,6 +15,7 @@ import {
   getChoXuLyGmo,
   getCocChoDuyetNhom,
   getLinkCms,
+  getGmoLoai,
   getGmoThang,
   getCongNoCoDinh,
   getFreshness,
@@ -37,7 +38,7 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, cocNhom, linkDuyet, freshness] =
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoLoai, cocNhom, linkDuyet, freshness] =
     await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
@@ -46,6 +47,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     getCongNoCoDinh(),
     getChoXuLyGmo(),
     getGmoThang(),
+    getGmoLoai(),
     getCocChoDuyetNhom(),
     getLinkCms("fixed_cms_deposit_url"),
     getFreshness(),
@@ -222,7 +224,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         kieu="so"
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
-      <BangGmoThang ds={gmoThang} />
+      <BangGmoThang ds={gmoThang} loai={gmoLoai} />
 
       <BangCocNhom ds={cocNhom} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
 

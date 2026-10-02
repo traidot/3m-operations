@@ -1,4 +1,4 @@
-import type { GmoThang } from "@/lib/queries";
+import type { GmoLoai, GmoThang } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
@@ -16,7 +16,7 @@ const DANG_LO = 25;
  * số đã trả chia tổng thì tháng đang chạy nào cũng trông tệ, rồi "đẹp dần lên"
  * khi các mã lần lượt hết hạn — một xu hướng không có thật.
  */
-export function BangGmoThang({ ds }: { ds: GmoThang[] }) {
+export function BangGmoThang({ ds, loai }: { ds: GmoThang[]; loai: GmoLoai[] }) {
   if (ds.length === 0) return null;
 
   return (
@@ -66,6 +66,50 @@ export function BangGmoThang({ ds }: { ds: GmoThang[] }) {
                   <td className={`num mono${tl !== null && tl >= DANG_LO ? " bad" : ""}`}>
                     {tl === null ? "chưa rõ" : `${tl}%`}
                   </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Mã đó thu cái gì</h3>
+      <p className="muted">
+        Ô “Loại” lúc tạo mã và ghi chú tự do không phải lúc nào cũng khớp: có
+        lần tạo ghi rõ “Cọc TP Link” mà vẫn để ô Loại là cước, lại có 49 lần
+        chọn Cọc nhưng bỏ trống ghi chú. Bảng lấy ghi chú làm chuẩn khi nó có
+        nói, còn lại theo ô Loại — nên nhóm cuối để riêng chứ không gộp vào cọc
+        TP Link, dù số tiền đều rơi đúng mức 2.000–3.000.
+      </p>
+      <div className="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th>Thu cái gì</th>
+              <th className="num">Lần tạo</th>
+              <th className="num">Khách đã trả</th>
+              <th className="num">Hết hạn</th>
+              <th className="num">Đang chờ</th>
+              <th className="num">Tỷ lệ chết</th>
+              <th className="num">Tiền đã thu</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loai.map((r) => {
+              const tl = r.ty_le_chet === null ? null : Number(r.ty_le_chet);
+              return (
+                <tr key={r.nhom_tien}>
+                  <td>{r.ten}</td>
+                  <td className="num mono muted">{n(r.lan)}</td>
+                  <td className="num mono">{n(r.da_tra)}</td>
+                  <td className="num mono">{n(r.chet)}</td>
+                  <td className="num mono muted">
+                    {Number(r.dang_cho) === 0 ? "—" : n(r.dang_cho)}
+                  </td>
+                  <td className={`num mono${tl !== null && tl >= DANG_LO ? " bad" : ""}`}>
+                    {tl === null ? "chưa rõ" : `${tl}%`}
+                  </td>
+                  <td className="num mono muted">{n(r.tien_tra ?? 0)}</td>
                 </tr>
               );
             })}

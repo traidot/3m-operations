@@ -2062,6 +2062,20 @@ export const getGmoQuaHan = () =>
       order by (con_no > 0) desc, con_no desc nulls last, qua_han_ngay desc`,
   );
 
+export type GmoLoai = {
+  nhom_tien: string; ten: string; lan: string; da_tra: string; chet: string;
+  dang_cho: string; tien_tra: string | null; hop_dong_hong: string;
+  ty_le_chet: string | null;
+};
+
+/** Mã combini chia theo thứ đang thu: cước hay cọc TP Link — xem db/205. */
+export const getGmoLoai = () =>
+  query<GmoLoai>(
+    `select nhom_tien, ten, lan::text, da_tra::text, chet::text, dang_cho::text,
+            tien_tra::text, hop_dong_hong::text, ty_le_chet::text
+       from v_fixed_gmo_loai order by lan desc`,
+  );
+
 export type GmoThang = {
   thang: string;
   tao: string; da_tra: string; chet: string; dang_cho: string;
