@@ -30,7 +30,10 @@ export function BangGmoThang({ ds }: { ds: GmoThang[] }) {
         xong, nên bảng đếm theo <b>lần tạo</b> chứ không theo mã. Cột{" "}
         <b>đang chờ</b> là mã còn trong hạn, chưa biết khách có trả hay không —
         nên tỷ lệ chết chỉ tính trên phần đã ngã ngũ, tháng mới mở mẫu số còn
-        nhỏ thì con số chưa nói lên gì.
+        nhỏ thì con số chưa nói lên gì. Bảng không cộng tiền: hỏng mã thì người
+        ta tạo lại cho đúng khoản đó, có hợp đồng tạo tới bốn lần, nên cộng tiền
+        từng lần là nhân bản cùng một khoản nợ. Cột <b>hợp đồng dính</b> đếm
+        không trùng.
       </p>
       <div className="scroller">
         <table>
@@ -41,8 +44,8 @@ export function BangGmoThang({ ds }: { ds: GmoThang[] }) {
               <th className="num">Khách đã trả</th>
               <th className="num">Hết hạn, không trả</th>
               <th className="num">Còn đang chờ</th>
+              <th className="num">Hợp đồng dính</th>
               <th className="num">Tỷ lệ chết</th>
-              <th className="num">Tiền chết</th>
             </tr>
           </thead>
           <tbody>
@@ -57,10 +60,12 @@ export function BangGmoThang({ ds }: { ds: GmoThang[] }) {
                   <td className="num mono muted">
                     {Number(r.dang_cho) === 0 ? "—" : n(r.dang_cho)}
                   </td>
+                  <td className="num mono muted">
+                    {Number(r.hop_dong_hong) === 0 ? "—" : n(r.hop_dong_hong)}
+                  </td>
                   <td className={`num mono${tl !== null && tl >= DANG_LO ? " bad" : ""}`}>
                     {tl === null ? "chưa rõ" : `${tl}%`}
                   </td>
-                  <td className="num mono muted">{n(r.tien_chet ?? 0)}</td>
                 </tr>
               );
             })}

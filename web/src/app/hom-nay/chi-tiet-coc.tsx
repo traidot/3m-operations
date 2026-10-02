@@ -108,16 +108,21 @@ export async function ChiTietCocChoPhanBo({
  */
 export async function ChiTietGmoQuaHan({ dongLai }: { dongLai: string }) {
   const rows = await getGmoQuaHan();
-  const tien = rows.reduce((t, r) => t + Number(r.tien), 0);
-  const conNo = rows.filter((r) => Number(r.con_no ?? 0) > 0).length;
+  // KHÔNG cộng cột tiền: một hợp đồng tạo lại mã nhiều lần nên cộng là nhân
+  // bản cùng một khoản. Nợ thật lấy một lần cho mỗi hợp đồng.
+  const theoHd = new Map(rows.map((r) => [r.ma_hd ?? r.lan, Number(r.con_no ?? 0)]));
+  const no = [...theoHd.values()].reduce((t, v) => t + v, 0);
+  const conNo = [...theoHd.values()].filter((v) => v > 0).length;
 
   return (
     <NganKeo dongLai={dongLai}>
       <h1>Mã combini hết hạn</h1>
       <p className="muted">
-        {n(rows.length)} lần tạo mã, <b>{n(tien)}</b> yên đã hẹn thu mà khách không
-        ra trả. Mã hết hạn không tự sống lại — muốn thu phải tạo mã mới.
-        {conNo > 0 && ` ${n(conNo)} hợp đồng trong đây vẫn còn nợ.`}
+        {n(rows.length)} lần hẹn thu hỏng trên {n(theoHd.size)} hợp đồng — mã hết
+        hạn không tự sống lại, muốn thu phải tạo mã mới, nên một hợp đồng có thể
+        xuất hiện nhiều lần ở đây. Cộng cột tiền là cộng trùng cùng một khoản;
+        nợ thật của nhóm này là <b>{n(no)}</b> yên ở {n(conNo)} hợp đồng, số còn
+        lại đã thu được bằng đường khác.
       </p>
 
       {rows.length === 0 ? (
@@ -132,6 +137,7 @@ export async function ChiTietGmoQuaHan({ dongLai }: { dongLai: string }) {
               <th>Loại</th>
               <th>Hết hạn</th>
               <th className="num">Quá</th>
+              <th className="num">Lần hỏng</th>
               <th className="num">Đang nợ</th>
             </tr>
           </thead>
@@ -154,8 +160,17 @@ export async function ChiTietGmoQuaHan({ dongLai }: { dongLai: string }) {
                 <td className="num mono muted">
                   {r.qua_han_ngay === null ? "—" : `${n(r.qua_han_ngay)} ngày`}
                 </td>
+                <td className="num mono muted">
+                  {Number(r.so_lan_hong) > 1 ? n(r.so_lan_hong) : "—"}
+                </td>
                 <td className={`num mono${Number(r.con_no ?? 0) > 0 ? " bad" : " muted"}`}>
-                  {Number(r.con_no ?? 0) === 0 ? "—" : n(r.con_no)}
+                  {Number(r.con_no ?? 0) === 0 ? (
+                    <span className="muted" title="đã thu được bằng đường khác">
+                      đã thu
+                    </span>
+                  ) : (
+                    n(r.con_no)
+                  )}
                 </td>
               </tr>
             ))}

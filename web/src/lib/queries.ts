@@ -1988,6 +1988,8 @@ export type ChoXuLyGmo = {
   coc_so: string; coc_tien: string; coc_lau_nhat: string | null;
   gmo_so: string; gmo_tien: string; gmo_lau_nhat: string | null;
   gmo_cho_so: string; gmo_cho_tien: string;
+  /** gmo_so = số hợp đồng, gmo_tien = nợ thật, gmo_lau_nhat = số lần hẹn hỏng. */
+  gmo_con_no: string;
   /** Phiếu chờ mà chưa chọn sẵn tháng cước — phần nặng của đống việc. */
   coc_chua_thang: string;
   /** Số ngày duyệt trung bình của những phiếu đã xong, làm mốc so sánh. */
@@ -2002,9 +2004,10 @@ export const getChoXuLyGmo = async () => {
        (select count(*) from v_fixed_coc_cho_phan_bo)::text              as coc_so,
        (select coalesce(sum(tien), 0) from v_fixed_coc_cho_phan_bo)::text as coc_tien,
        (select max(cho_ngay) from v_fixed_coc_cho_phan_bo)::text          as coc_lau_nhat,
-       (select count(*) from v_fixed_gmo_qua_han)::text                   as gmo_so,
-       (select coalesce(sum(tien), 0) from v_fixed_gmo_qua_han)::text     as gmo_tien,
-       (select max(qua_han_ngay) from v_fixed_gmo_qua_han)::text          as gmo_lau_nhat,
+       (select hop_dong from v_fixed_gmo_het_han_tom_tat)::text            as gmo_so,
+       (select no_that from v_fixed_gmo_het_han_tom_tat)::text             as gmo_tien,
+       (select lan_hen_hong from v_fixed_gmo_het_han_tom_tat)::text        as gmo_lau_nhat,
+       (select hop_dong_con_no from v_fixed_gmo_het_han_tom_tat)::text     as gmo_con_no,
        (select count(*) from v_fixed_gmo_lan
          where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_so,
        (select coalesce(sum(tien), 0) from v_fixed_gmo_lan
@@ -2046,20 +2049,25 @@ export type GmoQuaHan = {
   trang_thai_hop_dong: string | null; tien: string; loai_ten: string;
   ky_cuoc: string | null; ngay_tao: string | null; ngay_het_han: string | null;
   qua_han_ngay: string | null; con_no: string | null; url: string | null;
+  da_tra_ma_khac: boolean; so_lan_hong: string;
 };
 
 /** Mã combini hết hạn mà khách không trả — xem db/191. */
 export const getGmoQuaHan = () =>
   query<GmoQuaHan>(
     `select lan, ma_hd, dia_chi, trang_thai_hop_dong, tien::text, loai_ten, ky_cuoc,
-            ngay_tao::text, ngay_het_han::text, qua_han_ngay::text, con_no::text, url
-       from v_fixed_gmo_qua_han order by qua_han_ngay desc, tien desc`,
+            ngay_tao::text, ngay_het_han::text, qua_han_ngay::text, con_no::text, url,
+            da_tra_ma_khac, so_lan_hong::text
+       from v_fixed_gmo_qua_han
+      order by (con_no > 0) desc, con_no desc nulls last, qua_han_ngay desc`,
   );
 
 export type GmoThang = {
   thang: string;
   tao: string; da_tra: string; chet: string; dang_cho: string;
-  tien_tra: string | null; tien_chet: string | null; tien_cho: string | null;
+  tien_tra: string | null; tien_cho: string | null;
+  /** Số HỢP ĐỒNG có mã hỏng, không phải tiền — xem db/202. */
+  hop_dong_hong: string;
   ty_le_chet: string | null;
 };
 
@@ -2067,7 +2075,7 @@ export type GmoThang = {
 export const getGmoThang = () =>
   query<GmoThang>(
     `select thang, tao::text, da_tra::text, chet::text, dang_cho::text,
-            tien_tra::text, tien_chet::text, tien_cho::text, ty_le_chet::text
+            tien_tra::text, tien_cho::text, hop_dong_hong::text, ty_le_chet::text
        from v_fixed_gmo_thang order by thang`,
   );
 

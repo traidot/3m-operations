@@ -135,10 +135,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-ten">Mã combini hết hạn</div>
           <div className="the-gia-tri mono">{n(cho.gmo_tien)}</div>
           <div className="the-phu">
-            đã hẹn thu mà khách không ra trả; còn {n(cho.gmo_cho_so)} mã đang chờ trong
-            hạn, {n(cho.gmo_cho_tien)} yên ·{" "}
+            nợ còn lại của {n(cho.gmo_con_no)} hợp đồng từng có mã hết hạn — số còn lại
+            đã thu được bằng đường khác · {n(cho.gmo_lau_nhat)} lần hẹn thu hỏng trên{" "}
+            {n(cho.gmo_so)} hợp đồng ·{" "}
             <Link href={`${DUONG_DAN}?gmo=1`} scroll={false}>
-              {n(cho.gmo_so)} lần tạo mã →
+              xem danh sách →
             </Link>
           </div>
         </div>
