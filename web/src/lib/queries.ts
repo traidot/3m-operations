@@ -1882,13 +1882,17 @@ export type Ngay7 = {
   ngay: string;
   so_luong: string;
   tien: string;
+  /** Tiền thật vào tài khoản — 0 với kênh cấn trừ cọc. */
   tien_that: string;
+  /** Phần đã được kế toán duyệt; phần còn lại là tiền đã đếm mà chưa ai xác nhận. */
+  tien_duyet: string;
 };
 
 /** Bảy ngày gần nhất, một dòng cho mỗi (chỉ số, ngày) — xem db/184. */
 export const getBaoCaoNgayCoDinh7 = () =>
   query<Ngay7>(
-    `select nhom, chi_so, don_vi, ngay::text, so_luong::text, tien::text, tien_that::text
+    `select nhom, chi_so, don_vi, ngay::text, so_luong::text, tien::text,
+            tien_that::text, tien_duyet::text
        from v_bao_cao_ngay_fixed_7 order by nhom, thu_tu, chi_so, ngay`,
   );
 

@@ -25,7 +25,7 @@ function Dau({ du, chenh }: { du: boolean; chenh: number }) {
   return (
     <span
       className={`dau ${du ? "du" : "lech"}`}
-      title={du ? "tiền về đủ vào tài khoản" : `thiếu ${n(chenh)} so với ghi nhận`}
+      title={du ? "đã duyệt hết" : `còn ${n(chenh)} chưa duyệt`}
     >
       <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
         {du ? (
@@ -91,11 +91,15 @@ export function Bang7({
   const chiSos = [...new Set(ds.map((r) => r.chi_so))];
   const o = new Map(ds.map((r) => [`${r.chi_so}|${r.ngay}`, r]));
 
-  const giaTri = (r: Ngay7 | undefined, cot: "tien" | "that" | "so") =>
-    Number(
-      r === undefined ? 0 : cot === "tien" ? r.tien : cot === "that" ? r.tien_that : r.so_luong,
-    );
-  const tongCot = (ngay: string, cot: "tien" | "that" | "so") =>
+  type Cot = "tien" | "that" | "duyet" | "so";
+  const giaTri = (r: Ngay7 | undefined, cot: Cot) => {
+    if (r === undefined) return 0;
+    if (cot === "tien") return Number(r.tien);
+    if (cot === "that") return Number(r.tien_that);
+    if (cot === "duyet") return Number(r.tien_duyet);
+    return Number(r.so_luong);
+  };
+  const tongCot = (ngay: string, cot: Cot) =>
     chiSos.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
 
   // Dòng cấn trừ cọc nhận ra bằng chính số liệu: cả tuần không có đồng nào
@@ -106,19 +110,18 @@ export function Bang7({
     ngays.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
   const kenhThat = chiSos.filter((cs) => !laCoc(cs));
   const kenhCoc = chiSos.filter(laCoc);
-  const congQua = (ds: string[], ngay: string, cot: "tien" | "that") =>
+  const congQua = (ds: string[], ngay: string, cot: Cot) =>
     ds.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
 
-  // Hai số "tiền vào tài khoản / tổng ghi nhận" kèm dấu. Ô cấn trừ cọc thì
-  // một số thôi: ở đó không có gì vào tài khoản, viết "0 / 11.000" kèm dấu
-  // cảnh báo chỉ làm nghiệp vụ bình thường trông như sự cố.
-  const oTien = (that: number, tong: number, dam = false) => {
+  // Hai số "đã duyệt / tổng ghi nhận" kèm dấu. Phần chênh là tiền đã đếm trên
+  // báo cáo mà kế toán chưa xác nhận — chỉ số đó mới đáng đặt cạnh tổng, chứ
+  // "vào tài khoản" thì mọi dòng tài khoản đều khớp theo đúng định nghĩa.
+  const oTien = (duyet: number, tong: number, dam = false) => {
     if (tong === 0) return <span className="muted">—</span>;
-    if (that === 0) return dam ? <b>{n(tong)}</b> : <>{n(tong)}</>;
     return (
       <>
-        <span className="muted">{n(that)}</span> / {dam ? <b>{n(tong)}</b> : n(tong)}
-        <Dau du={that === tong} chenh={tong - that} />
+        <span className="muted">{n(duyet)}</span> / {dam ? <b>{n(tong)}</b> : n(tong)}
+        <Dau du={duyet === tong} chenh={tong - duyet} />
       </>
     );
   };
@@ -155,9 +158,12 @@ export function Bang7({
                 {ngays.map((d, i) => {
                   const r = o.get(`${cs}|${d}`);
                   const co = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
+                  // Cấn trừ cọc chỉ một số: nó luôn là tiền ghi nhận, đặt
+                  // cạnh số đã duyệt chỉ làm dòng này trông như dòng tài
+                  // khoản, trong khi không đồng nào vào ngân hàng.
                   const noi =
-                    kieu === "tien" ? (
-                      oTien(giaTri(r, "that"), co)
+                    kieu === "tien" && !laCoc(cs) ? (
+                      oTien(giaTri(r, "duyet"), co)
                     ) : co === 0 ? (
                       <span className="muted">—</span>
                     ) : (
@@ -185,7 +191,7 @@ export function Bang7({
                 {ngays.map((d, i) => (
                   <td key={d} className={`num mono${xenKe(i)}`}>
                     {kieu === "tien" ? (
-                      oTien(congQua(kenhThat, d, "that"), congQua(kenhThat, d, "tien"), true)
+                      oTien(congQua(kenhThat, d, "duyet"), congQua(kenhThat, d, "tien"), true)
                     ) : tongCot(d, "so") === 0 ? (
                       <span className="muted">—</span>
                     ) : (
