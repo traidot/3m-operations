@@ -2027,12 +2027,18 @@ export type CocChoPhanBo = {
   co_san_thang: boolean;
 };
 
-/** Phiếu cọc đã thu tiền mà chưa gán vào tháng cước — xem db/191. */
-export const getCocChoPhanBo = () =>
+/**
+ * Phiếu cọc đã thu tiền mà chưa gán vào tháng cước — xem db/191.
+ * `bac` lọc theo một nhóm tuổi chờ của bảng tóm tắt; bỏ trống là lấy tất cả.
+ */
+export const getCocChoPhanBo = (bac?: string) =>
   query<CocChoPhanBo>(
     `select source_id, ma_hd, dia_chi, tien::text, ngay_tra::text, cho_ngay::text,
             channel, ghi_chu, con_no::text, url, co_san_thang
-       from v_fixed_coc_cho_phan_bo order by cho_ngay desc nulls last, tien desc`,
+       from v_fixed_coc_cho_phan_bo
+      ${bac === undefined ? "" : "where bac = $1::int"}
+      order by cho_ngay desc nulls last, tien desc`,
+    bac === undefined ? [] : [bac],
   );
 
 export type GmoQuaHan = {
@@ -2082,13 +2088,14 @@ export const getChuaHoatDong = () =>
   );
 
 export type CocNhom = {
-  nhom: string; so_phieu: string; tien: string; phai_tu_tra: string; lau_nhat: string;
+  bac: string; nhom: string; so_phieu: string; tien: string;
+  phai_tu_tra: string; lau_nhat: string;
 };
 
 /** Phiếu cọc chờ duyệt gom theo tuổi chờ — xem db/198. */
 export const getCocChoDuyetNhom = () =>
   query<CocNhom>(
-    `select nhom, so_phieu::text, tien::text, phai_tu_tra::text, lau_nhat::text
+    `select bac::text, nhom, so_phieu::text, tien::text, phai_tu_tra::text, lau_nhat::text
        from v_fixed_coc_cho_duyet_nhom order by bac`,
   );
 

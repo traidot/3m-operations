@@ -115,7 +115,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-phu">
             khách đã trả nhưng phiếu chưa duyệt nên nợ chưa được trừ ·{" "}
             <b>{n(cho.coc_chua_thang)}</b> phiếu chưa chọn sẵn tháng cước ·{" "}
-            <Link href={`${DUONG_DAN}?coc=1`} scroll={false}>
+            <Link href={`${DUONG_DAN}?coc=all`} scroll={false}>
               {n(cho.coc_so)} phiếu, chờ lâu nhất {n(cho.coc_lau_nhat)} ngày →
             </Link>
           </div>
@@ -233,7 +233,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       {mot(sp["qua-han"]) !== "" && <ChiTietLapQuaHan dongLai={DUONG_DAN} />}
       {mot(sp.huy) !== "" && <ChiTietHuy ngay={mot(sp.huy)} dongLai={DUONG_DAN} />}
-      {mot(sp.coc) !== "" && <ChiTietCocChoPhanBo dongLai={DUONG_DAN} />}
+      {mot(sp.coc) !== "" && (
+        <ChiTietCocChoPhanBo
+          dongLai={DUONG_DAN}
+          bac={mot(sp.coc) === "all" ? undefined : mot(sp.coc)}
+          nhom={cocNhom.find((r) => r.bac === mot(sp.coc))?.nhom}
+        />
+      )}
       {mot(sp.gmo) !== "" && <ChiTietGmoQuaHan dongLai={DUONG_DAN} />}
       {mot(sp.chd) !== "" && <ChiTietChuaHoatDong dongLai={DUONG_DAN} />}
     </main>

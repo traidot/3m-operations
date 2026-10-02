@@ -17,15 +17,27 @@ const QUA_LAU = 14;
  * khi có người ngồi phân bổ thì hai bên vẫn nhìn số khác nhau — khách tưởng
  * đã trả, sổ vẫn ghi nợ.
  */
-export async function ChiTietCocChoPhanBo({ dongLai }: { dongLai: string }) {
-  const rows = await getCocChoPhanBo();
+export async function ChiTietCocChoPhanBo({
+  dongLai,
+  bac,
+  nhom,
+}: {
+  dongLai: string;
+  /** Một bậc tuổi chờ, bỏ trống là mọi phiếu. */
+  bac?: string;
+  nhom?: string;
+}) {
+  const rows = await getCocChoPhanBo(bac);
   const tien = rows.reduce((t, r) => t + Number(r.tien), 0);
   const lau = rows.filter((r) => Number(r.cho_ngay ?? 0) >= QUA_LAU).length;
   const chuaThang = rows.filter((r) => !r.co_san_thang).length;
 
   return (
     <NganKeo dongLai={dongLai}>
-      <h1>Phiếu cọc chờ duyệt</h1>
+      <h1>
+        Phiếu cọc chờ duyệt
+        {nhom !== undefined && <span className="muted"> · {nhom}</span>}
+      </h1>
       <p className="muted">
         {n(rows.length)} phiếu, <b>{n(tien)}</b> yên. Khách đã trả tiền, tiền đã vào
         tài khoản, nhưng phiếu chưa được duyệt nên nợ của khách vẫn chưa được trừ.

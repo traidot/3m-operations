@@ -45,7 +45,9 @@ export function BangCocNhom({ ds, moTai }: { ds: CocNhom[]; moTai: string }) {
           <tbody>
             <tr className="tong">
               <td>
-                <b>Tất cả</b>
+                <Link className="o-mo" href={`${moTai}?coc=all`} scroll={false}>
+                  <b>Tất cả</b>
+                </Link>
               </td>
               <td className="num mono">
                 <b>{n(tongPhieu)}</b>
@@ -62,7 +64,11 @@ export function BangCocNhom({ ds, moTai }: { ds: CocNhom[]; moTai: string }) {
               const lau = Number(r.lau_nhat) > QUA_LAU;
               return (
                 <tr key={r.nhom}>
-                  <td className={lau ? "bad" : undefined}>{r.nhom}</td>
+                  <td className={lau ? "bad" : undefined}>
+                    <Link className="o-mo" href={`${moTai}?coc=${r.bac}`} scroll={false}>
+                      {r.nhom}
+                    </Link>
+                  </td>
                   <td className="num mono">{n(r.so_phieu)}</td>
                   <td className="num mono muted">{n(r.tien)}</td>
                   <td className="num mono muted">{n(r.phai_tu_tra)}</td>
@@ -75,11 +81,7 @@ export function BangCocNhom({ ds, moTai }: { ds: CocNhom[]; moTai: string }) {
           </tbody>
         </table>
       </div>
-      <p className="muted">
-        <Link href={`${moTai}?coc=1`} scroll={false}>
-          Xem từng phiếu →
-        </Link>
-      </p>
+      <p className="muted">Bấm một dòng để xem từng phiếu của nhóm đó.</p>
     </section>
   );
 }
