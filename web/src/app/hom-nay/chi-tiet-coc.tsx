@@ -1,5 +1,5 @@
 import { NganKeo } from "../ngan-keo";
-import { getCocChoPhanBo, getGmoQuaHan } from "@/lib/queries";
+import { getCocChoPhanBo, getGmoQuaHan, getLinkCms } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
@@ -27,7 +27,10 @@ export async function ChiTietCocChoPhanBo({
   bac?: string;
   nhom?: string;
 }) {
-  const rows = await getCocChoPhanBo(bac);
+  const [rows, linkDuyet] = await Promise.all([
+    getCocChoPhanBo(bac),
+    getLinkCms("fixed_cms_deposit_url"),
+  ]);
   const tien = rows.reduce((t, r) => t + Number(r.tien), 0);
   const lau = rows.filter((r) => Number(r.cho_ngay ?? 0) >= QUA_LAU).length;
   const chuaThang = rows.filter((r) => !r.co_san_thang).length;
@@ -45,6 +48,18 @@ export async function ChiTietCocChoPhanBo({
         {chuaThang > 0 &&
           ` ${n(chuaThang)} phiếu lúc tạo mã không chọn tháng cước, người duyệt phải tự tra — đó là phần nằm lâu nhất.`}
       </p>
+
+      {linkDuyet !== null && (
+        <p className="actions">
+          <a href={linkDuyet} target="_blank" rel="noreferrer">
+            <button type="button">Mở màn duyệt bên CMS →</button>
+          </a>
+          <span className="muted">
+            {" "}
+            màn đó không nhận mã hợp đồng trên địa chỉ, nên phải gõ mã vào ô tìm
+          </span>
+        </p>
+      )}
 
       {rows.length === 0 ? (
         <p className="muted">Không còn phiếu nào chờ.</p>

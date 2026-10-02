@@ -12,7 +12,15 @@ const QUA_LAU = 14;
  * Bản tóm tắt của màn /fee-payments/deposit-allocations bên CMS, vốn đổ ra
  * danh sách dài: nhìn vào chỉ biết là nhiều, không biết cái nào đáng lo trước.
  */
-export function BangCocNhom({ ds, moTai }: { ds: CocNhom[]; moTai: string }) {
+export function BangCocNhom({
+  ds,
+  moTai,
+  linkDuyet,
+}: {
+  ds: CocNhom[];
+  moTai: string;
+  linkDuyet: string | null;
+}) {
   if (ds.length === 0) return null;
   const tongPhieu = ds.reduce((t, r) => t + Number(r.so_phieu), 0);
   const tongTien = ds.reduce((t, r) => t + Number(r.tien), 0);
@@ -81,7 +89,17 @@ export function BangCocNhom({ ds, moTai }: { ds: CocNhom[]; moTai: string }) {
           </tbody>
         </table>
       </div>
-      <p className="muted">Bấm một dòng để xem từng phiếu của nhóm đó.</p>
+      <p className="muted">
+        Bấm một dòng để xem từng phiếu của nhóm đó.
+        {linkDuyet !== null && (
+          <>
+            {" "}
+            <a href={linkDuyet} target="_blank" rel="noreferrer">
+              Mở màn duyệt bên CMS →
+            </a>
+          </>
+        )}
+      </p>
     </section>
   );
 }

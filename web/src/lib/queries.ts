@@ -2095,6 +2095,15 @@ export const getChuaHoatDong = () =>
       order by (ly_do is not null), sau_lap_ngay desc`,
   );
 
+/** Địa chỉ một màn bên CMS, lấy từ app_setting — xem db/204. */
+export const getLinkCms = async (key: string) => {
+  const [row] = await query<{ value: string }>(
+    `select value from app_setting where key = $1`,
+    [key],
+  );
+  return row?.value ?? null;
+};
+
 export type CocNhom = {
   bac: string; nhom: string; so_phieu: string; tien: string;
   phai_tu_tra: string; lau_nhat: string;

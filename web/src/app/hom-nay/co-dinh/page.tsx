@@ -14,6 +14,7 @@ import {
   getBaoCaoNgayCoDinh30,
   getChoXuLyGmo,
   getCocChoDuyetNhom,
+  getLinkCms,
   getGmoThang,
   getCongNoCoDinh,
   getFreshness,
@@ -36,7 +37,7 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, cocNhom, freshness] =
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, cocNhom, linkDuyet, freshness] =
     await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
@@ -46,6 +47,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     getChoXuLyGmo(),
     getGmoThang(),
     getCocChoDuyetNhom(),
+    getLinkCms("fixed_cms_deposit_url"),
     getFreshness(),
   ]);
 
@@ -222,7 +224,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       />
       <BangGmoThang ds={gmoThang} />
 
-      <BangCocNhom ds={cocNhom} moTai={DUONG_DAN} />
+      <BangCocNhom ds={cocNhom} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
