@@ -64,7 +64,7 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
     <section>
       <h2>
         2 · Tổng hợp theo ngày{" "}
-        <span className="muted">— cùng chỉ số với báo cáo tổng hợp bên CMS</span>
+        <span className="muted">— 7 ngày, cùng chỉ số với báo cáo tổng hợp bên CMS</span>
       </h2>
       <p className="muted">
         Mỗi dòng là lứa hợp đồng <b>vào sổ ngày đó</b>, không phải việc xảy ra trong
@@ -100,7 +100,7 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
           <tbody>
             <tr className="tong">
               <td>
-                <b>30 ngày</b>
+                <b>7 ngày</b>
               </td>
               {COT.map((c, i) => (
                 <td key={c.k} className={`num mono${dauNhom(i)}${nenNhom(c.g)}`}>
