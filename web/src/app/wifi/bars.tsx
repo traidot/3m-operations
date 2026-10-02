@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Bar,
   BarChart,
@@ -15,7 +16,14 @@ import {
  * Biểu đồ cột nhóm. Mọi chuỗi nằm chung một trục nên chỉ dùng khi chúng cùng
  * đơn vị.
  */
-export type Series = { ten: string; mau: string; gia_tri: (number | null)[] };
+export type Series = {
+  ten: string;
+  mau: string;
+  gia_tri: (number | null)[];
+  /** Tên tham số URL. Có thì cột của chuỗi này bấm được, mở `?<mo>=<nhãn>`
+   *  trên đường dẫn `moTai`. */
+  mo?: string;
+};
 
 const so = (v: number) => v.toLocaleString("vi-VN");
 
@@ -63,15 +71,19 @@ export function Bars({
   chuoi,
   cao = 200,
   moiNhan = false,
+  moTai,
 }: {
   nhan: string[];
   chuoi: Series[];
   cao?: number;
+  /** Đường dẫn trang chứa biểu đồ, cần khi có chuỗi đặt `mo`. */
+  moTai?: string;
   /** Hiện nhãn của MỌI cột, xoay nghiêng cho khỏi chen nhau. Dùng khi trục là
    *  ngày trong tháng — nhảy cóc hai ngày một thì không dò ra cột nào là ngày
    *  nào. */
   moiNhan?: boolean;
 }) {
+  const router = useRouter();
   const du_lieu = nhan.map((ten, i) => {
     const hang: Record<string, string | number> = { ten };
     for (const s of chuoi) hang[s.ten] = s.gia_tri[i] ?? 0;
@@ -130,9 +142,32 @@ export function Bars({
             // tooltip đang nói về ngày nào.
             cursor={{ fill: "var(--surface-2)" }}
           />
-          {chuoi.map((s) => (
-            <Bar key={s.ten} dataKey={s.ten} fill={s.mau} maxBarSize={18} radius={[2, 2, 0, 0]} />
-          ))}
+          {chuoi.map((s) => {
+            const bam = s.mo !== undefined && moTai !== undefined;
+            return (
+              <Bar
+                key={s.ten}
+                dataKey={s.ten}
+                fill={s.mau}
+                maxBarSize={18}
+                radius={[2, 2, 0, 0]}
+                cursor={bam ? "pointer" : undefined}
+                // Cột 0 không mở gì được, bấm vào ra ngăn kéo rỗng thì người
+                // dùng tưởng hỏng.
+                onClick={
+                  bam
+                    ? (o: { payload?: { ten?: string } }) => {
+                        const ngay = o.payload?.ten;
+                        const v = ngay === undefined ? 0 : Number(o.payload?.[s.ten as never] ?? 0);
+                        if (ngay !== undefined && v > 0) {
+                          router.push(`${moTai}?${s.mo}=${ngay}`, { scroll: false });
+                        }
+                      }
+                    : undefined
+                }
+              />
+            );
+          })}
         </BarChart>
       </ResponsiveContainer>
       {/* Chú thích tự dựng, không dùng Legend của recharts: nó xếp lại thứ tự

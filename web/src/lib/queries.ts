@@ -1926,6 +1926,54 @@ export const getDotThuNgay = (kenh: string, ngay: string) =>
     [kenh, ngay],
   );
 
+/** Công nợ cước wifi cố định, một dòng — xem db/189. */
+export const getCongNoCoDinh = async () => {
+  const [row] = await query<{ hop_dong: string; tien: string; ky: string }>(
+    `select hop_dong::text, tien::text, ky::text from v_fixed_cong_no`,
+  );
+  return row!;
+};
+
+export type LapQuaHan = {
+  source_id: string;
+  ma_hd: string | null;
+  dia_chi: string | null;
+  ngay_hen: string;
+  tre_ngay: string;
+  nguoi_phu_trach: string | null;
+  trang_thai_hop_dong: string | null;
+  url: string | null;
+};
+
+/** Đơn lắp đã qua ngày hẹn mà chưa xong — xem db/189. */
+export const getLapQuaHanDs = () =>
+  query<LapQuaHan>(
+    `select source_id, ma_hd, dia_chi, ngay_hen::text, tre_ngay::text,
+            nguoi_phu_trach, trang_thai_hop_dong, url
+       from v_fixed_lap_qua_han_ds order by tre_ngay desc, ma_hd`,
+  );
+
+export type HuyNgay = {
+  subscription_id: string;
+  ma_hd: string | null;
+  dia_chi: string | null;
+  ngay_ky: string | null;
+  ngay_lap_xong: string | null;
+  ly_do_huy: string | null;
+  nhom_ly_do_huy: string | null;
+  con_no: string | null;
+  url: string | null;
+};
+
+/** Hợp đồng huỷ trong một ngày — xem db/189. */
+export const getHuyNgay = (ngay: string) =>
+  query<HuyNgay>(
+    `select subscription_id, ma_hd, dia_chi, ngay_ky::text, ngay_lap_xong::text,
+            ly_do_huy, nhom_ly_do_huy, con_no::text, url
+       from v_fixed_huy_ngay where ngay = $1::date order by ma_hd`,
+    [ngay],
+  );
+
 export type TongHopNgay = {
   ngay: string;
   lan_dau: string;

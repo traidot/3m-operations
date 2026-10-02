@@ -71,13 +71,15 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
  * không nhận thêm đồng nào.
  */
 export function Bang7({
-  ten, y, ds, kieu, phu, congTong = true, moO,
+  ten, y, ds, kieu, phu, phuNut, congTong = true, moO,
 }: {
   ten: string;
   y: string;
   ds: Ngay7[];
   kieu: "tien" | "so";
   phu?: string;
+  /** Như `phu` nhưng có liên kết bên trong. */
+  phuNut?: React.ReactNode;
   /** Đường dẫn của trang chứa bảng. Có thì mỗi ô có số thành một liên kết mở
    *  ngăn kéo chi tiết; không có thì ô là chữ thường. */
   moO?: string;
@@ -222,6 +224,7 @@ export function Bang7({
         </table>
       </div>
       {phu && <p className="muted">{phu}</p>}
+      {phuNut && <p className="muted">{phuNut}</p>}
     </section>
   );
 }

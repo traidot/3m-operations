@@ -3,9 +3,12 @@ import { Bars } from "../../wifi/bars";
 import { Bang7 } from "../bang7";
 import { BangTongHop } from "../tong-hop";
 import { ChiTietTien } from "../chi-tiet-tien";
+import { ChiTietLapQuaHan } from "../chi-tiet-lap";
+import { ChiTietHuy } from "../chi-tiet-huy";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
+  getCongNoCoDinh,
   getFreshness,
   getLapDatQuaHan,
   getTongHopNgay,
@@ -26,11 +29,12 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, freshness] = await Promise.all([
+  const [ngay7, ngay30, tongHop, quaHan, congNo, freshness] = await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
     getTongHopNgay(),
     getLapDatQuaHan(),
+    getCongNoCoDinh(),
     getFreshness(),
   ]);
 
@@ -45,6 +49,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const hom_nay = new Date().toLocaleDateString("vi-VN", {
     weekday: "long", day: "2-digit", month: "2-digit", year: "numeric",
   });
+
+  // Cột "hôm nay" trống có hai nghĩa rất khác nhau: chưa ai làm gì, hay kho
+  // chưa kéo số về. Ghi luôn mốc đồng bộ gần nhất để khỏi phải đoán.
+  const moc = freshness
+    .filter((f) => f.source === "FIXED" && f.lan_dong_bo_cuoi !== null)
+    .map((f) => new Date(f.lan_dong_bo_cuoi as Date).getTime())
+    .sort((a, b) => b - a)[0];
+  const dongBoLuc =
+    moc === undefined
+      ? null
+      : new Date(moc).toLocaleString("vi-VN", {
+          hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit",
+        });
 
   // CHUA_GHI là giá trị thô bên nguồn khi đợt thu chưa chọn tài khoản.
   const cua = (nhom: string) =>
@@ -64,8 +81,24 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         {hom_nay}. Biểu đồ là <b>30 ngày gần nhất</b> để thấy hình dạng cả tháng;
         các bảng bày thẳng <b>7 ngày gần nhất</b>, mỗi ngày một cột — ba con số
         hôm nay/hôm qua/trung bình nén cả tuần lại nên không thấy hôm nào thu, hôm
-        nào nghỉ.
+        nào nghỉ.{" "}
+        {dongBoLuc !== null && (
+          <>
+            Số kéo về từ nguồn lúc <b>{dongBoLuc}</b>.
+          </>
+        )}
       </p>
+
+      <div className="the-hang gon">
+        <div className="the-so">
+          <div className="the-ten">Đang phải thu</div>
+          <div className="the-gia-tri mono">{n(congNo.tien)}</div>
+          <div className="the-phu">
+            {n(congNo.hop_dong)} hợp đồng · {n(congNo.ky)} kỳ cước chưa thu ·{" "}
+            <Link href="/thu-cuoc">xem danh sách →</Link>
+          </div>
+        </div>
+      </div>
 
       {cu.length > 0 && (
         <p className="stale">
@@ -93,8 +126,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           { ten: "Ký mới", mau: "var(--muted)", gia_tri: ngay30.map((d) => Number(d.ky_moi)) },
           { ten: "Lắp xong", mau: "var(--ok)", gia_tri: ngay30.map((d) => Number(d.lap_xong)) },
           { ten: "Hoạt động", mau: "var(--lam)", gia_tri: ngay30.map((d) => Number(d.hoat_dong)) },
-          { ten: "Huỷ", mau: "var(--do)", gia_tri: ngay30.map((d) => Number(d.huy)) },
+          { ten: "Huỷ", mau: "var(--do)", gia_tri: ngay30.map((d) => Number(d.huy)), mo: "huy" },
         ]}
+        moTai={DUONG_DAN}
       />
       <p className="muted">
         Cộng 30 ngày: <b>{n(tong30("ky_moi"))}</b> ký mới ·{" "}
@@ -120,10 +154,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         ds={cua("lap_dat")}
         kieu="so"
         congTong={false}
-        phu={
-          Number(quaHan.don) > 0
-            ? `Ngoài bảng này còn ${n(quaHan.don)} đơn đã qua ngày hẹn mà chưa lắp xong, cũ nhất hẹn từ ${ngayVn(quaHan.hen_cu_nhat)} — ${n(quaHan.trong_30_ngay)} trong số đó hẹn trong 30 ngày gần đây, phần còn lại là tồn đọng cũ.`
-            : undefined
+        phuNut={
+          Number(quaHan.don) > 0 ? (
+            <>
+              Ngoài bảng này còn{" "}
+              <Link href={`${DUONG_DAN}?qua-han=1`} scroll={false}>
+                {n(quaHan.don)} đơn đã qua ngày hẹn mà chưa lắp xong
+              </Link>
+              , cũ nhất hẹn từ {ngayVn(quaHan.hen_cu_nhat)} — {n(quaHan.trong_30_ngay)} trong
+              số đó hẹn trong 30 ngày gần đây, phần còn lại là tồn đọng cũ.
+            </>
+          ) : undefined
         }
       />
 
@@ -141,6 +182,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         if (!kenh || !ngay) return null;
         return <ChiTietTien kenh={kenh} ngay={ngay} dongLai={DUONG_DAN} />;
       })()}
+
+      {mot(sp["qua-han"]) !== "" && <ChiTietLapQuaHan dongLai={DUONG_DAN} />}
+      {mot(sp.huy) !== "" && <ChiTietHuy ngay={mot(sp.huy)} dongLai={DUONG_DAN} />}
     </main>
   );
 }
