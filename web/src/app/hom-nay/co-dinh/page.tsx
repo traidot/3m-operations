@@ -13,6 +13,7 @@ import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
   getChoXuLyGmo,
+  getCocChoDuyetLoai,
   getCocChoDuyetNhom,
   getLinkCms,
   getGmoCocMo,
@@ -39,7 +40,7 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoLoai, cocMo, cocNhom, linkDuyet, freshness] =
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoLoai, cocMo, cocNhom, cocLoai, linkDuyet, freshness] =
     await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
@@ -51,6 +52,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     getGmoLoai(),
     getGmoCocMo(),
     getCocChoDuyetNhom(),
+    getCocChoDuyetLoai(),
     getLinkCms("fixed_cms_deposit_url"),
     getFreshness(),
   ]);
@@ -228,7 +230,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       />
       <BangGmoThang ds={gmoThang} loai={gmoLoai} cocMo={cocMo} />
 
-      <BangCocNhom ds={cocNhom} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
+      <BangCocNhom ds={cocNhom} loai={cocLoai} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
@@ -240,13 +242,25 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       {mot(sp["qua-han"]) !== "" && <ChiTietLapQuaHan dongLai={DUONG_DAN} />}
       {mot(sp.huy) !== "" && <ChiTietHuy ngay={mot(sp.huy)} dongLai={DUONG_DAN} />}
-      {mot(sp.coc) !== "" && (
-        <ChiTietCocChoPhanBo
-          dongLai={DUONG_DAN}
-          bac={mot(sp.coc) === "all" ? undefined : mot(sp.coc)}
-          nhom={cocNhom.find((r) => r.bac === mot(sp.coc))?.nhom}
-        />
-      )}
+      {mot(sp.coc) !== "" &&
+        (() => {
+          // "l-<mã>" là lọc theo thứ đang thu, số trần là bậc tuổi chờ,
+          // "all" là mọi phiếu.
+          const v = mot(sp.coc);
+          const theoLoai = v.startsWith("l-") ? v.slice(2) : undefined;
+          return (
+            <ChiTietCocChoPhanBo
+              dongLai={DUONG_DAN}
+              bac={v === "all" || theoLoai !== undefined ? undefined : v}
+              loai={theoLoai}
+              nhom={
+                theoLoai === undefined
+                  ? cocNhom.find((r) => r.bac === v)?.nhom
+                  : cocLoai.find((r) => r.nhom_tien === theoLoai)?.ten
+              }
+            />
+          );
+        })()}
       {mot(sp.gmo) !== "" && <ChiTietGmoQuaHan dongLai={DUONG_DAN} />}
       {mot(sp.chd) !== "" && <ChiTietChuaHoatDong dongLai={DUONG_DAN} />}
     </main>

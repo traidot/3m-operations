@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CocNhom } from "@/lib/queries";
+import type { CocLoai, CocNhom } from "@/lib/queries";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 
@@ -14,10 +14,12 @@ const QUA_LAU = 14;
  */
 export function BangCocNhom({
   ds,
+  loai,
   moTai,
   linkDuyet,
 }: {
   ds: CocNhom[];
+  loai: CocLoai[];
   moTai: string;
   linkDuyet: string | null;
 }) {
@@ -36,8 +38,9 @@ export function BangCocNhom({
         Khách trả tiền ở combini là phiếu cọc tự mở ra ở trạng thái chờ duyệt;
         tới khi có người duyệt và gán vào tháng cước thì nợ của khách mới được
         trừ. Cột <b>phải tự tra</b> là phiếu lúc tạo mã không chọn sẵn tháng
-        cước — và đó đúng là phần nằm lại: mọi phiếu chờ quá 8 ngày đều thuộc
-        nhóm này.
+        cước. Bảng dưới cho thấy vì sao: phiếu thu <b>cọc</b> gần như luôn phải
+        tự tra, mà đúng thế — tiền cọc không thuộc tháng cước nào cả, có muốn
+        chọn sẵn cũng không có gì để chọn.
       </p>
       <div className="scroller">
         <table>
@@ -89,8 +92,45 @@ export function BangCocNhom({
           </tbody>
         </table>
       </div>
+      <h3>Phiếu đó là tiền gì</h3>
+      <div className="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th>Thu cái gì</th>
+              <th className="num">Phiếu</th>
+              <th className="num">Tiền</th>
+              <th className="num">Phải tự tra</th>
+              <th className="num">Lâu nhất</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loai.map((r) => (
+              <tr key={r.nhom_tien}>
+                <td>
+                  <Link className="o-mo" href={`${moTai}?coc=l-${r.nhom_tien}`} scroll={false}>
+                    {r.ten}
+                  </Link>
+                </td>
+                <td className="num mono">{n(r.so_phieu)}</td>
+                <td className="num mono muted">{n(r.tien)}</td>
+                <td className="num mono muted">
+                  {n(r.phai_tu_tra)}
+                  {r.phai_tu_tra === r.so_phieu && <span className="muted"> · tất cả</span>}
+                </td>
+                <td
+                  className={`num mono${Number(r.lau_nhat) > QUA_LAU ? " bad" : " muted"}`}
+                >
+                  {n(r.lau_nhat)} ngày
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <p className="muted">
-        Bấm một dòng để xem từng phiếu của nhóm đó.
+        Bấm một dòng ở bảng nào cũng xem được từng phiếu của nhóm đó.
         {linkDuyet !== null && (
           <>
             {" "}

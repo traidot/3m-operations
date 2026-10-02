@@ -21,14 +21,17 @@ export async function ChiTietCocChoPhanBo({
   dongLai,
   bac,
   nhom,
+  loai,
 }: {
   dongLai: string;
   /** Một bậc tuổi chờ, bỏ trống là mọi phiếu. */
   bac?: string;
   nhom?: string;
+  /** Lọc theo thứ đang thu: cuoc / coc_tplink / coc_khac. */
+  loai?: string;
 }) {
   const [rows, linkDuyet] = await Promise.all([
-    getCocChoPhanBo(bac),
+    getCocChoPhanBo(bac, loai),
     getLinkCms("fixed_cms_deposit_url"),
   ]);
   const tien = rows.reduce((t, r) => t + Number(r.tien), 0);

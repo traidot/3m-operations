@@ -2028,21 +2028,33 @@ export type CocChoPhanBo = {
   /** Lúc tạo mã đã chọn sẵn tháng cước chưa — phiếu chưa chọn thì người duyệt
    *  phải tự tra, nặng hơn hẳn. */
   co_san_thang: boolean;
+  nhom_tien: string;
 };
 
 /**
  * Phiếu cọc đã thu tiền mà chưa gán vào tháng cước — xem db/191.
  * `bac` lọc theo một nhóm tuổi chờ của bảng tóm tắt; bỏ trống là lấy tất cả.
  */
-export const getCocChoPhanBo = (bac?: string) =>
-  query<CocChoPhanBo>(
+export const getCocChoPhanBo = (bac?: string, nhom?: string) => {
+  const dieu: string[] = [];
+  const tham: string[] = [];
+  if (bac !== undefined) {
+    tham.push(bac);
+    dieu.push(`bac = $${tham.length}::int`);
+  }
+  if (nhom !== undefined) {
+    tham.push(nhom);
+    dieu.push(`nhom_tien = $${tham.length}`);
+  }
+  return query<CocChoPhanBo>(
     `select source_id, ma_hd, dia_chi, tien::text, ngay_tra::text, cho_ngay::text,
-            channel, ghi_chu, con_no::text, url, co_san_thang
+            channel, ghi_chu, con_no::text, url, co_san_thang, nhom_tien
        from v_fixed_coc_cho_phan_bo
-      ${bac === undefined ? "" : "where bac = $1::int"}
+      ${dieu.length === 0 ? "" : `where ${dieu.join(" and ")}`}
       order by cho_ngay desc nulls last, tien desc`,
-    bac === undefined ? [] : [bac],
+    tham,
   );
+};
 
 export type GmoQuaHan = {
   lan: string; ma_hd: string | null; dia_chi: string | null;
@@ -2125,6 +2137,18 @@ export const getLinkCms = async (key: string) => {
   );
   return row?.value ?? null;
 };
+
+export type CocLoai = {
+  nhom_tien: string; ten: string; so_phieu: string; tien: string;
+  phai_tu_tra: string; lau_nhat: string;
+};
+
+/** Phiếu cọc chờ duyệt chia theo thứ đang thu — xem db/206. */
+export const getCocChoDuyetLoai = () =>
+  query<CocLoai>(
+    `select nhom_tien, ten, so_phieu::text, tien::text, phai_tu_tra::text, lau_nhat::text
+       from v_fixed_coc_cho_duyet_loai order by so_phieu desc`,
+  );
 
 export type CocNhom = {
   bac: string; nhom: string; so_phieu: string; tien: string;
