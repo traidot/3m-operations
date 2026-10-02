@@ -9,9 +9,11 @@ const ngayVn = (iso: string | null) =>
 
 /** Nhãn đúng như màn Cập nhật thu cước phí bên CMS, để đọc hai bên không lệch. */
 const TRANG_THAI: Record<string, { ten: string; dang: string }> = {
-  APPROVED: { ten: "Đã thu", dang: "ok" },
-  PENDING_APPROVAL: { ten: "Chờ duyệt", dang: "cho" },
-  REJECTED: { ten: "Bị từ chối", dang: "do" },
+  // Đã thu là trạng thái bình thường nên để nhãn xám; chỉ cái đang chờ và cái
+  // bị chặn mới tô màu, không thì cả cột sặc sỡ và chẳng còn gì nổi lên.
+  APPROVED: { ten: "Đã thu", dang: "" },
+  PENDING_APPROVAL: { ten: "Chờ duyệt", dang: "warn" },
+  REJECTED: { ten: "Bị từ chối", dang: "critical" },
 };
 
 /**
@@ -86,7 +88,7 @@ export async function ChiTietTien({
                     {tt === undefined ? (
                       <span className="muted">{r.status ?? "—"}</span>
                     ) : (
-                      <span className={`tag ${tt.dang}`}>{tt.ten}</span>
+                      <span className={tt.dang === "" ? "tag" : `tag ${tt.dang}`}>{tt.ten}</span>
                     )}
                   </td>
                   <td className={`mono${muon ? " bad" : " muted"}`}>{ngayVn(r.ngay_go)}</td>
