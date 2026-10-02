@@ -7,11 +7,13 @@ import { ChiTietLapQuaHan } from "../chi-tiet-lap";
 import { ChiTietHuy } from "../chi-tiet-huy";
 import { ChiTietCocChoPhanBo, ChiTietGmoQuaHan } from "../chi-tiet-coc";
 import { BangGmoThang } from "../gmo-thang";
+import { BangCocNhom } from "../coc-nhom";
 import { ChiTietChuaHoatDong } from "../chi-tiet-chua-hoat-dong";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
   getChoXuLyGmo,
+  getCocChoDuyetNhom,
   getGmoThang,
   getCongNoCoDinh,
   getFreshness,
@@ -34,7 +36,8 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, freshness] = await Promise.all([
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, cocNhom, freshness] =
+    await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
     getTongHopNgay(),
@@ -42,6 +45,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     getCongNoCoDinh(),
     getChoXuLyGmo(),
     getGmoThang(),
+    getCocChoDuyetNhom(),
     getFreshness(),
   ]);
 
@@ -216,6 +220,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
       <BangGmoThang ds={gmoThang} />
+
+      <BangCocNhom ds={cocNhom} moTai={DUONG_DAN} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra

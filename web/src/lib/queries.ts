@@ -2081,6 +2081,17 @@ export const getChuaHoatDong = () =>
       order by (ly_do is not null), sau_lap_ngay desc`,
   );
 
+export type CocNhom = {
+  nhom: string; so_phieu: string; tien: string; phai_tu_tra: string; lau_nhat: string;
+};
+
+/** Phiếu cọc chờ duyệt gom theo tuổi chờ — xem db/198. */
+export const getCocChoDuyetNhom = () =>
+  query<CocNhom>(
+    `select nhom, so_phieu::text, tien::text, phai_tu_tra::text, lau_nhat::text
+       from v_fixed_coc_cho_duyet_nhom order by bac`,
+  );
+
 export type TongHopNgay = {
   ngay: string;
   lan_dau: string;
