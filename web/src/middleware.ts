@@ -10,11 +10,18 @@ export function middleware(req: NextRequest) {
   const user = process.env.MONITOR_USER;
   const pass = process.env.MONITOR_PASSWORD;
 
+  // Không đặt mật khẩu thì chạy mở, nhưng CHỈ khi không phải production.
+  // Trang này có địa chỉ khách, số điện thoại và công nợ; đưa lên mạng mà
+  // không khoá là chuyện khác hẳn với mở ở máy mình, nên production vẫn bắt
+  // buộc phải có.
   if (!user || !pass) {
-    return new NextResponse(
-      "Chưa đặt MONITOR_USER và MONITOR_PASSWORD. Thêm hai biến này vào web/.env.local rồi khởi động lại dev server.",
-      { status: 500 },
-    );
+    if (process.env.NODE_ENV === "production") {
+      return new NextResponse(
+        "Chưa đặt MONITOR_USER và MONITOR_PASSWORD. Bản production bắt buộc phải có.",
+        { status: 500 },
+      );
+    }
+    return NextResponse.next();
   }
 
   const header = req.headers.get("authorization");
