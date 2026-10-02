@@ -322,6 +322,8 @@ export type Contract = {
   tien_treo_duyet: string;
   /** DA_HUY / CHUA_LAP / CHUA_HOAT_DONG / DANG_THU — xem db/194. */
   trang_thai_van_hanh: string;
+  /** Người vận hành gõ tay bên CMS; null nghĩa là không ai ghi gì. */
+  ly_do_chua_lap_xong: string | null;
 };
 
 export type ContractFilter = {
@@ -351,7 +353,7 @@ const COT_HOP_DONG = `subscription_id, contract_code, dia_chi, trang_thai_hop_do
        so_ky_chua_den_han::text, tien_chua_den_han::text,
        coc_cho_duyet::text, so_phieu_coc_cho::text, con_no_sau_coc::text,
        do_cong_ty, so_ky_treo_duyet::text, tien_treo_duyet::text,
-       trang_thai_van_hanh`;
+       trang_thai_van_hanh, ly_do_chua_lap_xong`;
 
 export const CONTRACTS_PER_PAGE = 50;
 
@@ -1990,6 +1992,7 @@ export type ChoXuLyGmo = {
   coc_chua_thang: string;
   /** Số ngày duyệt trung bình của những phiếu đã xong, làm mốc so sánh. */
   coc_tb_ngay: string | null;
+  chd_so: string; chd_cuoc: string; chd_khong_ly_do: string;
 };
 
 /** Tiền đang đứng lại trên đường từ combini về sổ cước — xem db/191. */
@@ -2007,7 +2010,10 @@ export const getChoXuLyGmo = async () => {
        (select coalesce(sum(tien), 0) from v_fixed_gmo_lan
          where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_tien,
        (select count(*) from v_fixed_coc_cho_phan_bo where not co_san_thang)::text as coc_chua_thang,
-       (select tb_ngay from v_fixed_coc_toc_do)::text                      as coc_tb_ngay`,
+       (select tb_ngay from v_fixed_coc_toc_do)::text                      as coc_tb_ngay,
+       (select count(*) from v_fixed_chua_hoat_dong)::text                 as chd_so,
+       (select coalesce(sum(cuoc_thang), 0) from v_fixed_chua_hoat_dong)::text as chd_cuoc,
+       (select count(*) from v_fixed_chua_hoat_dong where ly_do is null)::text as chd_khong_ly_do`,
   );
   return row!;
 };
@@ -2057,6 +2063,22 @@ export const getGmoThang = () =>
     `select thang, tao::text, da_tra::text, chet::text, dang_cho::text,
             tien_tra::text, tien_chet::text, tien_cho::text, ty_le_chet::text
        from v_fixed_gmo_thang order by thang`,
+  );
+
+export type ChuaHoatDong = {
+  subscription_id: string; ma_hd: string | null; dia_chi: string | null;
+  cuoc_thang: string | null; ngay_lap_xong: string | null; sau_lap_ngay: string | null;
+  ngay_bat_dau_thu: string | null; ly_do: string | null; nguoi_nhap: string | null;
+  url: string | null;
+};
+
+/** Hợp đồng lắp xong mà chưa tới ngày bắt đầu thu — xem db/196. */
+export const getChuaHoatDong = () =>
+  query<ChuaHoatDong>(
+    `select subscription_id, ma_hd, dia_chi, cuoc_thang::text, ngay_lap_xong::text,
+            sau_lap_ngay::text, ngay_bat_dau_thu::text, ly_do, nguoi_nhap, url
+       from v_fixed_chua_hoat_dong
+      order by (ly_do is not null), sau_lap_ngay desc`,
   );
 
 export type TongHopNgay = {

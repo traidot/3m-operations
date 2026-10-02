@@ -240,6 +240,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     <span className={`tag ${MAU_VAN_HANH[r.trang_thai_van_hanh] ?? ""}`}>
                       {VAN_HANH[r.trang_thai_van_hanh] ?? r.trang_thai_van_hanh}
                     </span>
+                    {r.ly_do_chua_lap_xong !== null && (
+                      <div className="muted nho" title={r.ly_do_chua_lap_xong}>
+                        {r.ly_do_chua_lap_xong}
+                      </div>
+                    )}
                   </td>
                   <td>
                     {r.canh_bao.length === 0 ? (

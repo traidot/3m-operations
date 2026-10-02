@@ -236,6 +236,10 @@ summary:hover { color: var(--ok); }
 /* Ô bấm được: không gạch chân sẵn, chỉ đổi khi rê chuột — bảng toàn số mà gạch
    chân hết thì rối, nhưng vẫn phải lộ ra là bấm được. */
 td.nowrap { white-space: nowrap; }
+/* Lý do gõ tay bên CMS: dài và lộn xộn, cắt lại cho khỏi kéo giãn cả cột —
+   bản đầy đủ nằm ở thuộc tính title. */
+.nho { font-size: 0.74rem; line-height: 1.35; margin-top: 3px; max-width: 220px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .o-mo { color: inherit; text-decoration: none; display: block; }
 .o-mo:hover { color: var(--ok); text-decoration: underline; text-underline-offset: 3px; }
 .deu thead th.o-le { background: color-mix(in oklab, var(--ink) 7%, var(--surface-2)); }

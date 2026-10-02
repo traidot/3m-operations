@@ -7,6 +7,7 @@ import { ChiTietLapQuaHan } from "../chi-tiet-lap";
 import { ChiTietHuy } from "../chi-tiet-huy";
 import { ChiTietCocChoPhanBo, ChiTietGmoQuaHan } from "../chi-tiet-coc";
 import { BangGmoThang } from "../gmo-thang";
+import { ChiTietChuaHoatDong } from "../chi-tiet-chua-hoat-dong";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
@@ -116,6 +117,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </div>
         </div>
         <div className="the-so">
+          <div className="the-ten">Chưa hoạt động</div>
+          <div className="the-gia-tri mono">{n(cho.chd_cuoc)}</div>
+          <div className="the-phu">
+            cước mỗi tháng chưa chạy vì hợp đồng lắp xong mà chưa tới ngày thu ·{" "}
+            <b>{n(cho.chd_khong_ly_do)}</b> cái không ghi lý do gì ·{" "}
+            <Link href={`${DUONG_DAN}?chd=1`} scroll={false}>
+              {n(cho.chd_so)} hợp đồng →
+            </Link>
+          </div>
+        </div>
+        <div className="the-so">
           <div className="the-ten">Mã combini hết hạn</div>
           <div className="the-gia-tri mono">{n(cho.gmo_tien)}</div>
           <div className="the-phu">
@@ -217,6 +229,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       {mot(sp.huy) !== "" && <ChiTietHuy ngay={mot(sp.huy)} dongLai={DUONG_DAN} />}
       {mot(sp.coc) !== "" && <ChiTietCocChoPhanBo dongLai={DUONG_DAN} />}
       {mot(sp.gmo) !== "" && <ChiTietGmoQuaHan dongLai={DUONG_DAN} />}
+      {mot(sp.chd) !== "" && <ChiTietChuaHoatDong dongLai={DUONG_DAN} />}
     </main>
   );
 }
