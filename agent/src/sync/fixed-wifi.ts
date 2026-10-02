@@ -218,6 +218,36 @@ export const FEE_INSTALLMENT = `
   where i.deletedAt is null
 `;
 
+/**
+ * Mã thanh toán combini qua GMO.
+ *
+ * Mỗi lần bấm "Tạo mã thanh toán" sinh bốn dòng — Lawson, FamilyMart,
+ * Ministop, Seicomart — cùng số tiền và cùng batchId. Khách chỉ trả ở một
+ * chỗ, nên chỉ một dòng thành PAYSUCCESS còn ba dòng kia ở nguyên
+ * REQSUCCESS. Cộng cột amount của bảng này là ra số gấp bốn lần thật.
+ *
+ * batchId null ở các dòng tạo trước khi CMS thêm trường đó; lúc gộp phải
+ * coalesce về id để mỗi dòng cũ tự thành một lần.
+ */
+export const GMO_PAYMENT = `
+  select
+    g.id                      as source_id,
+    g.batchId                 as batch_id,
+    g.contractId              as contract_id,
+    g.storeCode               as store_code,
+    g.amount                  as amount,
+    g.status                  as status,
+    g.type                    as loai,
+    g.paymentMonth            as ky_cuoc,
+    g.paymentExpiryDateTime   as han_tra,
+    g.depositAllocationId     as phieu_coc_id,
+    g.note                    as ghi_chu,
+    g.createdAt               as created_at_src,
+    g.updatedAt               as updated_at_src,
+    g.createBy                as created_by_src
+  from gmo_convenience_store_payments g
+`;
+
 export const QUERIES = {
   subscription: SUBSCRIPTION,
   fee_period: FEE_PERIOD,
@@ -229,4 +259,5 @@ export const QUERIES = {
   contract_extra: CONTRACT_EXTRA,
   no_collection_reason: NO_COLLECTION_REASON,
   fee_installment: FEE_INSTALLMENT,
+  gmo_payment: GMO_PAYMENT,
 } as const;

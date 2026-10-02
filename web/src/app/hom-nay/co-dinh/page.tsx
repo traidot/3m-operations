@@ -5,9 +5,11 @@ import { BangTongHop } from "../tong-hop";
 import { ChiTietTien } from "../chi-tiet-tien";
 import { ChiTietLapQuaHan } from "../chi-tiet-lap";
 import { ChiTietHuy } from "../chi-tiet-huy";
+import { ChiTietCocChoPhanBo, ChiTietGmoQuaHan } from "../chi-tiet-coc";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
+  getChoXuLyGmo,
   getCongNoCoDinh,
   getFreshness,
   getLapDatQuaHan,
@@ -29,12 +31,13 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, freshness] = await Promise.all([
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, freshness] = await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
     getTongHopNgay(),
     getLapDatQuaHan(),
     getCongNoCoDinh(),
+    getChoXuLyGmo(),
     getFreshness(),
   ]);
 
@@ -96,6 +99,27 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-phu">
             {n(congNo.hop_dong)} hợp đồng · {n(congNo.ky)} kỳ cước chưa thu ·{" "}
             <Link href="/thu-cuoc">xem danh sách →</Link>
+          </div>
+        </div>
+        <div className="the-so">
+          <div className="the-ten">Cọc chờ phân bổ</div>
+          <div className="the-gia-tri mono">{n(cho.coc_tien)}</div>
+          <div className="the-phu">
+            khách đã trả nhưng chưa gán vào tháng cước nào, nợ chưa được trừ ·{" "}
+            <Link href={`${DUONG_DAN}?coc=1`} scroll={false}>
+              {n(cho.coc_so)} phiếu, chờ lâu nhất {n(cho.coc_lau_nhat)} ngày →
+            </Link>
+          </div>
+        </div>
+        <div className="the-so">
+          <div className="the-ten">Mã combini hết hạn</div>
+          <div className="the-gia-tri mono">{n(cho.gmo_tien)}</div>
+          <div className="the-phu">
+            đã hẹn thu mà khách không ra trả; còn {n(cho.gmo_cho_so)} mã đang chờ trong
+            hạn, {n(cho.gmo_cho_tien)} yên ·{" "}
+            <Link href={`${DUONG_DAN}?gmo=1`} scroll={false}>
+              {n(cho.gmo_so)} lần tạo mã →
+            </Link>
           </div>
         </div>
       </div>
@@ -185,6 +209,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       {mot(sp["qua-han"]) !== "" && <ChiTietLapQuaHan dongLai={DUONG_DAN} />}
       {mot(sp.huy) !== "" && <ChiTietHuy ngay={mot(sp.huy)} dongLai={DUONG_DAN} />}
+      {mot(sp.coc) !== "" && <ChiTietCocChoPhanBo dongLai={DUONG_DAN} />}
+      {mot(sp.gmo) !== "" && <ChiTietGmoQuaHan dongLai={DUONG_DAN} />}
     </main>
   );
 }

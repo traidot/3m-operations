@@ -1974,6 +1974,59 @@ export const getHuyNgay = (ngay: string) =>
     [ngay],
   );
 
+export type ChoXuLyGmo = {
+  coc_so: string; coc_tien: string; coc_lau_nhat: string | null;
+  gmo_so: string; gmo_tien: string; gmo_lau_nhat: string | null;
+  gmo_cho_so: string; gmo_cho_tien: string;
+};
+
+/** Tiền đang đứng lại trên đường từ combini về sổ cước — xem db/191. */
+export const getChoXuLyGmo = async () => {
+  const [row] = await query<ChoXuLyGmo>(
+    `select
+       (select count(*) from v_fixed_coc_cho_phan_bo)::text              as coc_so,
+       (select coalesce(sum(tien), 0) from v_fixed_coc_cho_phan_bo)::text as coc_tien,
+       (select max(cho_ngay) from v_fixed_coc_cho_phan_bo)::text          as coc_lau_nhat,
+       (select count(*) from v_fixed_gmo_qua_han)::text                   as gmo_so,
+       (select coalesce(sum(tien), 0) from v_fixed_gmo_qua_han)::text     as gmo_tien,
+       (select max(qua_han_ngay) from v_fixed_gmo_qua_han)::text          as gmo_lau_nhat,
+       (select count(*) from v_fixed_gmo_lan
+         where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_so,
+       (select coalesce(sum(tien), 0) from v_fixed_gmo_lan
+         where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_tien`,
+  );
+  return row!;
+};
+
+export type CocChoPhanBo = {
+  source_id: string; ma_hd: string | null; dia_chi: string | null;
+  tien: string; ngay_tra: string | null; cho_ngay: string | null;
+  channel: string | null; ghi_chu: string | null; con_no: string | null; url: string | null;
+};
+
+/** Phiếu cọc đã thu tiền mà chưa gán vào tháng cước — xem db/191. */
+export const getCocChoPhanBo = () =>
+  query<CocChoPhanBo>(
+    `select source_id, ma_hd, dia_chi, tien::text, ngay_tra::text, cho_ngay::text,
+            channel, ghi_chu, con_no::text, url
+       from v_fixed_coc_cho_phan_bo order by cho_ngay desc nulls last, tien desc`,
+  );
+
+export type GmoQuaHan = {
+  lan: string; ma_hd: string | null; dia_chi: string | null;
+  trang_thai_hop_dong: string | null; tien: string; loai_ten: string;
+  ky_cuoc: string | null; ngay_tao: string | null; ngay_het_han: string | null;
+  qua_han_ngay: string | null; con_no: string | null; url: string | null;
+};
+
+/** Mã combini hết hạn mà khách không trả — xem db/191. */
+export const getGmoQuaHan = () =>
+  query<GmoQuaHan>(
+    `select lan, ma_hd, dia_chi, trang_thai_hop_dong, tien::text, loai_ten, ky_cuoc,
+            ngay_tao::text, ngay_het_han::text, qua_han_ngay::text, con_no::text, url
+       from v_fixed_gmo_qua_han order by qua_han_ngay desc, tien desc`,
+  );
+
 export type TongHopNgay = {
   ngay: string;
   lan_dau: string;

@@ -105,11 +105,18 @@ const NGUON: Nguon[] = [
                "created_by_src"],
         don: true,
       },
+      gmo_payment: {
+        table: "gmo_payment_snapshot",
+        cols: ["source_id", "batch_id", "contract_id", "store_code", "amount",
+               "status", "loai", "ky_cuoc", "han_tra", "phieu_coc_id", "ghi_chu",
+               "created_at_src", "updated_at_src", "created_by_src"],
+        don: true,
+      },
     },
     // Nhân sự trước để báo cáo có tên, rồi hợp đồng, rồi thứ trỏ về hợp đồng.
     thu_tu: ["staff", "subscription", "fee_period", "install_order", "payment",
              "device", "deposit_allocation", "contract_extra",
-             "no_collection_reason", "fee_installment"],
+             "no_collection_reason", "fee_installment", "gmo_payment"],
   },
   {
     key: "TELECOM",
