@@ -1978,6 +1978,10 @@ export type ChoXuLyGmo = {
   coc_so: string; coc_tien: string; coc_lau_nhat: string | null;
   gmo_so: string; gmo_tien: string; gmo_lau_nhat: string | null;
   gmo_cho_so: string; gmo_cho_tien: string;
+  /** Phiếu chờ mà chưa chọn sẵn tháng cước — phần nặng của đống việc. */
+  coc_chua_thang: string;
+  /** Số ngày duyệt trung bình của những phiếu đã xong, làm mốc so sánh. */
+  coc_tb_ngay: string | null;
 };
 
 /** Tiền đang đứng lại trên đường từ combini về sổ cước — xem db/191. */
@@ -1993,7 +1997,9 @@ export const getChoXuLyGmo = async () => {
        (select count(*) from v_fixed_gmo_lan
          where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_so,
        (select coalesce(sum(tien), 0) from v_fixed_gmo_lan
-         where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_tien`,
+         where not da_tra and (han_tra is null or han_tra >= now()))::text as gmo_cho_tien,
+       (select count(*) from v_fixed_coc_cho_phan_bo where not co_san_thang)::text as coc_chua_thang,
+       (select tb_ngay from v_fixed_coc_toc_do)::text                      as coc_tb_ngay`,
   );
   return row!;
 };
@@ -2002,13 +2008,16 @@ export type CocChoPhanBo = {
   source_id: string; ma_hd: string | null; dia_chi: string | null;
   tien: string; ngay_tra: string | null; cho_ngay: string | null;
   channel: string | null; ghi_chu: string | null; con_no: string | null; url: string | null;
+  /** Lúc tạo mã đã chọn sẵn tháng cước chưa — phiếu chưa chọn thì người duyệt
+   *  phải tự tra, nặng hơn hẳn. */
+  co_san_thang: boolean;
 };
 
 /** Phiếu cọc đã thu tiền mà chưa gán vào tháng cước — xem db/191. */
 export const getCocChoPhanBo = () =>
   query<CocChoPhanBo>(
     `select source_id, ma_hd, dia_chi, tien::text, ngay_tra::text, cho_ngay::text,
-            channel, ghi_chu, con_no::text, url
+            channel, ghi_chu, con_no::text, url, co_san_thang
        from v_fixed_coc_cho_phan_bo order by cho_ngay desc nulls last, tien desc`,
   );
 

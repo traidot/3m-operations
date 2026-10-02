@@ -21,15 +21,17 @@ export async function ChiTietCocChoPhanBo({ dongLai }: { dongLai: string }) {
   const rows = await getCocChoPhanBo();
   const tien = rows.reduce((t, r) => t + Number(r.tien), 0);
   const lau = rows.filter((r) => Number(r.cho_ngay ?? 0) >= QUA_LAU).length;
+  const chuaThang = rows.filter((r) => !r.co_san_thang).length;
 
   return (
     <NganKeo dongLai={dongLai}>
-      <h1>Phiếu cọc chờ phân bổ</h1>
+      <h1>Phiếu cọc chờ duyệt</h1>
       <p className="muted">
         {n(rows.length)} phiếu, <b>{n(tien)}</b> yên. Khách đã trả tiền, tiền đã vào
-        tài khoản, nhưng chưa ai gán vào tháng cước nào nên nợ của khách vẫn chưa
-        được trừ.
+        tài khoản, nhưng phiếu chưa được duyệt nên nợ của khách vẫn chưa được trừ.
         {lau > 0 && ` ${n(lau)} phiếu đã chờ từ ${QUA_LAU} ngày trở lên.`}
+        {chuaThang > 0 &&
+          ` ${n(chuaThang)} phiếu lúc tạo mã không chọn tháng cước, người duyệt phải tự tra — đó là phần nằm lâu nhất.`}
       </p>
 
       {rows.length === 0 ? (
@@ -42,6 +44,7 @@ export async function ChiTietCocChoPhanBo({ dongLai }: { dongLai: string }) {
               <th>Địa chỉ</th>
               <th className="num">Tiền</th>
               <th>Khách trả</th>
+              <th>Tháng cước</th>
               <th className="num">Chờ</th>
               <th className="num">Đang nợ</th>
             </tr>
@@ -61,6 +64,13 @@ export async function ChiTietCocChoPhanBo({ dongLai }: { dongLai: string }) {
                 <td className="muted">{r.dia_chi ?? "—"}</td>
                 <td className="num mono">{n(r.tien)}</td>
                 <td className="mono muted">{ngayVn(r.ngay_tra)}</td>
+                <td>
+                  {r.co_san_thang ? (
+                    <span className="muted">đã chọn sẵn</span>
+                  ) : (
+                    <span className="tag warn">phải tự tra</span>
+                  )}
+                </td>
                 <td
                   className={`num mono${Number(r.cho_ngay ?? 0) >= QUA_LAU ? " bad" : " muted"}`}
                 >

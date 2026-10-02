@@ -104,11 +104,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <Link href="/thu-cuoc">xem danh sách →</Link>
           </div>
         </div>
-        <div className="the-so">
-          <div className="the-ten">Cọc chờ phân bổ</div>
+<div className="the-so">
+          <div className="the-ten">Cọc chờ duyệt</div>
           <div className="the-gia-tri mono">{n(cho.coc_tien)}</div>
           <div className="the-phu">
-            khách đã trả nhưng chưa gán vào tháng cước nào, nợ chưa được trừ ·{" "}
+            khách đã trả nhưng phiếu chưa duyệt nên nợ chưa được trừ ·{" "}
+            <b>{n(cho.coc_chua_thang)}</b> phiếu chưa chọn sẵn tháng cước ·{" "}
             <Link href={`${DUONG_DAN}?coc=1`} scroll={false}>
               {n(cho.coc_so)} phiếu, chờ lâu nhất {n(cho.coc_lau_nhat)} ngày →
             </Link>
