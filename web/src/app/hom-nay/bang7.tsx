@@ -21,7 +21,7 @@ const nhanCot = (iso: string, homNay: string) =>
  * font, mỗi máy ra một cỡ một nét, và cái tam giác cảnh báo thường bị font
  * dựng mảnh tới mức nhìn không ra.
  */
-function Dau({ du, chenh }: { du: boolean; chenh: number }) {
+export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
   return (
     <span
       className={`dau ${du ? "du" : "lech"}`}

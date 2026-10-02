@@ -1,4 +1,5 @@
 import { NganKeo } from "../ngan-keo";
+import { Dau } from "./bang7";
 import { getDotThuNgay } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
@@ -35,6 +36,11 @@ export async function ChiTietTien({
 }) {
   const rows = await getDotThuNgay(kenh, ngay);
   const tien = rows.reduce((t, r) => t + Number(r.tien), 0);
+  // Cùng định nghĩa với ô trên bảng: đã duyệt là status APPROVED, phần còn
+  // lại là tiền đã đếm mà kế toán chưa xác nhận.
+  const duyet = rows
+    .filter((r) => r.status === "APPROVED")
+    .reduce((t, r) => t + Number(r.tien), 0);
   const coc = kenh === "cần trừ cọc";
   // Gõ muộn hơn ngày tiền về là nhập bù — đáng chỉ ra vì chính nó làm cột
   // tiền của mấy ngày gần nhất nhìn thấp hơn thực tế.
@@ -96,6 +102,17 @@ export async function ChiTietTien({
                 </tr>
               );
             })}
+            <tr className="tong">
+              <td colSpan={2}>
+                <b>Tổng</b>{" "}
+                <span className="muted">đã duyệt / ghi nhận</span>
+              </td>
+              <td className="num mono nowrap">
+                <span className="muted">{n(duyet)}</span> / <b>{n(tien)}</b>
+                <Dau du={duyet === tien} chenh={tien - duyet} />
+              </td>
+              <td colSpan={3} />
+            </tr>
           </tbody>
         </table>
       )}
