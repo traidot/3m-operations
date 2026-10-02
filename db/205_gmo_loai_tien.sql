@@ -69,3 +69,22 @@ select nhom_tien,
 
 comment on view v_fixed_gmo_loai is
   'Mã combini chia theo thứ đang thu: cước, cọc TP Link, cọc không ghi rõ';
+
+-- Nhóm "cọc không ghi rõ" có bao nhiêu cái mang dấu hiệu TP Link từ chỗ khác:
+-- hợp đồng đang ghi lý do chờ TP Link, hoặc chính hợp đồng đó có mã TP Link
+-- khác. Không dùng để tự động xếp lại nhóm — chỉ để người đọc biết nhóm này
+-- nghiêng về đâu mà không phải tự đoán.
+create or replace view v_fixed_gmo_coc_mo as
+select count(*)                                              as lan,
+       count(*) filter (
+         where e.ly_do_chua_lap_xong ~* 'tp ?-?link'
+            or exists (select 1 from v_fixed_gmo_lan l2
+                        where l2.contract_id = k.contract_id
+                          and l2.nhom_tien = 'coc_tplink')) as co_dau_hieu_tplink
+  from v_fixed_gmo_lan k
+  left join fixed_contract_extra e
+    on e.source = 'FIXED' and e.source_id = k.contract_id
+ where k.nhom_tien = 'coc_khac';
+
+comment on view v_fixed_gmo_coc_mo is
+  'Nhóm cọc không ghi rõ: bao nhiêu cái có dấu hiệu TP Link từ lý do hợp đồng hoặc mã khác cùng hợp đồng';

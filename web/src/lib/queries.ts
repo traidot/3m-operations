@@ -2068,6 +2068,14 @@ export type GmoLoai = {
   ty_le_chet: string | null;
 };
 
+/** Nhóm cọc không ghi rõ: bao nhiêu cái có dấu hiệu TP Link — xem db/205. */
+export const getGmoCocMo = async () => {
+  const [row] = await query<{ lan: string; co_dau_hieu_tplink: string }>(
+    `select lan::text, co_dau_hieu_tplink::text from v_fixed_gmo_coc_mo`,
+  );
+  return row!;
+};
+
 /** Mã combini chia theo thứ đang thu: cước hay cọc TP Link — xem db/205. */
 export const getGmoLoai = () =>
   query<GmoLoai>(

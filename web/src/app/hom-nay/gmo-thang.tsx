@@ -16,7 +16,16 @@ const DANG_LO = 25;
  * số đã trả chia tổng thì tháng đang chạy nào cũng trông tệ, rồi "đẹp dần lên"
  * khi các mã lần lượt hết hạn — một xu hướng không có thật.
  */
-export function BangGmoThang({ ds, loai }: { ds: GmoThang[]; loai: GmoLoai[] }) {
+export function BangGmoThang({
+  ds,
+  loai,
+  cocMo,
+}: {
+  ds: GmoThang[];
+  loai: GmoLoai[];
+  /** Nhóm "cọc không ghi rõ" nghiêng về đâu, để người đọc khỏi tự đoán. */
+  cocMo: { lan: string; co_dau_hieu_tplink: string };
+}) {
   if (ds.length === 0) return null;
 
   return (
@@ -79,7 +88,11 @@ export function BangGmoThang({ ds, loai }: { ds: GmoThang[]; loai: GmoLoai[] }) 
         lần tạo ghi rõ “Cọc TP Link” mà vẫn để ô Loại là cước, lại có 49 lần
         chọn Cọc nhưng bỏ trống ghi chú. Bảng lấy ghi chú làm chuẩn khi nó có
         nói, còn lại theo ô Loại — nên nhóm cuối để riêng chứ không gộp vào cọc
-        TP Link, dù số tiền đều rơi đúng mức 2.000–3.000.
+        TP Link, dù số tiền đều rơi đúng mức 2.000–3.000. Trong{" "}
+        {n(cocMo.lan)} lần tạo của nhóm đó, <b>{n(cocMo.co_dau_hieu_tplink)}</b> cái
+        có dấu hiệu TP Link từ chỗ khác — hợp đồng đang ghi lý do chờ TP Link,
+        hoặc chính hợp đồng đó có mã TP Link khác; số còn lại không có gì để dựa
+        vào.
       </p>
       <div className="scroller">
         <table>
