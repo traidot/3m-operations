@@ -228,6 +228,11 @@ summary:hover { color: var(--ok); }
 /* Cột ngày xen kẽ, thật nhạt: đủ để mắt bám theo một cột, chưa đủ để thành
    bảng kẻ sọc. */
 .deu tbody td.o-le { background: var(--soc); }
+/* Dấu ở cuối ô tiền: khớp hay thiếu so với số ghi nhận. */
+.dau { display: inline-block; vertical-align: -3px; margin-left: 7px; }
+.dau.du { color: var(--ok); }
+.dau.lech { color: var(--bad); }
+
 /* Ô bấm được: không gạch chân sẵn, chỉ đổi khi rê chuột — bảng toàn số mà gạch
    chân hết thì rối, nhưng vẫn phải lộ ra là bấm được. */
 .o-mo { color: inherit; text-decoration: none; display: block; }

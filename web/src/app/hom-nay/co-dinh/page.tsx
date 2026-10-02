@@ -111,7 +111,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         ds={cua("tien")}
         kieu="tien"
         moO={DUONG_DAN}
-        phu="Dòng “cần trừ cọc” là tiền khách đã nộp từ trước, nay trừ sang cước — có ghi nhận nhưng không có đồng nào mới vào ngân hàng, nên nó đứng ngoài dòng tổng. Bấm một ô để xem từng đợt thu."
+        phu="Ô tài khoản ghi “tiền vào ngân hàng / tổng ghi nhận”, dấu ✓ là hai số khớp. Dòng “cần trừ cọc” chỉ một số vì ở đó không có đồng nào vào ngân hàng — khách đã nộp từ trước, nay trừ sang cước — nên nó đứng ngoài dòng tổng. Bấm một ô để xem từng đợt thu."
       />
 
       <Bang7

@@ -17,6 +17,51 @@ const nhanCot = (iso: string, homNay: string) =>
   iso === homNay ? "hôm nay" : iso.slice(8, 10) + "/" + iso.slice(5, 7);
 
 /**
+ * Dấu đứng cuối ô tiền. Vẽ bằng SVG chứ không dùng ký tự ✓ ⚠: ký tự phụ thuộc
+ * font, mỗi máy ra một cỡ một nét, và cái tam giác cảnh báo thường bị font
+ * dựng mảnh tới mức nhìn không ra.
+ */
+function Dau({ du, chenh }: { du: boolean; chenh: number }) {
+  return (
+    <span
+      className={`dau ${du ? "du" : "lech"}`}
+      title={du ? "tiền về đủ vào tài khoản" : `thiếu ${n(chenh)} so với ghi nhận`}
+    >
+      <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+        {du ? (
+          <path
+            d="M3 8.6l3.3 3.3L13.2 5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : (
+          <>
+            <path
+              d="M8 1.9l6.6 11.6H1.4z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M8 6.3v3"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+            <circle cx="8" cy="11.6" r="0.95" fill="currentColor" />
+          </>
+        )}
+      </svg>
+    </span>
+  );
+}
+
+/**
  * Bảng bảy ngày: mỗi hàng một chỉ số, mỗi cột một ngày.
  *
  * `kieu` chỉ đổi cách cộng ở dòng cuối: nhóm tiền tách tổng làm hai dòng,
@@ -53,10 +98,30 @@ export function Bang7({
   const tongCot = (ngay: string, cot: "tien" | "that" | "so") =>
     chiSos.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
 
-  // Cấn trừ cọc nằm sẵn ở dòng riêng của nó, nên từng ô chỉ cần một con số.
-  // Chỗ duy nhất phải tách là dòng tổng: cộng gộp thì không biết bao nhiêu
-  // thật sự vào ngân hàng.
-  const coCoc = ngays.some((d) => tongCot(d, "tien") !== tongCot(d, "that"));
+  // Dòng cấn trừ cọc nhận ra bằng chính số liệu: cả tuần không có đồng nào
+  // vào tài khoản mà vẫn có tiền ghi nhận. Không dò theo tên kênh — tên bên
+  // nguồn đổi lúc nào không biết.
+  const laCoc = (cs: string) =>
+    ngays.every((d) => giaTri(o.get(`${cs}|${d}`), "that") === 0) &&
+    ngays.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
+  const kenhThat = chiSos.filter((cs) => !laCoc(cs));
+  const kenhCoc = chiSos.filter(laCoc);
+  const congQua = (ds: string[], ngay: string, cot: "tien" | "that") =>
+    ds.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
+
+  // Hai số "tiền vào tài khoản / tổng ghi nhận" kèm dấu. Ô cấn trừ cọc thì
+  // một số thôi: ở đó không có gì vào tài khoản, viết "0 / 11.000" kèm dấu
+  // cảnh báo chỉ làm nghiệp vụ bình thường trông như sự cố.
+  const oTien = (that: number, tong: number, dam = false) => {
+    if (tong === 0) return <span className="muted">—</span>;
+    if (that === 0) return dam ? <b>{n(tong)}</b> : <>{n(tong)}</>;
+    return (
+      <>
+        <span className="muted">{n(that)}</span> / {dam ? <b>{n(tong)}</b> : n(tong)}
+        <Dau du={that === tong} chenh={tong - that} />
+      </>
+    );
+  };
 
   return (
     <section>
@@ -90,7 +155,14 @@ export function Bang7({
                 {ngays.map((d, i) => {
                   const r = o.get(`${cs}|${d}`);
                   const co = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
-                  const noi = co === 0 ? <span className="muted">—</span> : n(co);
+                  const noi =
+                    kieu === "tien" ? (
+                      oTien(giaTri(r, "that"), co)
+                    ) : co === 0 ? (
+                      <span className="muted">—</span>
+                    ) : (
+                      n(co)
+                    );
                   return (
                     <td key={d} className={`num mono${xenKe(i)}`}>
                       {moO !== undefined && co > 0 ? (
@@ -110,25 +182,28 @@ export function Bang7({
                 <td>
                   <b>{kieu === "tien" ? "Tổng vào tài khoản" : "Tổng"}</b>
                 </td>
-                {ngays.map((d, i) => {
-                  const v = tongCot(d, kieu === "tien" ? "that" : "so");
-                  return (
-                    <td key={d} className={`num mono${xenKe(i)}`}>
-                      {v === 0 ? <span className="muted">—</span> : <b>{n(v)}</b>}
-                    </td>
-                  );
-                })}
+                {ngays.map((d, i) => (
+                  <td key={d} className={`num mono${xenKe(i)}`}>
+                    {kieu === "tien" ? (
+                      oTien(congQua(kenhThat, d, "that"), congQua(kenhThat, d, "tien"), true)
+                    ) : tongCot(d, "so") === 0 ? (
+                      <span className="muted">—</span>
+                    ) : (
+                      <b>{n(tongCot(d, "so"))}</b>
+                    )}
+                  </td>
+                ))}
               </tr>
             )}
             {/* Dòng này không cộng vào dòng trên: nó là tiền ghi nhận chứ
                 không phải tiền mới vào ngân hàng. */}
-            {congTong && kieu === "tien" && coCoc && (
+            {congTong && kieu === "tien" && kenhCoc.length > 0 && (
               <tr className="tong">
                 <td className="muted">
                   Cấn trừ cọc <span className="muted">· ngoài tài khoản</span>
                 </td>
                 {ngays.map((d, i) => {
-                  const v = tongCot(d, "tien") - tongCot(d, "that");
+                  const v = congQua(kenhCoc, d, "tien");
                   return (
                     <td key={d} className={`num mono muted${xenKe(i)}`}>
                       {v === 0 ? "—" : n(v)}
