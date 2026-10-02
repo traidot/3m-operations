@@ -6,10 +6,12 @@ import { ChiTietTien } from "../chi-tiet-tien";
 import { ChiTietLapQuaHan } from "../chi-tiet-lap";
 import { ChiTietHuy } from "../chi-tiet-huy";
 import { ChiTietCocChoPhanBo, ChiTietGmoQuaHan } from "../chi-tiet-coc";
+import { BangGmoThang } from "../gmo-thang";
 import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
   getChoXuLyGmo,
+  getGmoThang,
   getCongNoCoDinh,
   getFreshness,
   getLapDatQuaHan,
@@ -31,13 +33,14 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, freshness] = await Promise.all([
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, freshness] = await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
     getTongHopNgay(),
     getLapDatQuaHan(),
     getCongNoCoDinh(),
     getChoXuLyGmo(),
+    getGmoThang(),
     getFreshness(),
   ]);
 
@@ -199,6 +202,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         kieu="so"
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
+      <BangGmoThang ds={gmoThang} />
+
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
         // đúng ngăn kéo đó.

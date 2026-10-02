@@ -2027,6 +2027,21 @@ export const getGmoQuaHan = () =>
        from v_fixed_gmo_qua_han order by qua_han_ngay desc, tien desc`,
   );
 
+export type GmoThang = {
+  thang: string;
+  tao: string; da_tra: string; chet: string; dang_cho: string;
+  tien_tra: string | null; tien_chet: string | null; tien_cho: string | null;
+  ty_le_chet: string | null;
+};
+
+/** Mã combini theo tháng tạo — xem db/192. */
+export const getGmoThang = () =>
+  query<GmoThang>(
+    `select thang, tao::text, da_tra::text, chet::text, dang_cho::text,
+            tien_tra::text, tien_chet::text, tien_cho::text, ty_le_chet::text
+       from v_fixed_gmo_thang order by thang`,
+  );
+
 export type TongHopNgay = {
   ngay: string;
   lan_dau: string;
