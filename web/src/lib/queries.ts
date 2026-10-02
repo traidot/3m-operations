@@ -320,12 +320,15 @@ export type Contract = {
   do_cong_ty: boolean;
   so_ky_treo_duyet: string;
   tien_treo_duyet: string;
+  /** DA_HUY / CHUA_LAP / CHUA_HOAT_DONG / DANG_THU — xem db/194. */
+  trang_thai_van_hanh: string;
 };
 
 export type ContractFilter = {
   q?: string;
   hopDong?: string;
   lapDat?: string;
+  vanHanh?: string;
   cuoc?: string;
   canhBao?: string;
   ky?: string;
@@ -347,7 +350,8 @@ const COT_HOP_DONG = `subscription_id, contract_code, dia_chi, trang_thai_hop_do
        tinh_trang_cuoc, canh_bao,
        so_ky_chua_den_han::text, tien_chua_den_han::text,
        coc_cho_duyet::text, so_phieu_coc_cho::text, con_no_sau_coc::text,
-       do_cong_ty, so_ky_treo_duyet::text, tien_treo_duyet::text`;
+       do_cong_ty, so_ky_treo_duyet::text, tien_treo_duyet::text,
+       trang_thai_van_hanh`;
 
 export const CONTRACTS_PER_PAGE = 50;
 
@@ -399,6 +403,10 @@ function contractWhere(f: ContractFilter): { sql: string; params: unknown[] } {
                 where p.subscription_id = v_fixed_contract.subscription_id
                   and p.ky = ${ky} and not p.ngoai_ky_tinh${them})`,
     );
+  }
+  if (f.vanHanh) {
+    params.push(f.vanHanh);
+    dieu.push(`trang_thai_van_hanh = $${params.length}`);
   }
   if (f.thangKy) {
     params.push(f.thangKy);

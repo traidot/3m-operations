@@ -17,6 +17,8 @@ import {
   KHONG_SINH_KY,
   KY_CUOC,
   LAP_DAT,
+  MAU_VAN_HANH,
+  VAN_HANH,
   LY_DO_HUY,
   PHU_TRACH,
   TINH_TRANG_CUOC,
@@ -63,6 +65,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     q: mot(sp.q),
     hopDong: mot(sp.hd),
     lapDat: mot(sp.lap),
+    vanHanh: mot(sp.vh),
     cuoc: mot(sp.cuoc),
     canhBao: mot(sp.cb),
     ky: mot(sp.ky),
@@ -135,6 +138,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </label>
           <Chon ten="hd" nhan="Trạng thái hợp đồng" chon={loc.hopDong!} lua={HOP_DONG} />
           <Chon ten="lap" nhan="Lắp đặt" chon={loc.lapDat!} lua={LAP_DAT} />
+          <Chon ten="vh" nhan="Vận hành" chon={loc.vanHanh!} lua={VAN_HANH} />
           <Chon ten="pt" nhan="Phụ trách" chon={loc.phuTrach!} lua={PHU_TRACH} />
           <Chon ten="cuoc" nhan="Tình trạng cước" chon={loc.cuoc!} lua={TINH_TRANG_CUOC} />
           <Chon ten="ly_do" nhan="Lý do huỷ" chon={loc.lyDoHuy!} lua={LY_DO_HUY} />
@@ -192,6 +196,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th>Địa chỉ lắp</th>
                 <th>Hợp đồng</th>
                 <th>Lắp đặt</th>
+                <th>Vận hành</th>
                 <th>Cảnh báo</th>
                 <th className="num">Cước/tháng</th>
                 <th className="num">Kỳ</th>
@@ -230,6 +235,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td>
                     <Chip ma={r.trang_thai_lap_dat} nhan={LAP_DAT} />
+                  </td>
+                  <td>
+                    <span className={`tag ${MAU_VAN_HANH[r.trang_thai_van_hanh] ?? ""}`}>
+                      {VAN_HANH[r.trang_thai_van_hanh] ?? r.trang_thai_van_hanh}
+                    </span>
                   </td>
                   <td>
                     {r.canh_bao.length === 0 ? (

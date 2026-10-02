@@ -15,6 +15,8 @@ import {
   KHONG_SINH_KY,
   KY_CUOC,
   LAP_DAT,
+  MAU_VAN_HANH,
+  VAN_HANH,
   LY_DO_HUY,
   TINH_TRANG_CUOC,
 } from "@/lib/nhan";
@@ -135,7 +137,10 @@ export async function ChiTiet({
               <h3>Lắp đặt và gói cước</h3>
               <dl>
                 <O ten="lắp đặt">
-                  <Chip ma={hd.trang_thai_lap_dat} nhan={LAP_DAT} />
+                  <Chip ma={hd.trang_thai_lap_dat} nhan={LAP_DAT} />{" "}
+                  <span className={`tag ${MAU_VAN_HANH[hd.trang_thai_van_hanh] ?? ""}`}>
+                    {VAN_HANH[hd.trang_thai_van_hanh] ?? hd.trang_thai_van_hanh}
+                  </span>
                 </O>
                 <O ten="lắp xong" gia_tri={hd.ngay_lap_xong ?? "—"} />
                 <O ten="gói" gia_tri={hd.goi_cuoc ?? "—"} />

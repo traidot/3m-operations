@@ -18,6 +18,27 @@ export const MAU_HOP_DONG: Record<string, string> = {
   PENDING: "tat",
 };
 
+/**
+ * Tình trạng vận hành thật của hợp đồng, ghép từ trạng thái hợp đồng + lắp đặt
+ * + ngày bắt đầu thu. "Chưa hoạt động" là đã lắp xong nhưng chưa tới ngày thu —
+ * ở trạng thái đó hợp đồng CHƯA THỂ sinh kỳ cước, nên không có kỳ là đúng chứ
+ * không phải thiếu dữ liệu.
+ */
+export const VAN_HANH: Record<string, string> = {
+  DANG_THU: "đang thu cước",
+  CHUA_HOAT_DONG: "chưa hoạt động",
+  CHUA_LAP: "chưa lắp xong",
+  DA_HUY: "đã huỷ",
+};
+
+/** Chỉ hai tên này có trong bảng màu của nhãn; trạng thái bình thường để xám. */
+export const MAU_VAN_HANH: Record<string, string> = {
+  DANG_THU: "",
+  CHUA_HOAT_DONG: "warn",
+  CHUA_LAP: "",
+  DA_HUY: "critical",
+};
+
 export const LAP_DAT: Record<string, string> = {
   DONE: "lắp xong",
   SURVEY: "chưa lắp",
