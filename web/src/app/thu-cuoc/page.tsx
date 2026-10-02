@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { getKhoanThu, getThuCuocTomTat } from "@/lib/queries";
+import { getDifficultDebt, getKhoanThu, getThuCuocTomTat } from "@/lib/queries";
+import { HOP_DONG } from "@/lib/nhan";
+import { Chip } from "../chip";
 import { DICH_VU, KY_CUOC } from "@/lib/nhan";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +33,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const nguon = mot(sp.nguon) in NGUON ? mot(sp.nguon) : "";
   const chiQuaHan = mot(sp.qh) === "1";
 
-  const [rows, tomTat] = await Promise.all([
+  const [rows, tomTat, khoDoi] = await Promise.all([
     getKhoanThu(nguon || undefined, chiQuaHan),
     getThuCuocTomTat(),
+    getDifficultDebt(),
   ]);
 
   const cong = (loc: (t: (typeof tomTat)[number]) => boolean) =>
@@ -152,6 +155,51 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {r.link_cms && (
                       <a href={r.link_cms} target="_blank" rel="noreferrer">CMS ↗</a>
                     )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <h2>Khách khó đòi</h2>
+      <p className="muted">
+        Kế toán đánh dấu tay bên hệ thống nguồn, không suy ra từ số kỳ nợ — nên có hợp
+        đồng đang nợ 0 đồng vẫn nằm đây, và ngược lại hợp đồng nợ nặng chưa chắc đã bị
+        đánh dấu. Đây là danh sách hiện tại, không có trục thời gian.
+      </p>
+      {khoDoi.length === 0 ? (
+        <p className="empty">Chưa hợp đồng nào bị đánh dấu khó đòi.</p>
+      ) : (
+        <div className="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>Hợp đồng</th>
+                <th>Trạng thái</th>
+                <th>Thu tới kỳ</th>
+                <th className="num">Kỳ nợ</th>
+                <th className="num">Còn nợ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {khoDoi.map((k) => (
+                <tr key={k.subscription_id}>
+                  <td className="mono">
+                    <Link href={`/hop-dong?xem=${k.subscription_id}`}>
+                      {k.contract_code ?? "—"}
+                    </Link>
+                  </td>
+                  <td>
+                    <Chip ma={k.trang_thai_hop_dong} nhan={HOP_DONG} />
+                  </td>
+                  <td className="mono">{k.ky_da_thu_gan_nhat ?? "chưa thu kỳ nào"}</td>
+                  <td className={`num mono${Number(k.so_ky_no) > 0 ? " bad" : ""}`}>
+                    {n(k.so_ky_no)}
+                  </td>
+                  <td className={`num mono${Number(k.con_no) > 0 ? " bad" : ""}`}>
+                    {n(k.con_no)}
                   </td>
                 </tr>
               ))}
