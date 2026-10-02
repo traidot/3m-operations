@@ -2074,12 +2074,6 @@ export const getGmoQuaHan = () =>
       order by (con_no > 0) desc, con_no desc nulls last, qua_han_ngay desc`,
   );
 
-export type GmoLoai = {
-  nhom_tien: string; ten: string; lan: string; da_tra: string; chet: string;
-  dang_cho: string; tien_tra: string | null; hop_dong_hong: string;
-  ty_le_chet: string | null;
-};
-
 /** Nhóm cọc không ghi rõ: bao nhiêu cái có dấu hiệu TP Link — xem db/205. */
 export const getGmoCocMo = async () => {
   const [row] = await query<{ lan: string; co_dau_hieu_tplink: string }>(
@@ -2087,14 +2081,6 @@ export const getGmoCocMo = async () => {
   );
   return row!;
 };
-
-/** Mã combini chia theo thứ đang thu: cước hay cọc TP Link — xem db/205. */
-export const getGmoLoai = () =>
-  query<GmoLoai>(
-    `select nhom_tien, ten, lan::text, da_tra::text, chet::text, dang_cho::text,
-            tien_tra::text, hop_dong_hong::text, ty_le_chet::text
-       from v_fixed_gmo_loai order by lan desc`,
-  );
 
 export type GmoThang = {
   thang: string;
@@ -2143,11 +2129,28 @@ export type CocLoai = {
   phai_tu_tra: string; lau_nhat: string;
 };
 
-/** Phiếu cọc chờ duyệt chia theo thứ đang thu — xem db/206. */
-export const getCocChoDuyetLoai = () =>
-  query<CocLoai>(
-    `select nhom_tien, ten, so_phieu::text, tien::text, phai_tu_tra::text, lau_nhat::text
-       from v_fixed_coc_cho_duyet_loai order by so_phieu desc`,
+export type CocO = CocLoai & { bac: string; nhom: string };
+
+/** Phiếu cọc chờ duyệt cắt theo cả tuổi chờ lẫn thứ đang thu — xem db/207. */
+export const getCocChoDuyetO = () =>
+  query<CocO>(
+    `select bac::text, nhom, nhom_tien, ten, so_phieu::text, tien::text,
+            phai_tu_tra::text, lau_nhat::text
+       from v_fixed_coc_cho_duyet_o order by bac, nhom_tien`,
+  );
+
+export type GmoThangLoai = {
+  thang: string; nhom_tien: string; ten: string;
+  tao: string; da_tra: string; chet: string; dang_cho: string;
+  hop_dong_hong: string; tien_tra: string | null; ty_le_chet: string | null;
+};
+
+/** Mã combini cắt theo cả tháng tạo lẫn thứ đang thu — xem db/207. */
+export const getGmoThangLoai = () =>
+  query<GmoThangLoai>(
+    `select thang, nhom_tien, ten, tao::text, da_tra::text, chet::text,
+            dang_cho::text, hop_dong_hong::text, tien_tra::text, ty_le_chet::text
+       from v_fixed_gmo_thang_loai order by thang, nhom_tien`,
   );
 
 export type CocNhom = {

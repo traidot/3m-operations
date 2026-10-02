@@ -13,11 +13,11 @@ import {
   getBaoCaoNgayCoDinh7,
   getBaoCaoNgayCoDinh30,
   getChoXuLyGmo,
-  getCocChoDuyetLoai,
+  getCocChoDuyetO,
   getCocChoDuyetNhom,
   getLinkCms,
   getGmoCocMo,
-  getGmoLoai,
+  getGmoThangLoai,
   getGmoThang,
   getCongNoCoDinh,
   getFreshness,
@@ -40,7 +40,7 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoLoai, cocMo, cocNhom, cocLoai, linkDuyet, freshness] =
+  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
     await Promise.all([
     getBaoCaoNgayCoDinh7(),
     getBaoCaoNgayCoDinh30(),
@@ -49,10 +49,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     getCongNoCoDinh(),
     getChoXuLyGmo(),
     getGmoThang(),
-    getGmoLoai(),
+    getGmoThangLoai(),
     getGmoCocMo(),
     getCocChoDuyetNhom(),
-    getCocChoDuyetLoai(),
+    getCocChoDuyetO(),
     getLinkCms("fixed_cms_deposit_url"),
     getFreshness(),
   ]);
@@ -228,9 +228,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         kieu="so"
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
-      <BangGmoThang ds={gmoThang} loai={gmoLoai} cocMo={cocMo} />
+      <BangGmoThang ds={gmoThang} o={gmoO} cocMo={cocMo} />
 
-      <BangCocNhom ds={cocNhom} loai={cocLoai} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
+      <BangCocNhom ds={cocNhom} o={cocO} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
@@ -246,18 +246,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         (() => {
           // "l-<mã>" là lọc theo thứ đang thu, số trần là bậc tuổi chờ,
           // "all" là mọi phiếu.
+          // "all" = mọi phiếu, "<bậc>" = một nhóm tuổi chờ,
+          // "<bậc>.<loại>" = một ô của bảng.
           const v = mot(sp.coc);
-          const theoLoai = v.startsWith("l-") ? v.slice(2) : undefined;
+          const [b, l] = v === "all" ? [undefined, undefined] : v.split(".");
+          const tenBac = cocNhom.find((r) => r.bac === b)?.nhom;
+          const tenLoai = cocO.find((r) => r.nhom_tien === l)?.ten;
           return (
             <ChiTietCocChoPhanBo
               dongLai={DUONG_DAN}
-              bac={v === "all" || theoLoai !== undefined ? undefined : v}
-              loai={theoLoai}
-              nhom={
-                theoLoai === undefined
-                  ? cocNhom.find((r) => r.bac === v)?.nhom
-                  : cocLoai.find((r) => r.nhom_tien === theoLoai)?.ten
-              }
+              bac={b}
+              loai={l}
+              nhom={[tenBac, tenLoai].filter(Boolean).join(" · ") || undefined}
             />
           );
         })()}
