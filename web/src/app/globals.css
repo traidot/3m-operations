@@ -64,6 +64,14 @@ body {
 .wrap { margin: 0 auto; padding: 32px 28px 64px; }
 
 nav { display: flex; gap: 12px 28px; flex-wrap: wrap; align-items: flex-end; padding-bottom: 18px; border-bottom: 1px solid var(--line-strong); margin-bottom: 28px; }
+/* Link chưa có màu riêng: mặc định của trình duyệt là xanh dương #00e và tím
+   #551a8b, cả hai đọc không nổi trên nền tối. Dùng màu lam của bảng màu, và
+   link đã xem thì pha xám cho nhạt đi — vẫn phân biệt được mà không tối sầm.
+   CSS chỉ cho phép đổi màu ở :visited, nên không thể đánh dấu bằng cách khác. */
+a { color: var(--lam); text-underline-offset: 2px; }
+a:visited { color: color-mix(in oklab, var(--lam) 62%, var(--muted)); }
+a:hover { color: var(--ok); }
+
 nav a { color: var(--muted); text-decoration: none; font-size: 0.92rem; }
 nav a:hover { color: var(--ink); }
 .nav-chinh { color: var(--ink) !important; font-weight: 500; margin-left: auto; }
