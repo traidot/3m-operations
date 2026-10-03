@@ -32,7 +32,7 @@ export function BangCocNhom({
   return (
     <section>
       <h2>
-        7 · Cọc chờ duyệt{" "}
+        6 · Cọc chờ duyệt{" "}
         <span className="muted">— phiếu khách đã trả mà chưa ai duyệt</span>
       </h2>
       <p className="muted">

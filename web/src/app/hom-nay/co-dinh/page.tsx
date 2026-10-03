@@ -194,7 +194,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <BangNgay
         ten="3 · Tiền về theo ngày"
-        y="mỗi tài khoản một dòng, đơn vị yên"
+        y="mỗi tài khoản một cột, đơn vị yên"
         ds={cua("tien")}
         kieu="tien"
         moO={DUONG_DAN}
@@ -228,9 +228,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         kieu="so"
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
       />
-      <BangGmoThang ds={gmoThang} o={gmoO} cocMo={cocMo} />
-
       <BangCocNhom ds={cocNhom} o={cocO} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
+
+      <BangGmoThang ds={gmoThang} o={gmoO} cocMo={cocMo} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra

@@ -45,7 +45,7 @@ export function BangGmoThang({
   return (
     <section>
       <h2>
-        6 · Mã combini{" "}
+        7 · Mã combini{" "}
         <span className="muted">— bao nhiêu mã tạo ra rồi chết, và thu cái gì</span>
       </h2>
       <p className="muted">
