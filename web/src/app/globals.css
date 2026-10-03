@@ -198,6 +198,7 @@ td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: t
 /* Cột đầu và cột cuối cũng cần đệm, không thì chữ dính sát mép bảng. */
 th:first-child, td:first-child { padding-left: 10px; }
 th:last-child, td:last-child { padding-right: 14px; }
+.ok { color: var(--ok); }
 .bad { color: var(--bad); }
 tr.sub td { border-bottom: 0; padding-top: 3px; padding-bottom: 3px; font-size: 0.82rem; }
 tr.sub td:first-child { padding-left: 16px; }

@@ -1995,6 +1995,24 @@ export const getHuyNgay = (ngay: string) =>
     [ngay],
   );
 
+export type ThangNay = {
+  ngay_da_qua: string; ky: string;
+  doanh_thu: string; doanh_thu_cung_ky: string;
+  huy: string; huy_cung_ky: string;
+  ky_moi: string; tien_chua_thu: string; ky_chua_thu: string;
+};
+
+/** Bốn con số của tháng đang chạy, kèm cùng kỳ tháng trước — xem db/211. */
+export const getThangNay = async () => {
+  const [row] = await query<ThangNay>(
+    `select ngay_da_qua::text, ky, doanh_thu::text, doanh_thu_cung_ky::text,
+            huy::text, huy_cung_ky::text, ky_moi::text,
+            tien_chua_thu::text, ky_chua_thu::text
+       from v_fixed_thang_nay`,
+  );
+  return row!;
+};
+
 export type ChoXuLyGmo = {
   coc_so: string; coc_tien: string; coc_lau_nhat: string | null;
   gmo_so: string; gmo_tien: string; gmo_lau_nhat: string | null;

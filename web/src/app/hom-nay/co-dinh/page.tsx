@@ -8,6 +8,7 @@ import { ChiTietHuy } from "../chi-tiet-huy";
 import { ChiTietCocChoPhanBo, ChiTietGmoQuaHan } from "../chi-tiet-coc";
 import { BangGmoThang } from "../gmo-thang";
 import { BangCocNhom } from "../coc-nhom";
+import { TheThang } from "../the-thang";
 import { ChiTietChuaHoatDong } from "../chi-tiet-chua-hoat-dong";
 import {
   getBaoCao28NgayCoDinh,
@@ -22,6 +23,7 @@ import {
   getCongNoCoDinh,
   getFreshness,
   getLapDatQuaHan,
+  getThangNay,
   getTongHop28,
 } from "@/lib/queries";
 
@@ -40,11 +42,12 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
+  const [ngay7, ngay30, tongHop, thangNay, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
     await Promise.all([
     getBaoCao28NgayCoDinh(),
     getBaoCaoNgayCoDinh30(),
     getTongHop28(),
+    getThangNay(),
     getLapDatQuaHan(),
     getCongNoCoDinh(),
     getChoXuLyGmo(),
@@ -108,6 +111,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         )}
       </p>
 
+      <TheThang t={thangNay} moTai={DUONG_DAN} />
+
+      <h2>
+        Đang treo <span className="muted">— tiền và việc đứng lại, không theo tháng nào</span>
+      </h2>
       <div className="the-hang gon">
         <div className="the-so">
           <div className="the-ten">Đang phải thu</div>
