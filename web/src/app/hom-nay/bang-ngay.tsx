@@ -18,9 +18,30 @@ const thu = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay();
 /** Cuối tuần: nhịp làm việc khác hẳn, không đánh dấu thì nhìn như ngày ế. */
 const cuoiTuan = (iso: string) => thu(iso) === 0 || thu(iso) === 6;
 
-/** Nhãn hàng: thứ rồi tới ngày. Hôm nay ghi rõ để khỏi đếm ngược. */
-const nhanNgay = (ngay: string, homNay: string) =>
-  `${ngay === homNay ? "hôm nay" : THU[thu(ngay)]} ${ngay.slice(8, 10)}/${ngay.slice(5, 7)}`;
+/** Ngày liền trước, dạng ISO. */
+const homQuaCua = (homNay: string) => {
+  const d = new Date(`${homNay}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+};
+
+/**
+ * Nhãn hàng: thứ rồi tới ngày. Hai ngày gần nhất ghi chữ thay cho thứ — đó là
+ * hai dòng người ta tìm trước tiên, đếm ngược từ đầu bảng thì mất công.
+ */
+export const nhanNgay = (ngay: string, homNay: string) => {
+  const d = `${ngay.slice(8, 10)}/${ngay.slice(5, 7)}`;
+  if (ngay === homNay) return `hôm nay ${d}`;
+  if (ngay === homQuaCua(homNay)) return `hôm qua ${d}`;
+  return `${THU[thu(ngay)]} ${d}`;
+};
+
+/** Lớp của một hàng ngày: hai ngày gần nhất nổi lên, cuối tuần tô nhạt. */
+export const lopNgay = (ngay: string, homNay: string) => {
+  if (ngay === homNay) return "o-homnay";
+  if (ngay === homQuaCua(homNay)) return "o-homqua";
+  return cuoiTuan(ngay) ? "o-nghi" : undefined;
+};
 
 /**
  * Dấu đứng cuối ô tiền. Vẽ bằng SVG chứ không dùng ký tự ✓ ⚠: ký tự phụ thuộc
@@ -179,7 +200,7 @@ export function BangNgay({
           </thead>
           <tbody>
             {ngays.map((d) => (
-              <tr key={d} className={cuoiTuan(d) ? "o-nghi" : undefined}>
+              <tr key={d} className={lopNgay(d, homNay)}>
                 <td className="mono">{nhanNgay(d, homNay)}</td>
                 {chiSos.map((cs) => (
                   <td key={cs} className="num mono">

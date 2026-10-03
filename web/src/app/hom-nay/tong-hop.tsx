@@ -3,13 +3,7 @@ import type { TongHop28 } from "@/lib/queries";
 const n = (v: number) =>
   v === 0 ? <span className="muted">—</span> : v.toLocaleString("vi-VN");
 
-const THU = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-const thu = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay();
-const cuoiTuan = (iso: string) => thu(iso) === 0 || thu(iso) === 6;
-
-/** Nhãn hàng: thứ rồi tới ngày — nhịp cuối tuần khác hẳn nên phải đọc ra ngay. */
-const nhanNgay = (iso: string) =>
-  `${THU[thu(iso)]} ${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+import { lopNgay, nhanNgay } from "./bang-ngay";
 
 const tyLe = (huy: number, dk: number) =>
   dk === 0 ? null : Math.round((huy / dk) * 1000) / 10;
@@ -58,6 +52,8 @@ export function BangTongHop({ ds }: { ds: TongHop28[] }) {
   if (ds.length === 0) return null;
 
   const tong = (k: keyof TongHop28) => ds.reduce((t, r) => t + Number(r[k]), 0);
+  // Dữ liệu xếp ngày mới nhất lên đầu.
+  const homNay = ds[0]?.ngay ?? "";
 
   /** Một ô số, dùng chung cho dòng tổng và dòng ngày. */
   const o = (k: (typeof COT)[number]["k"], lay: (c: keyof TongHop28) => number) => {
@@ -115,8 +111,8 @@ export function BangTongHop({ ds }: { ds: TongHop28[] }) {
               ))}
             </tr>
             {ds.map((r) => (
-              <tr key={r.ngay} className={cuoiTuan(r.ngay) ? "o-nghi" : undefined}>
-                <td className="mono">{nhanNgay(r.ngay)}</td>
+              <tr key={r.ngay} className={lopNgay(r.ngay, homNay)}>
+                <td className="mono">{nhanNgay(r.ngay, homNay)}</td>
                 {COT.map((c, i) => (
                   <td
                     key={c.k}

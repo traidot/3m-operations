@@ -250,6 +250,21 @@ summary:hover { color: var(--ok); }
    nghỉ không bị đọc nhầm thành ngày ế. */
 tbody tr.o-nghi td { background: color-mix(in oklab, var(--ink) 11%, transparent); }
 
+/* Hôm nay và hôm qua: hai dòng người ta tìm trước tiên trong bảng 28 ngày.
+   Vạch bên trái chỉ vẽ ở ô đầu nên không cắt ngang cả hàng, và đặt sau luật
+   cuối tuần để ngày nghỉ rơi vào hai dòng này vẫn nổi lên. */
+tbody tr.o-homnay td { background: color-mix(in oklab, var(--ok) 15%, transparent); }
+tbody tr.o-homnay td:first-child {
+  box-shadow: inset 3px 0 0 var(--ok);
+  color: var(--ink);
+  font-weight: 600;
+}
+tbody tr.o-homqua td { background: color-mix(in oklab, var(--ok) 7%, transparent); }
+tbody tr.o-homqua td:first-child {
+  box-shadow: inset 3px 0 0 color-mix(in oklab, var(--ok) 45%, transparent);
+  color: var(--ink);
+}
+
 /* Dấu ở cuối ô tiền: khớp hay thiếu so với số ghi nhận. */
 .dau { display: inline-block; vertical-align: -3px; margin-left: 7px; }
 .dau.du { color: var(--ok); }
