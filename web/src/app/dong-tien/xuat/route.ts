@@ -28,7 +28,10 @@ const TEN_NHIP: Record<GocNhin, Record<string, string>> = {
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const thang = sp.get("thang") ?? new Date().toISOString().slice(0, 7);
-  const pv = (sp.get("pv") ?? "thang") as PhamVi;
+  // Ép kiểu thẳng thì link cũ còn ghi pv=tat-ca (phạm vi đã bỏ) sẽ lọt qua và
+  // rơi vào nhánh "cả năm" trong khi tên file vẫn ghi một tháng.
+  const pvThô = sp.get("pv") ?? "thang";
+  const pv: PhamVi = pvThô === "nam" ? "nam" : "thang";
   const gn = (sp.get("gn") ?? "ky") as GocNhin;
 
   const { tu, den } = khoang(pv, thang);

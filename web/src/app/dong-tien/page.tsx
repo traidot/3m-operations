@@ -2,9 +2,10 @@ import Link from "next/link";
 import { NganKeo } from "../ngan-keo";
 import { getDotThuChotLuc, getDotThuCoDinh, getThangCoSoLieu, type DotThuCoDinh } from "@/lib/queries";
 import {
-  CHUA_GHI, TEN_TK, TRU_COC, khoang, nhanCot, nhanKhoang, nhip, nhipCua, tapNeo, tong,
-  xepTaiKhoan, type GocNhin, type PhamVi,
+  CHUA_GHI, TEN_TK, TRU_COC, cacMoc, khoang, mocCua, nhanCot, nhanKhoang, nhip, nhipCua,
+  tapNeo, tong, xepTaiKhoan, type GocNhin, type PhamVi,
 } from "./pham-vi";
+import { lopNgay, nhanNgay } from "../hom-nay/bang-ngay";
 
 export const dynamic = "force-dynamic";
 
@@ -17,9 +18,8 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 /** Số tháng cho người dùng bấm chọn; xa hơn thì đổi phạm vi sang năm. */
 const SO_THANG_HIEN = 14;
 
-const PV: PhamVi[] = ["tat-ca", "nam", "thang"];
+const PV: PhamVi[] = ["thang", "nam"];
 const NHAN_PV: Record<PhamVi, string> = {
-  "tat-ca": "Từ đầu đến hết một tháng",
   nam: "Cả năm",
   thang: "Một tháng",
 };
@@ -132,6 +132,18 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const cacNam = [...new Set(danhSachThang.map((t) => t.thang.slice(0, 4)))].sort();
 
   const co = (hop: (r: DotThuCoDinh) => boolean) => rows.filter(hop);
+
+  // Trục diễn biến. Gom một lần rồi tra, đừng lọc lại trong mỗi ô: tháng đông
+  // có hơn nghìn đợt, nhân với 31 ngày × 7 tài khoản là quét thừa hai trăm lần.
+  const moc = cacMoc(pv, thang);
+  const theoMoc = new Map<string, DotThuCoDinh[]>();
+  const ngoaiMoc: DotThuCoDinh[] = [];
+  for (const r of rows) {
+    const m = mocCua(r, pv, gn, thang);
+    if (m === null) ngoaiMoc.push(r);
+    else (theoMoc.get(m) ?? theoMoc.set(m, []).get(m)!).push(r);
+  }
+  const homNay = new Date().toISOString().slice(0, 10);
 
   return (
     <main>
@@ -306,6 +318,104 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </>
         )}
       </p>
+
+      <h2>
+        Diễn biến {pv === "thang" ? "theo ngày" : "theo tháng"} · {khung}
+      </h2>
+      <p className="muted">
+        {pv === "thang" ? (
+          <>
+            Bảng trên cho biết tiền về <b>đâu</b>, bảng này cho biết tiền về{" "}
+            <b>ngày nào</b>. Mốc ngày lấy theo <b>ngày tiền về</b> kể cả khi đang
+            neo vào kỳ cước — kỳ cước chỉ tới tháng, không có ngày. Thứ Bảy và
+            Chủ nhật tô nền khác.
+          </>
+        ) : (
+          <>
+            Mười hai tháng của năm, cắt theo đúng trục đang neo (
+            <b>{gn === "ky" ? "kỳ cước" : "ngày tiền về"}</b>). Tháng trống là
+            tháng thật sự không có đồng nào, không phải thiếu dữ liệu.
+          </>
+        )}
+      </p>
+      <div className="scroller">
+        <table className="bang-thang">
+          <thead>
+            <tr>
+              <th>{pv === "thang" ? "Ngày" : "Tháng"}</th>
+              {taiKhoan.map((tk) => (
+                <th key={tk} className="num">
+                  {TEN_TK[tk] ?? tk}
+                </th>
+              ))}
+              <th className="num">Số đợt</th>
+              <th className="num">Tổng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {moc.map((m) => {
+              const d = theoMoc.get(m) ?? [];
+              return (
+                <tr
+                  key={m}
+                  className={pv === "thang" ? lopNgay(m, homNay) : undefined}
+                >
+                  <td className="mono">
+                    {pv === "thang" ? nhanNgay(m, homNay) : m}
+                  </td>
+                  {taiKhoan.map((tk) => {
+                    const v = tong(d.filter((r) => r.tai_khoan === tk));
+                    return (
+                      <td key={tk} className={`num mono${v === 0 ? " muted" : ""}`}>
+                        {v === 0 ? "—" : n(v)}
+                      </td>
+                    );
+                  })}
+                  <td className="num mono muted">{d.length === 0 ? "—" : n(d.length)}</td>
+                  <td className="num mono">
+                    {d.length === 0 ? <span className="muted">—</span> : <b>{n(tong(d))}</b>}
+                  </td>
+                </tr>
+              );
+            })}
+            {ngoaiMoc.length > 0 && (
+              <tr>
+                <td>
+                  <b>Về ngoài {khung}</b>
+                  <div className="muted">
+                    cước của {khung} nhưng tiền về tháng khác — vẫn nằm trong tổng ở
+                    bảng trên, chỉ không có chỗ trên trục ngày
+                  </div>
+                </td>
+                {taiKhoan.map((tk) => {
+                  const v = tong(ngoaiMoc.filter((r) => r.tai_khoan === tk));
+                  return (
+                    <td key={tk} className={`num mono${v === 0 ? " muted" : ""}`}>
+                      {v === 0 ? "—" : n(v)}
+                    </td>
+                  );
+                })}
+                <td className="num mono muted">{n(ngoaiMoc.length)}</td>
+                <td className="num mono">
+                  <b>{n(tong(ngoaiMoc))}</b>
+                </td>
+              </tr>
+            )}
+            <tr className="hang-tong">
+              <td>
+                <b>Tổng</b>
+              </td>
+              {taiKhoan.map((tk) => (
+                <td key={tk} className="num mono">
+                  {n(tong(rows.filter((r) => r.tai_khoan === tk)))}
+                </td>
+              ))}
+              <td className="num mono">{n(rows.length)}</td>
+              <td className="num mono">{n(tongRows)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <h2>Đối chiếu với báo cáo của CMS</h2>
       <p className="muted">

@@ -4,13 +4,14 @@ export const CHUA_GHI = "CHUA_GHI";
 export const TRU_COC = "cần trừ cọc";
 
 /**
- * Ba cách cắt thời gian. Mốc `den` luôn là tháng cuối cùng được tính, `tu` rỗng
- * nghĩa là không chặn đầu dưới.
+ * Hai cách cắt thời gian. Mốc `den` là tháng cuối cùng được tính.
+ *
+ * Mỗi phạm vi kéo theo một trục diễn biến khác: cả năm thì xem theo tháng, một
+ * tháng thì xem theo ngày. Xem `mocCua` và `cacMoc`.
  */
-export type PhamVi = "tat-ca" | "nam" | "thang";
+export type PhamVi = "nam" | "thang";
 
 export const TEN_PHAM_VI: Record<PhamVi, string> = {
-  "tat-ca": "Từ đầu đến hết tháng",
   nam: "Cả năm",
   thang: "Một tháng",
 };
@@ -24,23 +25,18 @@ export type GocNhin = "ky" | "tien-ve";
 
 export function khoang(pv: PhamVi, thang: string): { tu: string; den: string } {
   if (pv === "thang") return { tu: thang, den: thang };
-  if (pv === "nam") return { tu: `${thang.slice(0, 4)}-01`, den: `${thang.slice(0, 4)}-12` };
-  return { tu: "", den: thang };
+  return { tu: `${thang.slice(0, 4)}-01`, den: `${thang.slice(0, 4)}-12` };
 }
 
 export function nhanKhoang(pv: PhamVi, thang: string): string {
   const [nam, m] = thang.split("-");
-  if (pv === "thang") return `tháng ${Number(m)}/${nam}`;
-  if (pv === "nam") return `năm ${nam}`;
-  return `từ đầu đến hết tháng ${Number(m)}/${nam}`;
+  return pv === "thang" ? `tháng ${Number(m)}/${nam}` : `năm ${nam}`;
 }
 
 /** Nhãn ngắn cho tiêu đề cột — "trước/trong/sau" cái gì. */
 export function nhanCot(pv: PhamVi, thang: string): string {
   const [nam, m] = thang.split("-");
-  if (pv === "thang") return `tháng ${Number(m)}`;
-  if (pv === "nam") return `năm ${nam}`;
-  return `mốc ${Number(m)}/${nam}`;
+  return pv === "thang" ? `tháng ${Number(m)}` : `năm ${nam}`;
 }
 
 const trong = (v: string, tu: string, den: string) => (!tu || v >= tu) && v <= den;
@@ -75,12 +71,7 @@ export function nhip(
 
 export type Nhip = "truoc" | "dung" | "sau";
 
-/**
- * Phạm vi "từ đầu" không có đầu dưới nên cột "trước" luôn bằng 0 — bỏ đi chứ
- * đừng hiện một cột không bao giờ khác 0.
- */
-export const nhipCua = (pv: PhamVi): Nhip[] =>
-  pv === "tat-ca" ? ["dung", "sau"] : ["truoc", "dung", "sau"];
+export const nhipCua = (_pv: PhamVi): Nhip[] => ["truoc", "dung", "sau"];
 
 export const tong = (rows: DotThuCoDinh[]) =>
   rows.reduce((t, r) => t + Number(r.so_tien), 0);
@@ -100,4 +91,42 @@ export const xepTaiKhoan = (rows: DotThuCoDinh[]) =>
  * tên lại ghi một tháng.
  */
 export const duoiTenFile = (pv: PhamVi, thang: string): string =>
-  pv === "nam" ? thang.slice(0, 4) : pv === "tat-ca" ? `den-${thang}` : thang;
+  pv === "nam" ? thang.slice(0, 4) : thang;
+
+/**
+ * Trục diễn biến: bảng tài khoản cho biết tiền về ĐÂU, trục này cho biết tiền
+ * về LÚC NÀO bên trong khoảng đang xem.
+ *
+ * Cả năm thì mốc là tháng của chính trục đang neo. Một tháng thì mốc là NGÀY
+ * TIỀN VỀ — kỳ cước không có ngày, nó chỉ tới tháng, nên dù đang neo vào kỳ thì
+ * trục ngày vẫn phải lấy theo ngày tiền về.
+ *
+ * Trả null khi đợt rơi ra ngoài khoảng: xem theo kỳ tháng 9 mà tiền về tháng 10
+ * thì nó không có chỗ trên trục ngày của tháng 9. Màn hình gom riêng thành một
+ * dòng chứ không bỏ, nếu không thì tổng hai bảng lệch nhau.
+ */
+export function mocCua(
+  r: DotThuCoDinh,
+  pv: PhamVi,
+  gn: GocNhin,
+  thang: string,
+): string | null {
+  if (pv === "nam") {
+    const v = gn === "ky" ? r.ky : r.thang_tien_ve;
+    return v.slice(0, 4) === thang.slice(0, 4) ? v : null;
+  }
+  return r.ngay_thu !== null && r.ngay_thu.slice(0, 7) === thang ? r.ngay_thu : null;
+}
+
+/** Đủ mọi mốc của khoảng, kể cả mốc không có đồng nào — ngày trống cũng là tin. */
+export function cacMoc(pv: PhamVi, thang: string): string[] {
+  const [nam, m] = thang.split("-").map(Number) as [number, number];
+  if (pv === "nam") {
+    return Array.from({ length: 12 }, (_, i) => `${nam}-${String(i + 1).padStart(2, "0")}`);
+  }
+  const soNgay = new Date(Date.UTC(nam, m, 0)).getUTCDate();
+  return Array.from(
+    { length: soNgay },
+    (_, i) => `${thang}-${String(i + 1).padStart(2, "0")}`,
+  );
+}
