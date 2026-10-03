@@ -102,7 +102,7 @@ export function BangTongHop({ ds }: { ds: TongHop28[] }) {
           <tbody>
             <tr className="tong">
               <td>
-                <b>7 ngày</b>
+                <b>28 ngày</b>
               </td>
               {COT.map((c, i) => (
                 <td key={c.k} className={`num mono${dauNhom(i)}${nenNhom(c.g)}`}>

@@ -26,14 +26,15 @@ const homQuaCua = (homNay: string) => {
 };
 
 /**
- * Nhãn hàng: thứ rồi tới ngày. Hai ngày gần nhất ghi chữ thay cho thứ — đó là
- * hai dòng người ta tìm trước tiên, đếm ngược từ đầu bảng thì mất công.
+ * Nhãn hàng: thứ rồi tới ngày, cùng một khuôn cho mọi dòng. Hai ngày gần nhất
+ * ghi thêm trong ngoặc — đó là hai dòng người ta tìm trước tiên, đếm ngược từ
+ * đầu bảng thì mất công.
  */
 export const nhanNgay = (ngay: string, homNay: string) => {
-  const d = `${ngay.slice(8, 10)}/${ngay.slice(5, 7)}`;
-  if (ngay === homNay) return `hôm nay ${d}`;
-  if (ngay === homQuaCua(homNay)) return `hôm qua ${d}`;
-  return `${THU[thu(ngay)]} ${d}`;
+  const d = `${THU[thu(ngay)]} ${ngay.slice(8, 10)}/${ngay.slice(5, 7)}`;
+  if (ngay === homNay) return `${d} (hôm nay)`;
+  if (ngay === homQuaCua(homNay)) return `${d} (hôm qua)`;
+  return d;
 };
 
 /** Lớp của một hàng ngày: hai ngày gần nhất nổi lên, cuối tuần tô nhạt. */

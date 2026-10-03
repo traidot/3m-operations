@@ -243,7 +243,9 @@ summary:hover { color: var(--ok); }
 /* Bảng 28 ngày, ngày làm hàng: cột đầu là ngày nên cố định, các cột chỉ số
    chia đều phần còn lại. Không ép min-width lớn — cả bảng vừa màn hình. */
 .ngay-hang { table-layout: fixed; width: 100%; min-width: 760px; }
-.ngay-hang th:first-child, .ngay-hang td:first-child { width: 120px; }
+/* Cột ngày đủ rộng cho "T6 03/10 (hôm nay)" nằm trọn một dòng: xuống dòng
+   thì hàng cao gấp đôi, bảng 28 dòng trông so le hẳn. */
+.ngay-hang th:first-child, .ngay-hang td:first-child { width: 186px; white-space: nowrap; }
 .ngay-hang td.num { white-space: nowrap; }
 
 /* Thứ Bảy, Chủ nhật: nhịp làm việc khác hẳn ngày thường, đánh dấu để ngày
