@@ -394,3 +394,158 @@ export const KY_HUT: Record<string, string> = {
 
 /** Tháng không thu được đồng nào — phần đáng đòi. */
 export const KY_HUT_MAT_TIEN = new Set(["KHONG_CO_DONG", "GHI_CHU", "CHO_DUYET"]);
+
+/**
+ * Bốn nhóm cảnh báo vận hành, xếp theo việc nó đang làm gì với tiền — không
+ * theo "nặng nhẹ" chung chung. Thứ tự này là thứ tự nên xử lý:
+ *
+ * - MAT_TIEN: tiền đáng ra phải vào mà đang không vào.
+ * - TREO_TIEN: tiền đã vào tài khoản 3M rồi, chỉ chờ người bấm cho vào sổ.
+ * - LECH_SO: sổ không khớp nhau. Chưa chắc mất tiền, nhưng mọi con số tính ra
+ *   từ sổ đều đang sai một ít.
+ * - CHAM_VIEC: việc đang chậm, chưa thành tiền.
+ */
+export const NHOM_CANH_BAO: Record<string, { ten: string; y: string }> = {
+  MAT_TIEN: {
+    ten: "Đang mất tiền",
+    y: "tiền đáng ra phải vào mà hiện không vào",
+  },
+  TREO_TIEN: {
+    ten: "Tiền treo chờ người",
+    y: "khách đã trả, tiền đã vào tài khoản, chỉ chờ người bấm cho vào sổ",
+  },
+  LECH_SO: {
+    ten: "Sổ lệch",
+    y: "chưa chắc mất tiền, nhưng mọi con số tính từ sổ đều đang sai một ít",
+  },
+  CHAM_VIEC: {
+    ten: "Việc chậm",
+    y: "chưa thành tiền, nhưng để lâu thì thành mất khách",
+  },
+};
+
+export const THU_TU_NHOM_CANH_BAO = [
+  "MAT_TIEN",
+  "TREO_TIEN",
+  "LECH_SO",
+  "CHAM_VIEC",
+] as const;
+
+/**
+ * Mô tả từng loại cảnh báo vận hành: tên, nó tốn cái gì, và bấm vào thì đi đâu
+ * để xử lý. `ma` khớp đúng cột `ma` của view v_fixed_canh_bao.
+ *
+ * `di` trỏ sang màn hình ĐÃ CÓ chứ không mở danh sách tại chỗ: mỗi loại cần
+ * một bộ cột khác nhau, dựng lại hết ở đây thì thành bản sao kém hơn của
+ * những màn kia.
+ *
+ * Link sang /hop-dong luôn kèm `pt=CONG_TY`: bảng này chỉ đếm phần công ty,
+ * mở ra mà thấy số khác thì người xem không biết tin bên nào.
+ */
+export const CANH_BAO_VAN_HANH: Record<
+  string,
+  { ten: string; y: string; nhom: string; di: string }
+> = {
+  THIEU_GIA_CUOC: {
+    ten: "Thiếu giá cước",
+    y: "hợp đồng đang chạy mà không có giá tháng nên không sinh được kỳ nào — mất bao nhiêu thì không tính được, vì chính cái giá đang thiếu",
+    nhom: "MAT_TIEN",
+    di: "/hop-dong?cb=THIEU_GIA_CUOC&pt=CONG_TY",
+  },
+  THIEU_NGAY_THU: {
+    ten: "Thiếu ngày bắt đầu thu",
+    y: "hợp đồng đang chạy mà chưa có mốc bắt đầu thu nên không sinh được kỳ nào",
+    nhom: "MAT_TIEN",
+    di: "/hop-dong?cb=THIEU_NGAY_THU&pt=CONG_TY",
+  },
+  CHUA_HOAT_DONG: {
+    ten: "Lắp xong mà chưa thu",
+    y: "máy đã chạy ở nhà khách nhưng sổ chưa thu đồng nào; tiền là tổng cước tháng đang nằm im",
+    nhom: "MAT_TIEN",
+    di: "/hom-nay/co-dinh?chd=1",
+  },
+  KY_HUT: {
+    ten: "Kỳ hụt",
+    y: "khoảng thu có chứa tháng đó mà sổ không có dòng cước nào",
+    nhom: "MAT_TIEN",
+    di: "/ky-hut",
+  },
+  NO_NANG: {
+    ten: "Nợ nặng",
+    y: "khách nợ quá số kỳ cho phép, càng để càng khó đòi",
+    nhom: "MAT_TIEN",
+    di: "/hop-dong?cb=NO_NANG&pt=CONG_TY",
+  },
+  HUY_CON_NO: {
+    ten: "Huỷ còn nợ",
+    y: "hợp đồng đã đóng mà vẫn còn phải đòi, trừ cọc chờ duyệt rồi vẫn còn",
+    nhom: "MAT_TIEN",
+    di: "/hop-dong?cb=HUY_CON_NO&pt=CONG_TY",
+  },
+  KHO_DOI: {
+    ten: "Khách khó đòi",
+    y: "nguồn tự đánh dấu, coi như gần mất",
+    nhom: "MAT_TIEN",
+    di: "/hop-dong?cb=KHO_DOI&pt=CONG_TY",
+  },
+  GMO_QUA_HAN: {
+    ten: "Mã combini hết hạn",
+    y: "mã hết hạn không tự sống lại, muốn thu tiếp phải tạo mã mới; một hợp đồng có thể hỏng nhiều lần nên tiền tính một lần cho mỗi hợp đồng",
+    nhom: "MAT_TIEN",
+    di: "/hom-nay/co-dinh?gmo=1",
+  },
+  COC_CHO_DUYET: {
+    ten: "Phiếu cọc chờ duyệt",
+    y: "tiền đã vào tài khoản nhưng nợ của khách chưa được trừ, nên khách tưởng đã trả mà sổ vẫn ghi nợ",
+    nhom: "TREO_TIEN",
+    di: "/hom-nay/co-dinh?coc=all",
+  },
+  CHO_DUYET: {
+    ten: "Kỳ cước chờ duyệt",
+    y: "kỳ đã ghi nhận tiền nhưng chưa ai duyệt nên chưa tính vào doanh thu",
+    nhom: "TREO_TIEN",
+    di: "/hop-dong?cb=CHO_DUYET&pt=CONG_TY",
+  },
+  NGOAI_KY: {
+    ten: "Kỳ ngoài khoảng thu",
+    y: "có kỳ cước nằm ngoài khoảng bắt đầu → kết thúc thu của chính hợp đồng đó",
+    nhom: "LECH_SO",
+    di: "/hop-dong?cb=NGOAI_KY&pt=CONG_TY",
+  },
+  HUY_LECH_KY: {
+    ten: "Huỷ lệch ngày kết thúc thu",
+    y: "ngày sổ ngừng thu và ngày dịch vụ thật sự dừng cách nhau quá xa — một đầu là thu thiếu, đầu kia là thu thừa",
+    nhom: "LECH_SO",
+    di: "/hop-dong?cb=HUY_LECH_KY&pt=CONG_TY",
+  },
+  THU_THIEU: {
+    ten: "Thu thiếu tiền",
+    y: "kỳ đã đánh dấu thu xong mà số tiền ít hơn cước tháng, không phải kỳ tuỳ chỉnh",
+    nhom: "LECH_SO",
+    di: "/hop-dong?cb=THU_THIEU&pt=CONG_TY",
+  },
+  GHI_CHU: {
+    ten: "Kỳ chỉ ghi chú",
+    y: "kỳ tồn tại nhưng không ra tiền; đúng thì là miễn phí, sai thì là một kỳ bị bỏ quên",
+    nhom: "LECH_SO",
+    di: "/hop-dong?cb=GHI_CHU&pt=CONG_TY",
+  },
+  THU_NGOAI_HD: {
+    ten: "Thu ngoài hợp đồng",
+    y: "có tiền thu vào hợp đồng mà không khoảng thu nào của nó chứa ngày đó",
+    nhom: "LECH_SO",
+    di: "/thu-ngoai",
+  },
+  CHO_LAP_LAU: {
+    ten: "Chờ lắp lâu",
+    y: "đã ký nhưng vẫn đang khảo sát, chưa lắp — khách chờ lâu thì huỷ",
+    nhom: "CHAM_VIEC",
+    di: "/hop-dong?cb=CHO_LAP_LAU&pt=CONG_TY",
+  },
+  LAP_QUA_HAN: {
+    ten: "Đơn lắp quá hạn hẹn",
+    y: "đã qua ngày hẹn lắp mà đơn chưa xong",
+    nhom: "CHAM_VIEC",
+    di: "/hom-nay/co-dinh?qua-han=1",
+  },
+};

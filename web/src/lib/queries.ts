@@ -2472,3 +2472,41 @@ export const getThangCoSoLieu = () =>
       union select distinct thang_tien_ve from v_fixed_dot_thu
       order by 1 desc`,
   );
+
+export type CanhBaoVanHanh = {
+  ma: string;
+  don_vi: string;
+  so_luong: number;
+  so_hop_dong: number;
+  /** Rỗng nghĩa là loại này không quy ra tiền được, KHÔNG phải 0 yên. */
+  tien: string | null;
+  /** Số ngày của cái cũ nhất; rỗng nghĩa là loại này không có trục thời gian. */
+  cu_nhat_ngay: number | null;
+};
+
+/**
+ * Mọi cảnh báo vận hành wifi cố định, một dòng một loại — xem db/215.
+ *
+ * View trả đủ cả loại đang bằng 0 nên không cần lọc ở đây: một dòng 0 là bằng
+ * chứng "hết việc", không phải dòng thừa.
+ */
+export const getCanhBaoVanHanh = () =>
+  query<CanhBaoVanHanh>(
+    `select ma, don_vi, so_luong::int, so_hop_dong::int,
+            tien::text, cu_nhat_ngay::int
+       from v_fixed_canh_bao`,
+  );
+
+/**
+ * Nợ thật của khách bên cố định, đếm MỘT lần cho mỗi hợp đồng.
+ *
+ * Cần riêng một câu vì cột tiền trong bảng cảnh báo không cộng ngang được: một
+ * hợp đồng vừa nợ nặng vừa có mã combini hết hạn thì cùng khoản nợ đó nằm ở hai
+ * dòng. Số này mới là tổng đi đòi.
+ */
+export const getNoThatCoDinh = () =>
+  query<{ hop_dong: number; tien: string | null }>(
+    `select count(*) filter (where con_no > 0)::int as hop_dong,
+            nullif(sum(con_no), 0)::text           as tien
+       from v_fixed_contract where do_cong_ty`,
+  );
