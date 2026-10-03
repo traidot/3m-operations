@@ -1995,6 +1995,25 @@ export const getHuyNgay = (ngay: string) =>
     [ngay],
   );
 
+export type ChoMuon = {
+  ky: string; may_tra_ve: string; dot_can_tru: string; tien_can_tru: string;
+};
+
+/** Cho khách cố định mượn máy cầm tay, theo tháng — xem db/213. */
+export const getChoMuonThang = () =>
+  query<ChoMuon>(
+    `select ky, may_tra_ve::text, dot_can_tru::text, tien_can_tru::text
+       from v_cho_muon_cam_tay order by ky desc limit 6`,
+  );
+
+/** Còn bao nhiêu máy đang nằm ở nhà khách cố định — xem db/213. */
+export const getChoMuonDangGiu = async () => {
+  const [row] = await query<{ dang_muon: string; da_tra: string; tat_ca: string }>(
+    `select dang_muon::text, da_tra::text, tat_ca::text from v_cho_muon_dang_giu`,
+  );
+  return row!;
+};
+
 export type TelecomThangNay = {
   ngay_da_qua: string; ky: string;
   doanh_thu: string; doanh_thu_cung_ky: string;

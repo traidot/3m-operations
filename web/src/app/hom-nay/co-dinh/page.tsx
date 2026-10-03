@@ -9,6 +9,7 @@ import { ChiTietCocChoPhanBo, ChiTietGmoQuaHan } from "../chi-tiet-coc";
 import { BangGmoThang } from "../gmo-thang";
 import { BangCocNhom } from "../coc-nhom";
 import { TheThang } from "../the-thang";
+import { BangChoMuon } from "../cho-muon";
 import { ChiTietChuaHoatDong } from "../chi-tiet-chua-hoat-dong";
 import {
   getBaoCao28NgayCoDinh,
@@ -23,6 +24,8 @@ import {
   getCongNoCoDinh,
   getFreshness,
   getLapDatQuaHan,
+  getChoMuonDangGiu,
+  getChoMuonThang,
   getThangNay,
   getTongHop28,
 } from "@/lib/queries";
@@ -42,12 +45,14 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [ngay7, ngay30, tongHop, thangNay, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
+  const [ngay7, ngay30, tongHop, thangNay, choMuon, choMuonGiu, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
     await Promise.all([
     getBaoCao28NgayCoDinh(),
     getBaoCaoNgayCoDinh30(),
     getTongHop28(),
     getThangNay(),
+    getChoMuonThang(),
+    getChoMuonDangGiu(),
     getLapDatQuaHan(),
     getCongNoCoDinh(),
     getChoXuLyGmo(),
@@ -239,6 +244,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <BangCocNhom ds={cocNhom} o={cocO} moTai={DUONG_DAN} linkDuyet={linkDuyet} />
 
       <BangGmoThang ds={gmoThang} o={gmoO} cocMo={cocMo} />
+
+      <BangChoMuon ds={choMuon} giu={choMuonGiu} so={8} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra

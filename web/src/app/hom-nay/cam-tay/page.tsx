@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { BangNgay } from "../bang-ngay";
 import { SoSanh } from "../so-sanh";
+import { BangChoMuon } from "../cho-muon";
 import {
   getFreshness,
+  getChoMuonDangGiu,
+  getChoMuonThang,
   getTelecom28Ngay,
   getTelecomDangTreo,
   getTelecomThangNay,
@@ -17,10 +20,12 @@ const n = (v: string | number | null) =>
 const DUONG_DAN = "/hom-nay/cam-tay";
 
 export default async function Page() {
-  const [thangNay, treo, ngay28, freshness] = await Promise.all([
+  const [thangNay, treo, ngay28, choMuon, choMuonGiu, freshness] = await Promise.all([
     getTelecomThangNay(),
     getTelecomDangTreo(),
     getTelecom28Ngay(),
+    getChoMuonThang(),
+    getChoMuonDangGiu(),
     getFreshness(),
   ]);
 
@@ -176,7 +181,16 @@ export default async function Page() {
       />
 
       <BangNgay
-        ten="2 · Thuê bao vào và ra"
+        ten="2 · Hoá đơn phát hành"
+        y="theo ngày phát hành, đơn vị yên"
+        ds={cua("hoa_don")}
+        kieu="tien"
+        dauDuyet={false}
+        phu="Đây là tiền ĐÁNG LẼ phải thu của ngày phát hành, khác với bảng trên vốn đếm theo ngày tiền về. Hai bảng không cộng trừ được với nhau."
+      />
+
+      <BangNgay
+        ten="3 · Thuê bao vào và ra"
         y="kích hoạt mới và ngừng trong ngày"
         ds={cua("thue_bao")}
         kieu="so"
@@ -184,13 +198,20 @@ export default async function Page() {
       />
 
       <BangNgay
-        ten="3 · Máy ra vào kho"
-        y="theo ngày chứng từ, chỉ tính phần giao dịch với khách"
-        ds={cua("kho")}
+        ten="4 · Máy ra khỏi kho"
+        y="theo ngày chứng từ, tách theo lý do"
+        ds={cua("kho_ra")}
         kieu="so"
-        congTong={false}
-        phu="Không cộng tổng vì hai cột ngược chiều nhau: giao đi là máy rời kho, trả về là máy nhập lại."
       />
+
+      <BangNgay
+        ten="5 · Máy vào kho"
+        y="theo ngày chứng từ, tách theo lý do"
+        ds={cua("kho_vao")}
+        kieu="so"
+      />
+
+      <BangChoMuon ds={choMuon} giu={choMuonGiu} so={6} />
     </main>
   );
 }

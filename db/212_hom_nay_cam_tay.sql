@@ -86,6 +86,36 @@ select m.ngay_da_qua,
 comment on view v_telecom_thang_nay is
   'Chỉ số tháng đang chạy của wifi cầm tay, kèm cùng số ngày đầu tháng trước';
 
+-- Lý do xuất nhập kho bên nguồn ghi bằng mã. Dịch một chỗ ở đây để bảng, bộ
+-- lọc và tệp xuất ra không ai tự đặt tên khác.
+create or replace function kho_ly_do(ma text) returns text
+language sql immutable as $$
+  select case ma
+    when 'ISSUE_FOR_ORDER'                    then 'Giao theo đơn hàng'
+    when 'ISSUE_FOR_SOFTWARE_RECONCILE'       then 'Xuất đối soát phần mềm'
+    when 'ISSUE_FOR_PRODUCT_CONVERSION'       then 'Chuyển đổi sản phẩm'
+    when 'ISSUE_FOR_STOCKTAKE'                then 'Kiểm kê'
+    when 'ISSUE_FOR_DAMAGED'                  then 'Hỏng, huỷ'
+    when 'RECEIPT_FOR_CANCELLED_SUBSCRIPTION' then 'Khách huỷ trả về'
+    when 'RECEIPT_FOR_FIXED_WIFI_LOAN'        then 'Wifi cố định trả về'
+    when 'RECEIPT_FOR_PURCHASE'               then 'Mua mới'
+    when 'RECEIPT_FOR_PRODUCT_CONVERSION'     then 'Chuyển đổi sản phẩm'
+    when 'RECEIPT_FOR_OTHER'                  then 'Khác'
+    when 'ISSUE_FOR_EXCHANGE_DEVICE'          then 'Đổi máy cho khách'
+    when 'RECEIPT_FOR_EXCHANGE_DEVICE'        then 'Nhận lại máy đổi'
+    when 'ISSUE_FOR_TRANSFER'                 then 'Chuyển kho'
+    when 'RECEIPT_FOR_TRANSFER'               then 'Nhận từ kho khác'
+    when 'RECEIPT_FOR_CANCELLED_ORDER'        then 'Đơn hàng huỷ, nhận lại'
+    when 'RECEIPT_FOR_STOCKTAKE'              then 'Kiểm kê'
+    -- Mã lạ thì để nguyên chứ không gộp vào "khác": gộp là giấu mất việc
+    -- nguồn vừa thêm loại mới mà kho chưa biết.
+    else coalesce(ma, 'Không ghi lý do')
+  end;
+$$;
+
+comment on function kho_ly_do(text) is
+  'Dịch mã lý do xuất nhập kho của wifi cầm tay sang tiếng Việt';
+
 -- 28 ngày gần nhất, cùng khuôn với bên cố định: mỗi dòng một (chỉ số, ngày).
 --
 -- Ba nhóm: tiền về theo kênh, thuê bao vào ra, máy ra vào kho.
@@ -103,6 +133,16 @@ su_kien as (
     from payment_snapshot p
    where p.source = 'TELECOM' and p.amount > 0
   union all
+  -- Tiền đã vào tài khoản mà chưa trừ vào hoá đơn nào: nợ của khách chưa giảm
+  -- dù họ đã trả. Đứng chung bảng tiền để thấy ngay ngày nào thu nhiều mà gán
+  -- ít.
+  select 'tien', 'Chưa gán hoá đơn', 'yên', 9, t.paid_at::date, t.amount
+    from v_telecom_thu_chua_can_tru t
+  union all
+  select 'hoa_don', 'Phát hành', 'hoá đơn', 1, i.issued_on, i.total_amount
+    from invoice_snapshot i
+   where i.source = 'TELECOM'
+  union all
   select 'thue_bao', 'Kích hoạt mới', 'thuê bao', 1, s.activated_on, 0
     from subscription_snapshot s
    where s.source = 'TELECOM' and s.activated_on is not null
@@ -113,15 +153,31 @@ su_kien as (
    where s.source = 'TELECOM' and s.terminated_on is not null
      and s.terminated_on <= current_date
   union all
-  select 'kho', 'Giao máy cho khách', 'máy', 1, k.doc_date, 0
+  -- Kho tách theo LÝ DO chứ không gộp vào/ra: "giao theo đơn hàng" và "xuất
+  -- để đối soát phần mềm" là hai việc khác hẳn nhau, gộp lại thành một con số
+  -- thì không biết hôm đó bán hàng hay đang dọn sổ.
+  select 'kho_ra', kho_ly_do(k.reason_type), 'máy',
+         case k.reason_type
+           when 'ISSUE_FOR_ORDER' then 1
+           when 'ISSUE_FOR_SOFTWARE_RECONCILE' then 2
+           when 'ISSUE_FOR_PRODUCT_CONVERSION' then 3
+           else 4
+         end,
+         k.doc_date, 0
     from stock_move_snapshot k
    where k.source = 'TELECOM' and k.doc_type = 'INVENTORY_OUT'
-     and k.business_type = 'CUSTOMER'
   union all
-  select 'kho', 'Khách trả máy về', 'máy', 2, k.doc_date, 0
+  select 'kho_vao', kho_ly_do(k.reason_type), 'máy',
+         case k.reason_type
+           when 'RECEIPT_FOR_CANCELLED_SUBSCRIPTION' then 1
+           when 'RECEIPT_FOR_FIXED_WIFI_LOAN' then 2
+           when 'RECEIPT_FOR_PURCHASE' then 3
+           when 'RECEIPT_FOR_PRODUCT_CONVERSION' then 4
+           else 5
+         end,
+         k.doc_date, 0
     from stock_move_snapshot k
    where k.source = 'TELECOM' and k.doc_type = 'INVENTORY_IN'
-     and k.business_type = 'CUSTOMER'
 ),
 khung as (
   select distinct e.nhom, e.chi_so, e.don_vi, e.thu_tu, n.ngay
@@ -140,7 +196,7 @@ select k.nhom, k.chi_so, k.don_vi, k.ngay,
  group by 1, 2, 3, 4, k.thu_tu;
 
 comment on view v_telecom_ngay_28 is
-  '28 ngày gần nhất của wifi cầm tay: tiền theo kênh, thuê bao vào ra, máy ra vào kho';
+  '28 ngày gần nhất của wifi cầm tay: tiền theo kênh, hoá đơn, thuê bao vào ra, máy ra và vào kho theo lý do';
 
 -- Tiền và việc đang đứng lại, không thuộc tháng nào.
 create or replace view v_telecom_dang_treo as
