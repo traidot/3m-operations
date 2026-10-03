@@ -1894,12 +1894,11 @@ export const getBaoCaoNgay = () =>
        from v_bao_cao_ngay order by nhom, chi_so`,
   );
 
-export type Tuan4 = {
+export type Ngay28 = {
   nhom: string;
   chi_so: string;
   don_vi: string;
-  /** Ngày thứ Hai mở đầu tuần. */
-  tuan: string;
+  ngay: string;
   so_luong: string;
   tien: string;
   /** Tiền thật vào tài khoản — 0 với kênh cấn trừ cọc. */
@@ -1908,12 +1907,12 @@ export type Tuan4 = {
   tien_duyet: string;
 };
 
-/** Bốn tuần gần nhất, một dòng cho mỗi (chỉ số, tuần) — xem db/209. */
-export const getBaoCaoTuanCoDinh = () =>
-  query<Tuan4>(
-    `select nhom, chi_so, don_vi, tuan::text, so_luong::text, tien::text,
+/** 28 ngày gần nhất, một dòng cho mỗi (chỉ số, ngày) — xem db/210. */
+export const getBaoCao28NgayCoDinh = () =>
+  query<Ngay28>(
+    `select nhom, chi_so, don_vi, ngay::text, so_luong::text, tien::text,
             tien_that::text, tien_duyet::text
-       from v_bao_cao_tuan_fixed order by nhom, thu_tu, chi_so, tuan`,
+       from v_bao_cao_ngay_fixed_28 order by nhom, thu_tu, chi_so, ngay`,
   );
 
 /** Đơn lắp đã qua ngày hẹn mà chưa lắp xong — xem db/186. */
@@ -1937,18 +1936,15 @@ export type DotThuNgay = {
   ngay: string;
 };
 
-/**
- * Từng đợt thu đằng sau một ô của bảng tiền — xem db/187.
- * `tuan` là ngày thứ Hai; lấy trọn bảy ngày từ đó.
- */
-export const getDotThuTuan = (kenh: string, tuan: string) =>
+/** Từng đợt thu đằng sau một ô của bảng tiền theo ngày — xem db/187. */
+export const getDotThuNgay = (kenh: string, ngay: string) =>
   query<DotThuNgay>(
     `select source_id, ma_hd, ky, tien::text, status, ngay_go::text, nguoi_go, note, url,
             ngay::text
        from v_fixed_dot_thu_ngay
-      where kenh = $1 and ngay >= $2::date and ngay < $2::date + 7
-      order by ngay, tien desc, ma_hd`,
-    [kenh, tuan],
+      where kenh = $1 and ngay = $2::date
+      order by tien desc, ma_hd`,
+    [kenh, ngay],
   );
 
 /** Công nợ cước wifi cố định, một dòng — xem db/189. */
@@ -2180,8 +2176,8 @@ export const getCocChoDuyetNhom = () =>
        from v_fixed_coc_cho_duyet_nhom order by bac`,
   );
 
-export type TongHopTuan = {
-  tuan: string;
+export type TongHop28 = {
+  ngay: string;
   lan_dau: string;
   dang_ky_lai: string;
   tong_dang_ky: string;
@@ -2197,14 +2193,14 @@ export type TongHopTuan = {
   that_bai: string;
 };
 
-/** Báo cáo tổng hợp của CMS vỡ theo tuần, 4 tuần gần nhất — xem db/209. */
-export const getTongHopTuan = () =>
-  query<TongHopTuan>(
-    `select tuan::text, lan_dau::text, dang_ky_lai::text, tong_dang_ky::text,
+/** Báo cáo tổng hợp của CMS vỡ theo ngày, 28 ngày gần nhất — xem db/210. */
+export const getTongHop28 = () =>
+  query<TongHop28>(
+    `select ngay::text, lan_dau::text, dang_ky_lai::text, tong_dang_ky::text,
             huy_truoc_lich::text, huy_sau_lich::text, huy_sau_lap::text, tong_huy::text,
             con_lai::text, co_lich_lap::text, chua_co_lich::text, lap_xong::text,
             co_lich_chua_lap::text, that_bai::text
-       from v_bao_cao_tong_hop_tuan order by tuan desc`,
+       from v_bao_cao_tong_hop_28 order by ngay desc`,
   );
 
 export type NgayFixed30 = {

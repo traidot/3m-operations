@@ -244,6 +244,14 @@ summary:hover { color: var(--ok); }
    trông như ngày quan trọng hơn. */
 .deu { table-layout: fixed; width: 100%; min-width: 820px; }
 .deu th:first-child, .deu td:first-child { width: 220px; }
+/* 28 cột ngày thì bảng rộng hơn màn hình, cuộn ngang trong .scroller. Bề rộng
+   đặt theo nội dung ô: ô tiền có hai số và một dấu nên cần gấp đôi ô đếm.
+   Thiếu chỗ thì table-layout:fixed không co chữ lại mà cho tràn đè sang ô
+   bên cạnh — số chồng lên nhau, không đọc được gì. */
+.deu.tien { min-width: 5020px; }
+.deu.so { min-width: 2460px; }
+.deu td.num { white-space: nowrap; padding-right: 18px; }
+.deu .thu { display: block; font-size: 0.86em; color: var(--muted); }
 /* Cột ngày xen kẽ, thật nhạt: đủ để mắt bám theo một cột, chưa đủ để thành
    bảng kẻ sọc. */
 .deu tbody td.o-le { background: var(--soc); }

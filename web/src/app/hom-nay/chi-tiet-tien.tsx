@@ -1,19 +1,12 @@
 import { NganKeo } from "../ngan-keo";
-import { Dau } from "./bang-tuan";
-import { getDotThuTuan } from "@/lib/queries";
+import { Dau } from "./bang-ngay";
+import { getDotThuNgay } from "@/lib/queries";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
 const ngayVn = (iso: string | null) =>
   iso === null ? "—" : `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
-
-/** "28/09–04/10" — bảy ngày kể từ thứ Hai. */
-const khoangTuan = (tuan: string) => {
-  const het = new Date(tuan);
-  het.setDate(het.getDate() + 6);
-  return `${ngayVn(tuan)}–${ngayVn(het.toISOString().slice(0, 10))}`;
-};
 
 /** Nhãn đúng như màn Cập nhật thu cước phí bên CMS, để đọc hai bên không lệch. */
 const TRANG_THAI: Record<string, { ten: string; dang: string }> = {
@@ -34,15 +27,14 @@ const TRANG_THAI: Record<string, { ten: string; dang: string }> = {
  */
 export async function ChiTietTien({
   kenh,
-  tuan,
+  ngay,
   dongLai,
 }: {
   kenh: string;
-  /** Ngày thứ Hai mở đầu tuần. */
-  tuan: string;
+  ngay: string;
   dongLai: string;
 }) {
-  const rows = await getDotThuTuan(kenh, tuan);
+  const rows = await getDotThuNgay(kenh, ngay);
   const tien = rows.reduce((t, r) => t + Number(r.tien), 0);
   // Cùng định nghĩa với ô trên bảng: đã duyệt là status APPROVED, phần còn
   // lại là tiền đã đếm mà kế toán chưa xác nhận.
@@ -57,10 +49,10 @@ export async function ChiTietTien({
   return (
     <NganKeo dongLai={dongLai}>
       <h1>
-        {kenh} <span className="muted">· tuần {khoangTuan(tuan)}</span>
+        {kenh} <span className="muted">· {ngayVn(ngay)}</span>
       </h1>
       <p className="muted">
-        {n(rows.length)} đợt thu trong tuần, <b>{n(tien)}</b> yên.{" "}
+        {n(rows.length)} đợt thu, <b>{n(tien)}</b> yên.{" "}
         {coc
           ? "Đây là tiền khách đã nộp từ trước nay trừ sang cước — không có đồng nào mới vào tài khoản hôm đó."
           : "Tiền thật chạy qua tài khoản này."}
@@ -74,7 +66,6 @@ export async function ChiTietTien({
           <thead>
             <tr>
               <th>Hợp đồng</th>
-              <th>Tiền về</th>
               <th>Kỳ</th>
               <th className="num">Tiền</th>
               <th>Trạng thái</th>
@@ -97,7 +88,6 @@ export async function ChiTietTien({
                       </a>
                     )}
                   </td>
-                  <td className="mono muted">{ngayVn(r.ngay)}</td>
                   <td className="mono muted">{r.ky ?? "—"}</td>
                   <td className="num mono">{n(r.tien)}</td>
                   <td>
@@ -113,7 +103,7 @@ export async function ChiTietTien({
               );
             })}
             <tr className="tong">
-              <td colSpan={3}>
+              <td colSpan={2}>
                 <b>Tổng</b>{" "}
                 <span className="muted">đã duyệt / ghi nhận</span>
               </td>

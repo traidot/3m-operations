@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Bars } from "../../wifi/bars";
-import { BangTuan } from "../bang-tuan";
+import { BangNgay } from "../bang-ngay";
 import { BangTongHop } from "../tong-hop";
 import { ChiTietTien } from "../chi-tiet-tien";
 import { ChiTietLapQuaHan } from "../chi-tiet-lap";
@@ -10,7 +10,7 @@ import { BangGmoThang } from "../gmo-thang";
 import { BangCocNhom } from "../coc-nhom";
 import { ChiTietChuaHoatDong } from "../chi-tiet-chua-hoat-dong";
 import {
-  getBaoCaoTuanCoDinh,
+  getBaoCao28NgayCoDinh,
   getBaoCaoNgayCoDinh30,
   getChoXuLyGmo,
   getCocChoDuyetO,
@@ -22,7 +22,7 @@ import {
   getCongNoCoDinh,
   getFreshness,
   getLapDatQuaHan,
-  getTongHopTuan,
+  getTongHop28,
 } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -42,9 +42,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const sp = await searchParams;
   const [ngay7, ngay30, tongHop, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
     await Promise.all([
-    getBaoCaoTuanCoDinh(),
+    getBaoCao28NgayCoDinh(),
     getBaoCaoNgayCoDinh30(),
-    getTongHopTuan(),
+    getTongHop28(),
     getLapDatQuaHan(),
     getCongNoCoDinh(),
     getChoXuLyGmo(),
@@ -98,9 +98,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Hôm nay · wifi cố định</h1>
       <p className="muted">
         {hom_nay}. Biểu đồ là <b>30 ngày gần nhất</b> để thấy hình dạng cả tháng;
-        các bảng bày <b>4 tuần gần nhất</b>, mỗi tuần một cột. Cột cuối là tuần
-        đang chạy nên luôn thấp hơn ba cột kia — chưa đủ bảy ngày, không phải vì
-        làm kém.{" "}
+        các bảng bày <b>28 ngày gần nhất</b>, mỗi ngày một cột. Thứ Bảy và Chủ
+        nhật tô nền khác: nhịp làm việc cuối tuần vốn thấp, không đánh dấu thì
+        nhìn như ngày ế.{" "}
         {dongBoLuc !== null && (
           <>
             Số kéo về từ nguồn lúc <b>{dongBoLuc}</b>.
@@ -192,8 +192,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <BangTongHop ds={tongHop} />
 
-      <BangTuan
-        ten="3 · Tiền về theo tuần"
+      <BangNgay
+        ten="3 · Tiền về theo ngày"
         y="mỗi tài khoản một dòng, đơn vị yên"
         ds={cua("tien")}
         kieu="tien"
@@ -201,9 +201,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         phu="Ô tài khoản ghi “đã duyệt / tổng ghi nhận”: phần chênh là tiền đã đếm trên báo cáo mà kế toán chưa xác nhận, dấu ✓ là đã duyệt hết. Dòng “cần trừ cọc” là tiền khách nộp từ trước nay trừ sang cước — có ghi nhận nhưng không đồng nào vào ngân hàng, nên đứng ngoài dòng tổng. Bấm một ô để xem từng đợt thu."
       />
 
-      <BangTuan
+      <BangNgay
         ten="4 · Lắp đặt"
-        y="theo tuần hẹn lắp, nên tuần tới cũng có số"
+        y="theo ngày hẹn, nên ngày mai cũng có số"
         ds={cua("lap_dat")}
         kieu="so"
         congTong={false}
@@ -221,9 +221,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         }
       />
 
-      <BangTuan
+      <BangNgay
         ten="5 · Nhập liệu trễ"
-        y="đợt thu được gõ vào máy tuần nào, tiền về ngày nào"
+        y="đợt thu được gõ vào máy ngày nào, tiền về ngày nào"
         ds={cua("nhap_lieu")}
         kieu="so"
         phu="Đếm theo ngày GÕ MÁY. “Gõ bù cho ngày trước” lớn nghĩa là cột tiền của mấy ngày gần đây còn thiếu và sẽ phình lên sau — đừng vội kết luận hôm nay thu kém."
@@ -235,9 +235,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
         // đúng ngăn kéo đó.
-        const [kenh, tuan] = mot(sp.o).split("|");
-        if (!kenh || !tuan) return null;
-        return <ChiTietTien kenh={kenh} tuan={tuan} dongLai={DUONG_DAN} />;
+        const [kenh, ngay] = mot(sp.o).split("|");
+        if (!kenh || !ngay) return null;
+        return <ChiTietTien kenh={kenh} ngay={ngay} dongLai={DUONG_DAN} />;
       })()}
 
       {mot(sp["qua-han"]) !== "" && <ChiTietLapQuaHan dongLai={DUONG_DAN} />}

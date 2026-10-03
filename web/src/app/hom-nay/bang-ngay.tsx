@@ -1,29 +1,35 @@
 import Link from "next/link";
-import type { Tuan4 } from "@/lib/queries";
+import type { Ngay28 } from "@/lib/queries";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 
 /** Khoá của một ô, đủ để trang dựng lại ngăn kéo từ URL. Dấu | an toàn vì tên
  *  tài khoản bên nguồn không có ký tự đó. */
-export const ma = (chiSo: string, tuan: string) =>
-  encodeURIComponent(`${chiSo}|${tuan}`);
+export const ma = (chiSo: string, ngay: string) =>
+  encodeURIComponent(`${chiSo}|${ngay}`);
 
-/** Cột tuần tô nền xen kẽ: mấy cột số trần nằm cạnh nhau thì mắt dò theo một
- *  hàng rất dễ lạc sang tuần bên cạnh. */
-const xenKe = (i: number) => (i % 2 === 1 ? " o-le" : "");
+const THU = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
-const dm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+/** Thứ trong tuần của một ngày ISO. Đọc theo UTC vì chuỗi không mang múi giờ:
+ *  new Date("2026-10-03") là nửa đêm UTC, lấy getDay() theo giờ máy sẽ lùi
+ *  một ngày ở múi giờ âm. */
+const thu = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay();
 
-/**
- * Nhãn cột: khoảng ngày của tuần. Tuần đang chạy ghi rõ vì nó luôn thấp hơn ba
- * tuần kia — chưa đủ bảy ngày, không phải vì làm kém.
- */
-const nhanCot = (tuan: string, tuanNay: string) => {
-  const het = new Date(tuan);
-  het.setDate(het.getDate() + 6);
-  const khoang = `${dm(tuan)}–${dm(het.toISOString().slice(0, 10))}`;
-  return tuan === tuanNay ? `${khoang} · tuần này` : khoang;
-};
+/** Cuối tuần: nhịp làm việc khác hẳn, không đánh dấu thì nhìn như ngày ế. */
+const cuoiTuan = (iso: string) => thu(iso) === 0 || thu(iso) === 6;
+
+const xenKe = (ngay: string) => (cuoiTuan(ngay) ? " o-nghi" : "");
+
+/** Nhãn cột: thứ trên, ngày dưới. Hôm nay ghi rõ để khỏi đếm ngược. */
+function NhanCot({ ngay, homNay }: { ngay: string; homNay: string }) {
+  return (
+    <>
+      <span className="thu">{ngay === homNay ? "hôm nay" : THU[thu(ngay)]}</span>
+      <br />
+      {ngay.slice(8, 10)}/{ngay.slice(5, 7)}
+    </>
+  );
+}
 
 /**
  * Dấu đứng cuối ô tiền. Vẽ bằng SVG chứ không dùng ký tự ✓ ⚠: ký tự phụ thuộc
@@ -71,7 +77,7 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
 }
 
 /**
- * Bảng bốn tuần: mỗi hàng một chỉ số, mỗi cột một tuần.
+ * Bảng 28 ngày: mỗi hàng một chỉ số, mỗi cột một ngày.
  *
  * `kieu` chỉ đổi cách cộng ở dòng cuối: nhóm tiền tách tổng làm hai dòng,
  * tiền thật vào tài khoản và tiền cấn trừ cọc. Cấn trừ cọc là nghiệp vụ bình
@@ -79,12 +85,12 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
  * tổng thì ngày cấn trừ nhiều nhìn như ngày thu tốt, trong khi ngân hàng
  * không nhận thêm đồng nào.
  */
-export function BangTuan({
+export function BangNgay({
   ten, y, ds, kieu, phu, phuNut, congTong = true, moO,
 }: {
   ten: string;
   y: string;
-  ds: Tuan4[];
+  ds: Ngay28[];
   kieu: "tien" | "so";
   phu?: string;
   /** Như `phu` nhưng có liên kết bên trong. */
@@ -97,13 +103,13 @@ export function BangTuan({
   congTong?: boolean;
 }) {
   if (ds.length === 0) return null;
-  const tuans = [...new Set(ds.map((r) => r.tuan))].sort();
-  const tuanNay = tuans.at(-1) ?? "";
+  const ngays = [...new Set(ds.map((r) => r.ngay))].sort();
+  const homNay = ngays.at(-1) ?? "";
   const chiSos = [...new Set(ds.map((r) => r.chi_so))];
-  const o = new Map(ds.map((r) => [`${r.chi_so}|${r.tuan}`, r]));
+  const o = new Map(ds.map((r) => [`${r.chi_so}|${r.ngay}`, r]));
 
   type Cot = "tien" | "that" | "duyet" | "so";
-  const giaTri = (r: Tuan4 | undefined, cot: Cot) => {
+  const giaTri = (r: Ngay28 | undefined, cot: Cot) => {
     if (r === undefined) return 0;
     if (cot === "tien") return Number(r.tien);
     if (cot === "that") return Number(r.tien_that);
@@ -117,8 +123,8 @@ export function BangTuan({
   // vào tài khoản mà vẫn có tiền ghi nhận. Không dò theo tên kênh — tên bên
   // nguồn đổi lúc nào không biết.
   const laCoc = (cs: string) =>
-    tuans.every((d) => giaTri(o.get(`${cs}|${d}`), "that") === 0) &&
-    tuans.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
+    ngays.every((d) => giaTri(o.get(`${cs}|${d}`), "that") === 0) &&
+    ngays.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
   const kenhThat = chiSos.filter((cs) => !laCoc(cs));
   const kenhCoc = chiSos.filter(laCoc);
   const congQua = (ds: string[], ngay: string, cot: Cot) =>
@@ -143,13 +149,13 @@ export function BangTuan({
         {ten} <span className="muted">— {y}</span>
       </h2>
       <div className="scroller">
-        <table className="deu">
+        <table className={`deu ${kieu}`}>
           <thead>
             <tr>
               <th>Chỉ số</th>
-              {tuans.map((d, i) => (
-                <th key={d} className={`num${xenKe(i)}`}>
-                  {nhanCot(d, tuanNay)}
+              {ngays.map((d) => (
+                <th key={d} className={`num${xenKe(d)}`}>
+                  <NhanCot ngay={d} homNay={homNay} />
                 </th>
               ))}
             </tr>
@@ -166,7 +172,7 @@ export function BangTuan({
                     </span>
                   )}
                 </td>
-                {tuans.map((d, i) => {
+                {ngays.map((d) => {
                   const r = o.get(`${cs}|${d}`);
                   const co = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
                   // Cấn trừ cọc chỉ một số: nó luôn là tiền ghi nhận, đặt
@@ -181,7 +187,7 @@ export function BangTuan({
                       n(co)
                     );
                   return (
-                    <td key={d} className={`num mono${xenKe(i)}`}>
+                    <td key={d} className={`num mono${xenKe(d)}`}>
                       {moO !== undefined && co > 0 ? (
                         <Link className="o-mo" href={`${moO}?o=${ma(cs, d)}`} scroll={false}>
                           {noi}
@@ -199,8 +205,8 @@ export function BangTuan({
                 <td>
                   <b>{kieu === "tien" ? "Tổng vào tài khoản" : "Tổng"}</b>
                 </td>
-                {tuans.map((d, i) => (
-                  <td key={d} className={`num mono${xenKe(i)}`}>
+                {ngays.map((d) => (
+                  <td key={d} className={`num mono${xenKe(d)}`}>
                     {kieu === "tien" ? (
                       oTien(congQua(kenhThat, d, "duyet"), congQua(kenhThat, d, "tien"), true)
                     ) : tongCot(d, "so") === 0 ? (
@@ -219,10 +225,10 @@ export function BangTuan({
                 <td className="muted">
                   Cấn trừ cọc <span className="muted">· ngoài tài khoản</span>
                 </td>
-                {tuans.map((d, i) => {
+                {ngays.map((d) => {
                   const v = congQua(kenhCoc, d, "tien");
                   return (
-                    <td key={d} className={`num mono muted${xenKe(i)}`}>
+                    <td key={d} className={`num mono muted${xenKe(d)}`}>
                       {v === 0 ? "—" : n(v)}
                     </td>
                   );
