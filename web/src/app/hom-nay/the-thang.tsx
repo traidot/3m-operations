@@ -1,24 +1,8 @@
 import Link from "next/link";
 import type { ThangNay } from "@/lib/queries";
+import { SoSanh } from "./so-sanh";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
-
-/** Lệch bao nhiêu phần trăm so với cùng kỳ; null khi nền quá nhỏ để chia. */
-const lech = (nay: number, truoc: number) =>
-  truoc < 1 ? null : Math.round(((nay - truoc) / truoc) * 100);
-
-/** "+18%" / "−48%", kèm lớp màu theo chiều tốt hay xấu. */
-function SoSanh({ nay, truoc, tangLaTot }: { nay: number; truoc: number; tangLaTot: boolean }) {
-  const d = lech(nay, truoc);
-  if (d === null) return <span className="muted">chưa so được</span>;
-  const tot = d === 0 ? null : d > 0 === tangLaTot;
-  return (
-    <span className={tot === null ? "muted" : tot ? "ok" : "bad"}>
-      {d > 0 ? "+" : ""}
-      {d}%
-    </span>
-  );
-}
 
 /**
  * Bốn con số của tháng đang chạy.

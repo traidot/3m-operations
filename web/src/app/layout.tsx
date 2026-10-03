@@ -24,6 +24,7 @@ const MENU: NhomMenu[] = [
   {
     nhom: "Wifi cầm tay",
     muc: [
+      { ten: "Hôm nay", href: "/hom-nay/cam-tay" },
       { ten: "Tổng quan", href: "/cam-tay" },
       { ten: "Vòng đời máy", href: "/cam-tay/vong-doi" },
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },

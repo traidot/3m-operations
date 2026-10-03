@@ -104,7 +104,7 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
  * thêm đồng nào.
  */
 export function BangNgay({
-  ten, y, ds, kieu, phu, phuNut, congTong = true, moO,
+  ten, y, ds, kieu, phu, phuNut, congTong = true, moO, dauDuyet = true,
 }: {
   ten: string;
   y: string;
@@ -116,6 +116,9 @@ export function BangNgay({
   /** Đường dẫn của trang chứa bảng. Có thì mỗi ô có số thành một liên kết mở
    *  ngăn kéo chi tiết; không có thì ô là chữ thường. */
   moO?: string;
+  /** Tắt ở nguồn không có khái niệm duyệt — bên cầm tay tiền về là xong, dấu
+   *  luôn khớp nên chỉ thành nhiễu. */
+  dauDuyet?: boolean;
   /** Tắt khi các cột lồng nhau — "đơn hẹn" đã gồm cả "đã lắp xong", cộng lại
    *  ra số không tồn tại. */
   congTong?: boolean;
@@ -150,6 +153,7 @@ export function BangNgay({
   // báo cáo mà kế toán chưa xác nhận.
   const oTien = (duyet: number, tong: number, dam = false) => {
     if (tong === 0) return <span className="muted">—</span>;
+    if (!dauDuyet) return dam ? <b>{n(tong)}</b> : <>{n(tong)}</>;
     return (
       <>
         <span className="muted">{n(duyet)}</span> / {dam ? <b>{n(tong)}</b> : n(tong)}

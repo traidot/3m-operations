@@ -1995,6 +1995,48 @@ export const getHuyNgay = (ngay: string) =>
     [ngay],
   );
 
+export type TelecomThangNay = {
+  ngay_da_qua: string; ky: string;
+  doanh_thu: string; doanh_thu_cung_ky: string;
+  ngung: string; ngung_cung_ky: string; moi: string;
+  may_thu_ve: string; may_thu_ve_cung_ky: string; may_giao_di: string;
+  con_doi: string; hoa_don_dang_doi: string;
+};
+
+/** Bốn con số của tháng đang chạy, wifi cầm tay — xem db/212. */
+export const getTelecomThangNay = async () => {
+  const [row] = await query<TelecomThangNay>(
+    `select ngay_da_qua::text, ky, doanh_thu::text, doanh_thu_cung_ky::text,
+            ngung::text, ngung_cung_ky::text, moi::text,
+            may_thu_ve::text, may_thu_ve_cung_ky::text, may_giao_di::text,
+            con_doi::text, hoa_don_dang_doi::text
+       from v_telecom_thang_nay`,
+  );
+  return row!;
+};
+
+export type TelecomTreo = {
+  no_thue_bao: string; no_tien: string;
+  treo_so: string; treo_tien: string; may_chua_tra: string;
+};
+
+/** Tiền và việc đang đứng lại bên cầm tay — xem db/212. */
+export const getTelecomDangTreo = async () => {
+  const [row] = await query<TelecomTreo>(
+    `select no_thue_bao::text, no_tien::text, treo_so::text, treo_tien::text,
+            may_chua_tra::text from v_telecom_dang_treo`,
+  );
+  return row!;
+};
+
+/** 28 ngày gần nhất của wifi cầm tay — xem db/212. */
+export const getTelecom28Ngay = () =>
+  query<Ngay28>(
+    `select nhom, chi_so, don_vi, ngay::text, so_luong::text, tien::text,
+            tien_that::text, tien_duyet::text
+       from v_telecom_ngay_28 order by nhom, thu_tu, chi_so, ngay`,
+  );
+
 export type ThangNay = {
   ngay_da_qua: string; ky: string;
   doanh_thu: string; doanh_thu_cung_ky: string;
