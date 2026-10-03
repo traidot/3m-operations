@@ -14,6 +14,7 @@ const MENU: NhomMenu[] = [
     // không thuộc mảng nào.
     nhom: "Cần xử lý",
     muc: [
+      { ten: "Việc hôm nay", href: "/viec-hom-nay" },
       { ten: "Cảnh báo vận hành", href: "/canh-bao" },
       { ten: "Thu cước", href: "/thu-cuoc" },
       { ten: "Dự kiến huỷ", href: "/xem-xet-huy" },

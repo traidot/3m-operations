@@ -2510,3 +2510,29 @@ export const getNoThatCoDinh = () =>
             nullif(sum(con_no), 0)::text           as tien
        from v_fixed_contract where do_cong_ty`,
   );
+
+export type ViecHomNay = {
+  he: string;
+  viec: string;
+  id: string;
+  ma: string | null;
+  ai: string | null;
+  tuoi_ngay: number;
+  tien: string | null;
+  nguoi: string | null;
+  url: string | null;
+};
+
+/**
+ * Hàng đợi việc phải làm, đã quá ngưỡng chờ — xem db/216.
+ *
+ * Lấy hết một lần rồi cắt ở màn hình: hơn hai nghìn dòng nhưng chia sáu hàng
+ * đợi, mỗi hàng chỉ hiện vài chục cái già nhất. Tách thành truy vấn tóm tắt
+ * cộng truy vấn chi tiết thì nhanh hơn không đáng kể mà thêm một chỗ để lệch.
+ */
+export const getViecHomNay = () =>
+  query<ViecHomNay>(
+    `select he, viec, id, ma, ai, tuoi_ngay::int, tien::text, nguoi, url
+       from v_viec_hom_nay
+      order by tuoi_ngay desc, ma`,
+  );

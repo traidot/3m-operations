@@ -549,3 +549,95 @@ export const CANH_BAO_VAN_HANH: Record<
     di: "/hom-nay/co-dinh?qua-han=1",
   },
 };
+
+/**
+ * Hàng đợi việc phải làm. Khác bảng cảnh báo ở chỗ mỗi dòng ĐÓNG ĐƯỢC: có mã
+ * để tra, tên để nhận ra, tuổi để biết cái nào gấp, link để làm ngay.
+ *
+ * `cot_ma` / `cot_ai` / `cot_tien` đặt tên cột theo từng loại việc — cùng một
+ * view nhưng dòng của wifi cố định là hợp đồng, dòng của cầm tay là máy hoặc
+ * lần thu tiền, gọi chung một tên thì đọc không ra.
+ *
+ * `thu_tu` xếp theo thứ CỨU ĐƯỢC trước: gọi lại khách còn cửa sổ thời gian,
+ * thu hồi máy thì muộn mấy ngày cũng vậy.
+ */
+export const VIEC_HOM_NAY: Record<
+  string,
+  {
+    ten: string;
+    lam_gi: string;
+    /** Mảng kinh doanh; khai ở đây chứ không suy từ dữ liệu — hàng đợi sạch
+     *  không còn dòng nào thì vẫn phải biết nó thuộc bên nào. */
+    he: string;
+    thu_tu: number;
+    cot_ma: string;
+    cot_ai: string;
+    cot_tien: string | null;
+  }
+> = {
+  GOI_LAI: {
+    ten: "Gọi lại khách chưa chốt được lịch lắp",
+    lam_gi:
+      "Ký rồi mà vẫn đang khảo sát. Đây là chỗ rò to nhất của dây chuyền: 28 ngày gần nhất có 104 hợp đồng chết trước khi lắp, lý do số một là không liên lạc được, và trung bình 49 ngày sau khi ký mới chịu kết luận. Gọi sớm thì còn cứu.",
+    he: "co_dinh",
+    thu_tu: 1,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tien: null,
+  },
+  BAT_THU_CUOC: {
+    ten: "Bật thu cước cho hợp đồng đã lắp",
+    lam_gi:
+      "Máy đã chạy ở nhà khách nhưng sổ chưa có ngày bắt đầu thu nên không sinh kỳ nào. Mỗi ngày để yên là một ngày dùng không mất tiền.",
+    he: "co_dinh",
+    thu_tu: 2,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tien: "Cước tháng",
+  },
+  DIEN_GIA_CUOC: {
+    ten: "Điền giá cước còn thiếu",
+    lam_gi:
+      "Hợp đồng đang chạy mà không có giá tháng nên hệ thống không sinh được kỳ nào. Bật thu cước cũng vô ích nếu chưa có giá, nên làm cái này trước.",
+    he: "co_dinh",
+    thu_tu: 3,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tien: null,
+  },
+  DUYET_COC: {
+    ten: "Duyệt phiếu cọc khách đã trả",
+    lam_gi:
+      "Tiền đã vào tài khoản 3M nhưng nợ của khách chưa được trừ — khách tưởng đã trả, sổ vẫn ghi nợ. Chỉ cần bấm duyệt.",
+    he: "co_dinh",
+    thu_tu: 4,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tien: "Tiền",
+  },
+  GAN_HOA_DON: {
+    ten: "Gán tiền đã về vào hoá đơn",
+    lam_gi:
+      "Khách trả rồi, tiền nằm trong tài khoản, nhưng chưa ai nói nó trả cho hoá đơn nào. Chừng nào chưa gán thì khách vẫn bị tính là đang nợ.",
+    he: "cam_tay",
+    thu_tu: 5,
+    cot_ma: "Mã khách",
+    cot_ai: "Khách",
+    cot_tien: "Tiền",
+  },
+  THU_HOI_MAY: {
+    ten: "Thu hồi máy của thuê bao đã ngừng",
+    lam_gi:
+      "Thuê bao đóng rồi mà máy vẫn ở ngoài. Máy đã đánh dấu không thu hồi thì không nằm ở đây — đó là quyết định đã ra, không phải việc đang chờ.",
+    he: "cam_tay",
+    thu_tu: 6,
+    cot_ma: "IMEI",
+    cot_ai: "Khách",
+    cot_tien: "Cọc",
+  },
+};
+
+export const TEN_HE: Record<string, string> = {
+  co_dinh: "Wifi cố định",
+  cam_tay: "Wifi cầm tay",
+};
