@@ -18,18 +18,9 @@ const thu = (iso: string) => new Date(`${iso}T00:00:00Z`).getUTCDay();
 /** Cuối tuần: nhịp làm việc khác hẳn, không đánh dấu thì nhìn như ngày ế. */
 const cuoiTuan = (iso: string) => thu(iso) === 0 || thu(iso) === 6;
 
-const xenKe = (ngay: string) => (cuoiTuan(ngay) ? " o-nghi" : "");
-
-/** Nhãn cột: thứ trên, ngày dưới. Hôm nay ghi rõ để khỏi đếm ngược. */
-function NhanCot({ ngay, homNay }: { ngay: string; homNay: string }) {
-  return (
-    <>
-      <span className="thu">{ngay === homNay ? "hôm nay" : THU[thu(ngay)]}</span>
-      <br />
-      {ngay.slice(8, 10)}/{ngay.slice(5, 7)}
-    </>
-  );
-}
+/** Nhãn hàng: thứ rồi tới ngày. Hôm nay ghi rõ để khỏi đếm ngược. */
+const nhanNgay = (ngay: string, homNay: string) =>
+  `${ngay === homNay ? "hôm nay" : THU[thu(ngay)]} ${ngay.slice(8, 10)}/${ngay.slice(5, 7)}`;
 
 /**
  * Dấu đứng cuối ô tiền. Vẽ bằng SVG chứ không dùng ký tự ✓ ⚠: ký tự phụ thuộc
@@ -77,13 +68,18 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
 }
 
 /**
- * Bảng 28 ngày: mỗi hàng một chỉ số, mỗi cột một ngày.
+ * Bảng 28 ngày: mỗi HÀNG một ngày, mỗi cột một chỉ số.
  *
- * `kieu` chỉ đổi cách cộng ở dòng cuối: nhóm tiền tách tổng làm hai dòng,
- * tiền thật vào tài khoản và tiền cấn trừ cọc. Cấn trừ cọc là nghiệp vụ bình
- * thường — khách đã nộp từ trước, nay trừ sang cước — nhưng gộp chung một
- * tổng thì ngày cấn trừ nhiều nhìn như ngày thu tốt, trong khi ngân hàng
- * không nhận thêm đồng nào.
+ * Xoay chiều này vì ô tiền có hai số và một dấu, rộng 171px — xếp 28 ngày
+ * thành cột thì bảng dài 5.000px, cuộn ngang gần ba màn hình. Để ngày làm
+ * hàng thì chỉ còn 6-7 cột, vừa khít màn hình và đọc giống bảng tổng hợp ở
+ * mục trên.
+ *
+ * `kieu` đổi cách gom cột cuối: nhóm tiền tách tổng làm hai cột, tiền thật
+ * vào tài khoản và tiền cấn trừ cọc. Cấn trừ cọc là nghiệp vụ bình thường —
+ * khách đã nộp từ trước, nay trừ sang cước — nhưng gộp chung một tổng thì
+ * ngày cấn trừ nhiều nhìn như ngày thu tốt, trong khi ngân hàng không nhận
+ * thêm đồng nào.
  */
 export function BangNgay({
   ten, y, ds, kieu, phu, phuNut, congTong = true, moO,
@@ -98,13 +94,13 @@ export function BangNgay({
   /** Đường dẫn của trang chứa bảng. Có thì mỗi ô có số thành một liên kết mở
    *  ngăn kéo chi tiết; không có thì ô là chữ thường. */
   moO?: string;
-  /** Tắt khi các dòng lồng nhau — "đơn hẹn" đã gồm cả "đã lắp xong", cộng lại
+  /** Tắt khi các cột lồng nhau — "đơn hẹn" đã gồm cả "đã lắp xong", cộng lại
    *  ra số không tồn tại. */
   congTong?: boolean;
 }) {
   if (ds.length === 0) return null;
-  const ngays = [...new Set(ds.map((r) => r.ngay))].sort();
-  const homNay = ngays.at(-1) ?? "";
+  const ngays = [...new Set(ds.map((r) => r.ngay))].sort().reverse();
+  const homNay = ngays[0] ?? "";
   const chiSos = [...new Set(ds.map((r) => r.chi_so))];
   const o = new Map(ds.map((r) => [`${r.chi_so}|${r.ngay}`, r]));
 
@@ -116,23 +112,20 @@ export function BangNgay({
     if (cot === "duyet") return Number(r.tien_duyet);
     return Number(r.so_luong);
   };
-  const tongCot = (ngay: string, cot: Cot) =>
-    chiSos.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
+  const congQua = (ds2: string[], ngay: string, cot: Cot) =>
+    ds2.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
 
-  // Dòng cấn trừ cọc nhận ra bằng chính số liệu: cả tuần không có đồng nào
+  // Dòng cấn trừ cọc nhận ra bằng chính số liệu: cả tháng không có đồng nào
   // vào tài khoản mà vẫn có tiền ghi nhận. Không dò theo tên kênh — tên bên
   // nguồn đổi lúc nào không biết.
   const laCoc = (cs: string) =>
     ngays.every((d) => giaTri(o.get(`${cs}|${d}`), "that") === 0) &&
     ngays.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
-  const kenhThat = chiSos.filter((cs) => !laCoc(cs));
-  const kenhCoc = chiSos.filter(laCoc);
-  const congQua = (ds: string[], ngay: string, cot: Cot) =>
-    ds.reduce((t, cs) => t + giaTri(o.get(`${cs}|${ngay}`), cot), 0);
+  const kenhThat = kieu === "tien" ? chiSos.filter((cs) => !laCoc(cs)) : chiSos;
+  const kenhCoc = kieu === "tien" ? chiSos.filter(laCoc) : [];
 
   // Hai số "đã duyệt / tổng ghi nhận" kèm dấu. Phần chênh là tiền đã đếm trên
-  // báo cáo mà kế toán chưa xác nhận — chỉ số đó mới đáng đặt cạnh tổng, chứ
-  // "vào tài khoản" thì mọi dòng tài khoản đều khớp theo đúng định nghĩa.
+  // báo cáo mà kế toán chưa xác nhận.
   const oTien = (duyet: number, tong: number, dam = false) => {
     if (tong === 0) return <span className="muted">—</span>;
     return (
@@ -143,27 +136,31 @@ export function BangNgay({
     );
   };
 
+  /** Nội dung một ô, chưa bọc liên kết. */
+  const noiDung = (cs: string, d: string) => {
+    const r = o.get(`${cs}|${d}`);
+    if (kieu !== "tien" || laCoc(cs)) {
+      const v = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
+      return v === 0 ? <span className="muted">—</span> : <>{n(v)}</>;
+    }
+    return oTien(giaTri(r, "duyet"), giaTri(r, "tien"));
+  };
+
+  const coSo = (cs: string, d: string) =>
+    giaTri(o.get(`${cs}|${d}`), kieu === "tien" ? "tien" : "so") > 0;
+
   return (
     <section>
       <h2>
         {ten} <span className="muted">— {y}</span>
       </h2>
       <div className="scroller">
-        <table className={`deu ${kieu}`}>
+        <table className="ngay-hang">
           <thead>
             <tr>
-              <th>Chỉ số</th>
-              {ngays.map((d) => (
-                <th key={d} className={`num${xenKe(d)}`}>
-                  <NhanCot ngay={d} homNay={homNay} />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {chiSos.map((cs) => (
-              <tr key={cs}>
-                <td>
+              <th>Ngày</th>
+              {chiSos.map((cs) => (
+                <th key={cs} className="num">
                   {cs}
                   {kieu === "so" && (
                     <span className="muted">
@@ -171,73 +168,52 @@ export function BangNgay({
                       {ds.find((r) => r.chi_so === cs)?.don_vi}
                     </span>
                   )}
-                </td>
-                {ngays.map((d) => {
-                  const r = o.get(`${cs}|${d}`);
-                  const co = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
-                  // Cấn trừ cọc chỉ một số: nó luôn là tiền ghi nhận, đặt
-                  // cạnh số đã duyệt chỉ làm dòng này trông như dòng tài
-                  // khoản, trong khi không đồng nào vào ngân hàng.
-                  const noi =
-                    kieu === "tien" && !laCoc(cs) ? (
-                      oTien(giaTri(r, "duyet"), co)
-                    ) : co === 0 ? (
-                      <span className="muted">—</span>
+                </th>
+              ))}
+              {congTong && chiSos.length > 1 && (
+                <th className="num">
+                  {kieu === "tien" ? "Tổng vào tài khoản" : "Tổng"}
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {ngays.map((d) => (
+              <tr key={d} className={cuoiTuan(d) ? "o-nghi" : undefined}>
+                <td className="mono">{nhanNgay(d, homNay)}</td>
+                {chiSos.map((cs) => (
+                  <td key={cs} className="num mono">
+                    {moO !== undefined && coSo(cs, d) ? (
+                      <Link className="o-mo" href={`${moO}?o=${ma(cs, d)}`} scroll={false}>
+                        {noiDung(cs, d)}
+                      </Link>
                     ) : (
-                      n(co)
-                    );
-                  return (
-                    <td key={d} className={`num mono${xenKe(d)}`}>
-                      {moO !== undefined && co > 0 ? (
-                        <Link className="o-mo" href={`${moO}?o=${ma(cs, d)}`} scroll={false}>
-                          {noi}
-                        </Link>
-                      ) : (
-                        noi
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-            {congTong && chiSos.length > 1 && (
-              <tr className="tong">
-                <td>
-                  <b>{kieu === "tien" ? "Tổng vào tài khoản" : "Tổng"}</b>
-                </td>
-                {ngays.map((d) => (
-                  <td key={d} className={`num mono${xenKe(d)}`}>
-                    {kieu === "tien" ? (
-                      oTien(congQua(kenhThat, d, "duyet"), congQua(kenhThat, d, "tien"), true)
-                    ) : tongCot(d, "so") === 0 ? (
-                      <span className="muted">—</span>
-                    ) : (
-                      <b>{n(tongCot(d, "so"))}</b>
+                      noiDung(cs, d)
                     )}
                   </td>
                 ))}
+                {congTong && chiSos.length > 1 && (
+                  <td className="num mono">
+                    {kieu === "tien" ? (
+                      oTien(congQua(kenhThat, d, "duyet"), congQua(kenhThat, d, "tien"), true)
+                    ) : congQua(chiSos, d, "so") === 0 ? (
+                      <span className="muted">—</span>
+                    ) : (
+                      <b>{n(congQua(chiSos, d, "so"))}</b>
+                    )}
+                  </td>
+                )}
               </tr>
-            )}
-            {/* Dòng này không cộng vào dòng trên: nó là tiền ghi nhận chứ
-                không phải tiền mới vào ngân hàng. */}
-            {congTong && kieu === "tien" && kenhCoc.length > 0 && (
-              <tr className="tong">
-                <td className="muted">
-                  Cấn trừ cọc <span className="muted">· ngoài tài khoản</span>
-                </td>
-                {ngays.map((d) => {
-                  const v = congQua(kenhCoc, d, "tien");
-                  return (
-                    <td key={d} className={`num mono muted${xenKe(d)}`}>
-                      {v === 0 ? "—" : n(v)}
-                    </td>
-                  );
-                })}
-              </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </div>
+      {kenhCoc.length > 0 && (
+        <p className="muted">
+          Cột <b>{kenhCoc.join(", ")}</b> đứng ngoài tổng: đó là tiền khách nộp từ
+          trước nay trừ sang cước, có ghi nhận nhưng không đồng nào mới vào ngân hàng.
+        </p>
+      )}
       {phu && <p className="muted">{phu}</p>}
       {phuNut && <p className="muted">{phuNut}</p>}
     </section>
