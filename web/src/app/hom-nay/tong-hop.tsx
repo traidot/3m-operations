@@ -1,9 +1,17 @@
-import type { TongHopNgay } from "@/lib/queries";
+import type { TongHopTuan } from "@/lib/queries";
 
 const n = (v: number) =>
   v === 0 ? <span className="muted">—</span> : v.toLocaleString("vi-VN");
 
-const ngayNgan = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+const dm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+
+/** Nhãn hàng: khoảng ngày của tuần, tuần đang chạy ghi rõ vì nó chưa trọn. */
+const nhanTuan = (tuan: string, tuanNay: string) => {
+  const het = new Date(tuan);
+  het.setDate(het.getDate() + 6);
+  const khoang = `${dm(tuan)}–${dm(het.toISOString().slice(0, 10))}`;
+  return tuan === tuanNay ? `${khoang} · tuần này` : khoang;
+};
 
 const tyLe = (huy: number, dk: number) =>
   dk === 0 ? null : Math.round((huy / dk) * 1000) / 10;
@@ -17,7 +25,7 @@ const NHOM = ["Đăng ký", "Huỷ", "Còn lại sau huỷ", "Lịch lắp của
  *
  * `ty_le` không có trong dữ liệu, tính từ hai cột huỷ và đăng ký.
  */
-const COT: readonly { k: keyof TongHopNgay | "ty_le"; ten: string; g: number; manh?: boolean }[] = [
+const COT: readonly { k: keyof TongHopTuan | "ty_le"; ten: string; g: number; manh?: boolean }[] = [
   { k: "lan_dau", ten: "Lần đầu", g: 0 },
   { k: "dang_ky_lai", ten: "Đăng ký lại", g: 0 },
   { k: "tong_dang_ky", ten: "Tổng", g: 0, manh: true },
@@ -48,13 +56,15 @@ const dauNhom = (i: number) => (i === 0 || COT[i]!.g !== COT[i - 1]!.g ? " mo-nh
  * dòng hôm nay. Vì vậy các dòng gần đây luôn trông "sạch" hơn — chúng chưa có
  * đủ thời gian để hỏng.
  */
-export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
+export function BangTongHop({ ds }: { ds: TongHopTuan[] }) {
   if (ds.length === 0) return null;
 
-  const tong = (k: keyof TongHopNgay) => ds.reduce((t, r) => t + Number(r[k]), 0);
+  const tong = (k: keyof TongHopTuan) => ds.reduce((t, r) => t + Number(r[k]), 0);
+  // Dữ liệu xếp tuần mới nhất lên đầu.
+  const tuanNay = ds[0]?.tuan ?? "";
 
   /** Một ô số, dùng chung cho dòng tổng và dòng ngày. */
-  const o = (k: (typeof COT)[number]["k"], lay: (c: keyof TongHopNgay) => number) => {
+  const o = (k: (typeof COT)[number]["k"], lay: (c: keyof TongHopTuan) => number) => {
     if (k !== "ty_le") return n(lay(k));
     const t = tyLe(lay("tong_huy"), lay("tong_dang_ky"));
     return t === null ? <span className="muted">—</span> : `${t}%`;
@@ -63,15 +73,15 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
   return (
     <section>
       <h2>
-        2 · Tổng hợp theo ngày{" "}
-        <span className="muted">— 7 ngày, cùng chỉ số với báo cáo tổng hợp bên CMS</span>
+        2 · Tổng hợp theo tuần{" "}
+        <span className="muted">— 4 tuần, cùng chỉ số với báo cáo tổng hợp bên CMS</span>
       </h2>
       <p className="muted">
-        Mỗi dòng là lứa hợp đồng <b>vào sổ ngày đó</b>, không phải việc xảy ra trong
-        ngày — hợp đồng ký hôm nay mà ba tháng nữa mới huỷ vẫn nằm ở dòng hôm nay.
-        Nên những dòng gần đây luôn trông sạch hơn: chúng chưa đủ thời gian để hỏng,
-        và cột <b>chưa có lịch</b> của mấy ngày cuối là việc đang chờ làm chứ không
-        phải việc đã hỏng.
+        Mỗi dòng là lứa hợp đồng <b>vào sổ tuần đó</b>, không phải việc xảy ra trong
+        tuần — hợp đồng ký tuần này mà ba tháng nữa mới huỷ vẫn nằm ở dòng tuần này.
+        Nên dòng càng gần càng trông sạch: chúng chưa đủ thời gian để hỏng, và cột{" "}
+        <b>chưa có lịch</b> của tuần cuối là việc đang chờ làm chứ không phải việc đã
+        hỏng. Dòng <b>tuần này</b> luôn thấp hơn ba dòng kia vì chưa đủ bảy ngày.
       </p>
       <div className="scroller">
         <table>
@@ -89,7 +99,7 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
               ))}
             </tr>
             <tr>
-              <th>Ngày</th>
+              <th>Tuần</th>
               {COT.map((c, i) => (
                 <th key={c.k} className={`num${dauNhom(i)}${nenNhom(c.g)}`}>
                   {c.ten}
@@ -109,8 +119,8 @@ export function BangTongHop({ ds }: { ds: TongHopNgay[] }) {
               ))}
             </tr>
             {ds.map((r) => (
-              <tr key={r.ngay}>
-                <td className="mono">{ngayNgan(r.ngay)}</td>
+              <tr key={r.tuan}>
+                <td className="mono">{nhanTuan(r.tuan, tuanNay)}</td>
                 {COT.map((c, i) => (
                   <td
                     key={c.k}

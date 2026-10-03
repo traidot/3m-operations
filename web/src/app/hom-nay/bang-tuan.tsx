@@ -1,20 +1,29 @@
 import Link from "next/link";
-import type { Ngay7 } from "@/lib/queries";
+import type { Tuan4 } from "@/lib/queries";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 
 /** Khoá của một ô, đủ để trang dựng lại ngăn kéo từ URL. Dấu | an toàn vì tên
  *  tài khoản bên nguồn không có ký tự đó. */
-export const ma = (chiSo: string, ngay: string) =>
-  encodeURIComponent(`${chiSo}|${ngay}`);
+export const ma = (chiSo: string, tuan: string) =>
+  encodeURIComponent(`${chiSo}|${tuan}`);
 
-/** Cột ngày tô nền xen kẽ: bảy cột số trần nằm cạnh nhau thì mắt dò theo một
- *  hàng rất dễ lạc sang ngày bên cạnh. */
+/** Cột tuần tô nền xen kẽ: mấy cột số trần nằm cạnh nhau thì mắt dò theo một
+ *  hàng rất dễ lạc sang tuần bên cạnh. */
 const xenKe = (i: number) => (i % 2 === 1 ? " o-le" : "");
 
-/** Nhãn cột: ngày trong tháng, hôm nay ghi rõ để khỏi đếm ngược. */
-const nhanCot = (iso: string, homNay: string) =>
-  iso === homNay ? "hôm nay" : iso.slice(8, 10) + "/" + iso.slice(5, 7);
+const dm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+
+/**
+ * Nhãn cột: khoảng ngày của tuần. Tuần đang chạy ghi rõ vì nó luôn thấp hơn ba
+ * tuần kia — chưa đủ bảy ngày, không phải vì làm kém.
+ */
+const nhanCot = (tuan: string, tuanNay: string) => {
+  const het = new Date(tuan);
+  het.setDate(het.getDate() + 6);
+  const khoang = `${dm(tuan)}–${dm(het.toISOString().slice(0, 10))}`;
+  return tuan === tuanNay ? `${khoang} · tuần này` : khoang;
+};
 
 /**
  * Dấu đứng cuối ô tiền. Vẽ bằng SVG chứ không dùng ký tự ✓ ⚠: ký tự phụ thuộc
@@ -62,7 +71,7 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
 }
 
 /**
- * Bảng bảy ngày: mỗi hàng một chỉ số, mỗi cột một ngày.
+ * Bảng bốn tuần: mỗi hàng một chỉ số, mỗi cột một tuần.
  *
  * `kieu` chỉ đổi cách cộng ở dòng cuối: nhóm tiền tách tổng làm hai dòng,
  * tiền thật vào tài khoản và tiền cấn trừ cọc. Cấn trừ cọc là nghiệp vụ bình
@@ -70,12 +79,12 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
  * tổng thì ngày cấn trừ nhiều nhìn như ngày thu tốt, trong khi ngân hàng
  * không nhận thêm đồng nào.
  */
-export function Bang7({
+export function BangTuan({
   ten, y, ds, kieu, phu, phuNut, congTong = true, moO,
 }: {
   ten: string;
   y: string;
-  ds: Ngay7[];
+  ds: Tuan4[];
   kieu: "tien" | "so";
   phu?: string;
   /** Như `phu` nhưng có liên kết bên trong. */
@@ -88,13 +97,13 @@ export function Bang7({
   congTong?: boolean;
 }) {
   if (ds.length === 0) return null;
-  const ngays = [...new Set(ds.map((r) => r.ngay))].sort();
-  const homNay = ngays.at(-1) ?? "";
+  const tuans = [...new Set(ds.map((r) => r.tuan))].sort();
+  const tuanNay = tuans.at(-1) ?? "";
   const chiSos = [...new Set(ds.map((r) => r.chi_so))];
-  const o = new Map(ds.map((r) => [`${r.chi_so}|${r.ngay}`, r]));
+  const o = new Map(ds.map((r) => [`${r.chi_so}|${r.tuan}`, r]));
 
   type Cot = "tien" | "that" | "duyet" | "so";
-  const giaTri = (r: Ngay7 | undefined, cot: Cot) => {
+  const giaTri = (r: Tuan4 | undefined, cot: Cot) => {
     if (r === undefined) return 0;
     if (cot === "tien") return Number(r.tien);
     if (cot === "that") return Number(r.tien_that);
@@ -108,8 +117,8 @@ export function Bang7({
   // vào tài khoản mà vẫn có tiền ghi nhận. Không dò theo tên kênh — tên bên
   // nguồn đổi lúc nào không biết.
   const laCoc = (cs: string) =>
-    ngays.every((d) => giaTri(o.get(`${cs}|${d}`), "that") === 0) &&
-    ngays.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
+    tuans.every((d) => giaTri(o.get(`${cs}|${d}`), "that") === 0) &&
+    tuans.some((d) => giaTri(o.get(`${cs}|${d}`), "tien") > 0);
   const kenhThat = chiSos.filter((cs) => !laCoc(cs));
   const kenhCoc = chiSos.filter(laCoc);
   const congQua = (ds: string[], ngay: string, cot: Cot) =>
@@ -138,9 +147,9 @@ export function Bang7({
           <thead>
             <tr>
               <th>Chỉ số</th>
-              {ngays.map((d, i) => (
+              {tuans.map((d, i) => (
                 <th key={d} className={`num${xenKe(i)}`}>
-                  {nhanCot(d, homNay)}
+                  {nhanCot(d, tuanNay)}
                 </th>
               ))}
             </tr>
@@ -157,7 +166,7 @@ export function Bang7({
                     </span>
                   )}
                 </td>
-                {ngays.map((d, i) => {
+                {tuans.map((d, i) => {
                   const r = o.get(`${cs}|${d}`);
                   const co = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
                   // Cấn trừ cọc chỉ một số: nó luôn là tiền ghi nhận, đặt
@@ -190,7 +199,7 @@ export function Bang7({
                 <td>
                   <b>{kieu === "tien" ? "Tổng vào tài khoản" : "Tổng"}</b>
                 </td>
-                {ngays.map((d, i) => (
+                {tuans.map((d, i) => (
                   <td key={d} className={`num mono${xenKe(i)}`}>
                     {kieu === "tien" ? (
                       oTien(congQua(kenhThat, d, "duyet"), congQua(kenhThat, d, "tien"), true)
@@ -210,7 +219,7 @@ export function Bang7({
                 <td className="muted">
                   Cấn trừ cọc <span className="muted">· ngoài tài khoản</span>
                 </td>
-                {ngays.map((d, i) => {
+                {tuans.map((d, i) => {
                   const v = congQua(kenhCoc, d, "tien");
                   return (
                     <td key={d} className={`num mono muted${xenKe(i)}`}>
