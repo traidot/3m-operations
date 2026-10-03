@@ -1995,6 +1995,36 @@ export const getHuyNgay = (ngay: string) =>
     [ngay],
   );
 
+export type MayVe = {
+  source_id: string; imei: string | null; so_phieu: string | null; ngay: string;
+  kho: string | null; goi: string | null; ma_khach: string | null; khach: string | null;
+  tinh_trang_may: string | null; ghi_chu: string | null;
+};
+
+/** Máy cầm tay khách cố định trả về kho, một tháng — xem db/214. */
+export const getChoMuonMayVe = (ky: string) =>
+  query<MayVe>(
+    `select source_id, imei, so_phieu, ngay::text, kho, goi, ma_khach, khach,
+            tinh_trang_may, ghi_chu
+       from v_cho_muon_may_ve where ky = $1 order by ngay desc, imei`,
+    [ky],
+  );
+
+export type CanTru = {
+  source_id: string; ngay: string; ma_hd: string | null; ky_cuoc: string | null;
+  tien: string; status: string | null; ngay_go: string | null;
+  nguoi_go: string | null; url: string | null;
+};
+
+/** Đợt thu kênh "cần trừ cọc" bên cố định, một tháng — xem db/214. */
+export const getChoMuonCanTru = (ky: string) =>
+  query<CanTru>(
+    `select source_id, ngay::text, ma_hd, ky_cuoc, tien::text, status,
+            ngay_go::text, nguoi_go, url
+       from v_cho_muon_can_tru where ky = $1 order by ngay desc, tien desc`,
+    [ky],
+  );
+
 export type ChoMuon = {
   ky: string; may_tra_ve: string; dot_can_tru: string; tien_can_tru: string;
 };

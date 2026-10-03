@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ChoMuon } from "@/lib/queries";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
@@ -18,11 +19,14 @@ export function BangChoMuon({
   ds,
   giu,
   so,
+  moTai,
 }: {
   ds: ChoMuon[];
   giu: { dang_muon: string; da_tra: string; tat_ca: string };
   /** Số thứ tự mục, vì hai màn đánh số khác nhau. */
   so: number;
+  /** Đường dẫn trang chứa bảng, để dựng liên kết mở ngăn kéo. */
+  moTai: string;
 }) {
   if (ds.length === 0) return null;
 
@@ -54,13 +58,21 @@ export function BangChoMuon({
               <tr key={r.ky}>
                 <td className="mono">{thangVn(r.ky)}</td>
                 <td className="num mono">
-                  {Number(r.may_tra_ve) === 0 ? <span className="muted">—</span> : n(r.may_tra_ve)}
+                  {Number(r.may_tra_ve) === 0 ? (
+                    <span className="muted">—</span>
+                  ) : (
+                    <Link className="o-mo" href={`${moTai}?muon=${r.ky}.may`} scroll={false}>
+                      {n(r.may_tra_ve)}
+                    </Link>
+                  )}
                 </td>
                 <td className="num mono">
                   {Number(r.dot_can_tru) === 0 ? (
                     <span className="muted">—</span>
                   ) : (
-                    n(r.dot_can_tru)
+                    <Link className="o-mo" href={`${moTai}?muon=${r.ky}.coc`} scroll={false}>
+                      {n(r.dot_can_tru)}
+                    </Link>
                   )}
                 </td>
                 <td className="num mono muted">{n(r.tien_can_tru)}</td>
@@ -73,7 +85,7 @@ export function BangChoMuon({
         Hai cột giữa là hai đầu của cùng một việc nhưng <b>không khớp một-một</b>:
         kho mới ghi lý do “wifi cố định trả về” từ tháng 8 nên các tháng trước
         trống, và việc cấn trừ có thể làm trước hoặc sau ngày trả máy. Đừng đọc
-        chúng như một phép đối chiếu.
+        chúng như một phép đối chiếu. Bấm vào con số để xem từng dòng.
       </p>
     </section>
   );

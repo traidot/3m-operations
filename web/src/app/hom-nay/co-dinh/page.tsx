@@ -10,6 +10,7 @@ import { BangGmoThang } from "../gmo-thang";
 import { BangCocNhom } from "../coc-nhom";
 import { TheThang } from "../the-thang";
 import { BangChoMuon } from "../cho-muon";
+import { ChiTietCanTru, ChiTietMayVe } from "../chi-tiet-cho-muon";
 import { ChiTietChuaHoatDong } from "../chi-tiet-chua-hoat-dong";
 import {
   getBaoCao28NgayCoDinh,
@@ -245,7 +246,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <BangGmoThang ds={gmoThang} o={gmoO} cocMo={cocMo} />
 
-      <BangChoMuon ds={choMuon} giu={choMuonGiu} so={8} />
+      <BangChoMuon ds={choMuon} giu={choMuonGiu} so={8} moTai={DUONG_DAN} />
 
       {(() => {
         // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
@@ -253,6 +254,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         const [kenh, ngay] = mot(sp.o).split("|");
         if (!kenh || !ngay) return null;
         return <ChiTietTien kenh={kenh} ngay={ngay} dongLai={DUONG_DAN} />;
+      })()}
+
+      {(() => {
+        const [ky, loai] = mot(sp.muon).split(".");
+        if (!ky || loai === undefined) return null;
+        return loai === "may" ? (
+          <ChiTietMayVe ky={ky} dongLai={DUONG_DAN} />
+        ) : (
+          <ChiTietCanTru ky={ky} dongLai={DUONG_DAN} />
+        );
       })()}
 
       {mot(sp["qua-han"]) !== "" && <ChiTietLapQuaHan dongLai={DUONG_DAN} />}

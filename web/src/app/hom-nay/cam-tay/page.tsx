@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BangNgay } from "../bang-ngay";
 import { SoSanh } from "../so-sanh";
 import { BangChoMuon } from "../cho-muon";
+import { ChiTietCanTru, ChiTietMayVe } from "../chi-tiet-cho-muon";
 import {
   getFreshness,
   getChoMuonDangGiu,
@@ -19,7 +20,11 @@ const n = (v: string | number | null) =>
 
 const DUONG_DAN = "/hom-nay/cam-tay";
 
-export default async function Page() {
+type Tham = Record<string, string | string[] | undefined>;
+const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+
+export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+  const sp = await searchParams;
   const [thangNay, treo, ngay28, choMuon, choMuonGiu, freshness] = await Promise.all([
     getTelecomThangNay(),
     getTelecomDangTreo(),
@@ -211,7 +216,17 @@ export default async function Page() {
         kieu="so"
       />
 
-      <BangChoMuon ds={choMuon} giu={choMuonGiu} so={6} />
+      <BangChoMuon ds={choMuon} giu={choMuonGiu} so={6} moTai={DUONG_DAN} />
+      {(() => {
+        // "<tháng>.may" hoặc "<tháng>.coc" — hai đầu của cùng một việc.
+        const [ky, loai] = mot(sp.muon).split(".");
+        if (!ky || loai === undefined) return null;
+        return loai === "may" ? (
+          <ChiTietMayVe ky={ky} dongLai={DUONG_DAN} />
+        ) : (
+          <ChiTietCanTru ky={ky} dongLai={DUONG_DAN} />
+        );
+      })()}
     </main>
   );
 }
