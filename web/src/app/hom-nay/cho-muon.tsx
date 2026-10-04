@@ -23,8 +23,8 @@ export function BangChoMuon({
 }: {
   ds: ChoMuon[];
   giu: { dang_muon: string; da_tra: string; tat_ca: string };
-  /** Số thứ tự mục, vì hai màn đánh số khác nhau. */
-  so: number;
+  /** Số thứ tự mục, vì hai màn đánh số khác nhau. Bỏ trống ở màn không đánh số. */
+  so?: number;
   /** Đường dẫn trang chứa bảng, để dựng liên kết mở ngăn kéo. */
   moTai: string;
 }) {
@@ -33,7 +33,7 @@ export function BangChoMuon({
   return (
     <section>
       <h2>
-        {so} · Cho mượn máy cầm tay{" "}
+        {so !== undefined && `${so} · `}Cho mượn máy cầm tay{" "}
         <span className="muted">— chỗ hai hệ thống dính vào nhau</span>
       </h2>
       <p className="muted">
