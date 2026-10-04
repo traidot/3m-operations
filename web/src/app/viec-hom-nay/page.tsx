@@ -9,7 +9,8 @@ const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
 type Tham = Record<string, string | string[] | undefined>;
-const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+const mot = (v: string | string[] | undefined) =>
+  (Array.isArray(v) ? v[0] : v) ?? "";
 
 const DUONG_DAN = "/viec-hom-nay";
 
@@ -70,8 +71,8 @@ function Bang({
         <tfoot>
           <tr>
             <td colSpan={9} className="muted">
-              Dừng ở {TRAN_NGAN_KEO} việc già nhất. Làm hết chỗ này rồi mở lại sẽ
-              thấy tiếp.
+              Dừng ở {TRAN_NGAN_KEO} việc già nhất. Làm hết chỗ này rồi mở lại
+              sẽ thấy tiếp.
             </td>
           </tr>
         </tfoot>
@@ -87,13 +88,26 @@ function Bang({
  * ra là thấy danh sách tên, già nhất lên đầu, mỗi dòng bấm sang CMS làm được
  * ngay. Làm xong thì danh sách ngắn lại — đó là toàn bộ cách dùng.
  */
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Tham>;
+}) {
   const [rows, sp] = await Promise.all([getViecHomNay(), searchParams]);
 
-  const cacViec = Object.keys(VIEC_HOM_NAY).sort(
-    (a, b) => VIEC_HOM_NAY[a]!.thu_tu - VIEC_HOM_NAY[b]!.thu_tu,
-  );
+  const theoHe = (he: string) => rows.filter((r) => r.he === he);
   const cua = (viec: string) => rows.filter((r) => r.viec === viec);
+  const viecCua = (he: string) =>
+    Object.keys(VIEC_HOM_NAY)
+      .filter((v) => VIEC_HOM_NAY[v]!.he === he)
+      .sort((a, b) => VIEC_HOM_NAY[a]!.thu_tu - VIEC_HOM_NAY[b]!.thu_tu);
+
+  // Mảng nào nhiều việc hơn thì lên trước. Xếp cứng cố định lên đầu thì bên
+  // cầm tay — đang gấp bốn lần số việc — nằm khuất dưới đáy trang, người xem
+  // cuộn một đoạn rồi tưởng màn này chỉ có wifi cố định.
+  const cacHe = ["co_dinh", "cam_tay"].sort(
+    (a, b) => theoHe(b).length - theoHe(a).length,
+  );
 
   // Loại việc có trong view mà chưa khai nhãn thì vẫn phải lộ ra, kẻo thêm
   // hàng đợi bên SQL rồi tưởng đã lên màn hình.
@@ -101,25 +115,25 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     (v) => VIEC_HOM_NAY[v] === undefined,
   );
 
-  const theoHe = (he: string) => rows.filter((r) => r.he === he);
   const moViec = mot(sp.mo);
 
   return (
     <main>
       <h1>Việc hôm nay</h1>
       <p className="muted">
-        <b>{n(rows.length)} việc</b> đang chờ người làm — {n(theoHe("co_dinh").length)}{" "}
-        bên cố định, {n(theoHe("cam_tay").length)} bên cầm tay. Đây không phải báo
-        cáo để đọc: mỗi dòng là một việc đóng được, già nhất lên đầu, bấm{" "}
-        <b>làm →</b> là sang thẳng CMS. Làm xong thì danh sách ngắn lại.
+        <b>{n(rows.length)} việc</b> đang chờ người làm —{" "}
+        {n(theoHe("co_dinh").length)} bên cố định, {n(theoHe("cam_tay").length)}{" "}
+        bên cầm tay. Đây không phải báo cáo để đọc: mỗi dòng là một việc đóng
+        được, già nhất lên đầu, bấm <b>làm →</b> là sang thẳng CMS. Làm xong thì
+        danh sách ngắn lại.
       </p>
       <p className="muted">
         Chỉ hiện việc đã <b>quá ngưỡng chờ</b> — cái mới phát sinh hôm qua đang
         được xử lý bình thường, không phải việc tồn. Ngưỡng nằm ở bảng{" "}
         <code>threshold</code>, sửa được. Không tính đại lý. Một hợp đồng có thể
         nằm ở nhiều hàng đợi cùng lúc, nên đừng cộng số của các hàng đợi lại.
-        Đòi nợ không có ở đây vì <Link href="/thu-cuoc">màn Thu cước</Link> đã làm
-        đầy đủ hơn.
+        Đòi nợ không có ở đây vì <Link href="/thu-cuoc">màn Thu cước</Link> đã
+        làm đầy đủ hơn.
       </p>
 
       {laDu.length > 0 && (
@@ -128,51 +142,63 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </p>
       )}
 
-      {cacViec.map((viec) => {
-        const ds = cua(viec);
-        const b = VIEC_HOM_NAY[viec]!;
-        const tien = ds.reduce((t, r) => t + Number(r.tien ?? 0), 0);
-        const lau = ds.filter((r) => r.tuoi_ngay >= QUA_LAU).length;
+      {cacHe.map((he) => (
+        <section key={he}>
+          <h2 className="dau-he">
+            {TEN_HE[he] ?? he}{" "}
+            <span className="muted">
+              — {n(theoHe(he).length)} việc trên {viecCua(he).length} hàng đợi
+            </span>
+          </h2>
+          {viecCua(he).map((viec) => {
+            const ds = cua(viec);
+            const b = VIEC_HOM_NAY[viec]!;
+            const tien = ds.reduce((t, r) => t + Number(r.tien ?? 0), 0);
+            const lau = ds.filter((r) => r.tuoi_ngay >= QUA_LAU).length;
 
-        return (
-          <section key={viec}>
-            <h2>
-              {b.ten}{" "}
-              <span className="muted">— {TEN_HE[b.he] ?? b.he}</span>
-            </h2>
-            <p className="muted">{b.lam_gi}</p>
+            return (
+              <section key={viec}>
+                <h3>{b.ten}</h3>
+                <p className="muted">{b.lam_gi}</p>
 
-            {ds.length === 0 ? (
-              <p className="muted">
-                <b>Không còn việc nào.</b>
-              </p>
-            ) : (
-              <>
-                <p className="muted">
-                  <b>{n(ds.length)} việc</b>, già nhất <b>{n(ds[0]!.tuoi_ngay)} ngày</b>
-                  {lau > 0 && <>, {n(lau)} cái đã quá {QUA_LAU} ngày</>}
-                  {b.cot_tien !== null && tien > 0 && (
-                    <>
-                      , đang kẹt <b>{n(tien)}</b> yên
-                    </>
-                  )}
-                  .
-                </p>
-                <Bang viec={viec} ds={ds.slice(0, HIEN_SAN)} />
-                {ds.length > HIEN_SAN && (
-                  <p className="actions">
-                    <Link href={`${DUONG_DAN}?mo=${viec}`} scroll={false}>
-                      <button type="button">
-                        Xem tất cả {n(ds.length)} việc →
-                      </button>
-                    </Link>
+                {ds.length === 0 ? (
+                  <p className="muted">
+                    <b>Không còn việc nào.</b>
                   </p>
+                ) : (
+                  <>
+                    <p className="muted">
+                      <b>{n(ds.length)} việc</b>, già nhất{" "}
+                      <b>{n(ds[0]!.tuoi_ngay)} ngày</b>
+                      {lau > 0 && (
+                        <>
+                          , {n(lau)} cái đã quá {QUA_LAU} ngày
+                        </>
+                      )}
+                      {b.cot_tien !== null && tien > 0 && (
+                        <>
+                          , đang kẹt <b>{n(tien)}</b> yên
+                        </>
+                      )}
+                      .
+                    </p>
+                    <Bang viec={viec} ds={ds.slice(0, HIEN_SAN)} />
+                    {ds.length > HIEN_SAN && (
+                      <p className="actions">
+                        <Link href={`${DUONG_DAN}?mo=${viec}`} scroll={false}>
+                          <button type="button">
+                            Xem tất cả {n(ds.length)} việc →
+                          </button>
+                        </Link>
+                      </p>
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </section>
-        );
-      })}
+              </section>
+            );
+          })}
+        </section>
+      ))}
 
       {VIEC_HOM_NAY[moViec] !== undefined && (
         <NganKeo dongLai={DUONG_DAN}>
