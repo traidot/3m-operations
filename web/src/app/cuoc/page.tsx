@@ -88,7 +88,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           ⚠ Sổ cước bên CMS thu tiền ở kỳ mà luật của mình bảo lẽ ra không có, ở{" "}
           {ngoaiKy.length} tháng: {ngoaiKy.map((l) => `${l.ky} (${l.so})`).join(", ")}. Hầu
           hết là hợp đồng đã qua ngày kết thúc thu mà vẫn thu tiếp —{" "}
-          <Link href="/thu-ngoai">xem danh sách từng kỳ</Link>.
+          <Link href="/tien?lo=thu-ngoai">xem danh sách từng kỳ</Link>.
         </p>
       ) : (
         <p className="khop">
@@ -374,7 +374,7 @@ function TableRows({
             <>
               {" "}
               {/* Link thật để bấm được vào đúng chip; Dong bỏ qua click rơi vào <a>. */}
-              <Link href={`/thu-ngoai?ky=${row.ky}`} className="chip xau">
+              <Link href="/tien?lo=thu-ngoai" className="chip xau">
                 ⚠ {ngoai}
               </Link>
             </>

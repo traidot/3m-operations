@@ -20,8 +20,6 @@ const MENU: NhomMenu[] = [
       { ten: "Thu cước", href: "/thu-cuoc" },
       { ten: "Dự kiến huỷ", href: "/xem-xet-huy" },
       { ten: "Cọc", href: "/cam-tay/coc" },
-      { ten: "Thu ngoài hợp đồng", href: "/thu-ngoai" },
-      { ten: "Tháng không ra kỳ", href: "/ky-hut" },
     ],
   },
   {
@@ -46,7 +44,7 @@ const MENU: NhomMenu[] = [
       { ten: "Hôm nay", href: "/hom-nay/co-dinh" },
       { ten: "Hợp đồng theo tháng", href: "/thang" },
       { ten: "Tiền theo tháng", href: "/thang/tien" },
-      { ten: "Kỳ cước và dòng tiền", href: "/dong-tien" },
+      { ten: "Tiền", href: "/tien" },
       { ten: "Hợp đồng", href: "/hop-dong" },
       { ten: "Lắp đặt", href: "/lap-dat" },
       { ten: "Cước", href: "/cuoc" },
