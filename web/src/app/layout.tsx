@@ -36,16 +36,6 @@ const MENU: NhomMenu[] = [
     ],
   },
   {
-    // Ngoài phạm vi giám sát vận hành; để riêng chứ không trộn vào hai nhóm trên.
-    nhom: "Marketing",
-    muc: [
-      { ten: "Chung", href: "/wifi" },
-      { ten: "Đình Việt", href: "/wifi/viet" },
-      { ten: "Việt Hoàng", href: "/wifi/hoang" },
-      { ten: "eSIM", href: "/esim" },
-    ],
-  },
-  {
     nhom: "Dữ liệu",
     muc: [
       { ten: "Duyệt trùng khách", href: "/duyet-trung" },
@@ -68,6 +58,10 @@ const MENU: NhomMenu[] = [
  *   /cam-tay/may, /cam-tay/vong-doi               → Tra cứu (chưa dựng)
  *   /cam-tay/kho, /cam-tay/kho/hai-ben            → Tra cứu (chưa dựng)
  *   /cam-tay/kho/danh-sach, /                     → Tra cứu (chưa dựng)
+ *
+ * Marketing (/wifi, /wifi/[nguoi], /esim) cũng còn chạy nhưng đã rút khỏi
+ * menu: nằm ngoài phạm vi giám sát vận hành, và nguồn của nó là sheet bên MKT
+ * chứ không phải hai hệ thống CMS.
  */
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
