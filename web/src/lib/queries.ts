@@ -2557,3 +2557,35 @@ export const getTramVanHanh = () =>
             tien::text, ra_moi_tuan::int
        from v_tram_van_hanh`,
   );
+
+export type TramChiTiet = {
+  he: string;
+  tram: string;
+  id: string;
+  ma: string | null;
+  ai: string | null;
+  /** Nghĩa khác nhau tuỳ trạm — xem `cot_tuoi` ở TRAM_VAN_HANH. */
+  tuoi_ngay: number | null;
+  tien: string | null;
+  nguoi: string | null;
+  url: string | null;
+};
+
+/**
+ * Từng việc đang nằm ở một trạm — db/218. Bảng trạm gom từ chính view này nên
+ * số dòng ở đây luôn bằng cột "đang nằm" trên bản đồ.
+ *
+ * CHO_HEN đo ngày CÒN LẠI tới hẹn nên xếp tăng dần (sắp tới hẹn lên đầu); các
+ * trạm khác đo đã chờ bao lâu nên xếp giảm dần (già nhất lên đầu).
+ */
+export const getTramChiTiet = (tram: string) =>
+  query<TramChiTiet>(
+    `select he, tram, id, ma, ai, tuoi_ngay::int, tien::text, nguoi, url
+       from v_tram_chi_tiet
+      where tram = $1
+      order by case when $1 = 'CHO_HEN' then tuoi_ngay end asc nulls last,
+               case when $1 <> 'CHO_HEN' then tuoi_ngay end desc nulls last,
+               ma
+      limit 300`,
+    [tram],
+  );

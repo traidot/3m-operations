@@ -653,7 +653,20 @@ export const TEN_HE: Record<string, string> = {
  */
 export const TRAM_VAN_HANH: Record<
   string,
-  { ten: string; y: string; he: string; thu_tu: number; viec: string | null }
+  {
+    ten: string;
+    y: string;
+    he: string;
+    thu_tu: number;
+    viec: string | null;
+    /** Nhãn bốn cột của ngăn kéo. Cùng một view nhưng dòng của cố định là hợp
+     *  đồng, của cầm tay là máy hoặc lần thu tiền — gọi chung một tên thì đọc
+     *  không ra. `cot_tien` rỗng nghĩa là trạm này không kèm tiền. */
+    cot_ma: string;
+    cot_ai: string;
+    cot_tuoi: string;
+    cot_tien: string | null;
+  }
 > = {
   KHAO_SAT: {
     ten: "Khảo sát, chưa có lịch",
@@ -661,6 +674,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 1,
     viec: "GOI_LAI",
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "Đã ký",
+    cot_tien: null,
   },
   CHO_HEN: {
     ten: "Có lịch, chờ tới ngày",
@@ -668,6 +685,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 2,
     viec: null,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "Còn",
+    cot_tien: null,
   },
   QUA_HEN: {
     ten: "Quá ngày hẹn, chưa lắp",
@@ -675,6 +696,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 3,
     viec: null,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "Trễ",
+    cot_tien: null,
   },
   CHUA_BAT_THU: {
     ten: "Lắp xong, chưa bật thu",
@@ -682,6 +707,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 4,
     viec: "BAT_THU_CUOC",
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "Sau lắp",
+    cot_tien: "Cước tháng",
   },
   THIEU_GIA: {
     ten: "Thiếu giá cước",
@@ -689,6 +718,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 5,
     viec: "DIEN_GIA_CUOC",
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "Đã ký",
+    cot_tien: null,
   },
   CHO_DUYET_COC: {
     ten: "Phiếu cọc chờ duyệt",
@@ -696,6 +729,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 6,
     viec: "DUYET_COC",
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "Chờ",
+    cot_tien: "Tiền",
   },
   DANG_NO: {
     ten: "Đang nợ cước",
@@ -703,6 +740,10 @@ export const TRAM_VAN_HANH: Record<
     he: "co_dinh",
     thu_tu: 7,
     viec: null,
+    cot_ma: "Hợp đồng",
+    cot_ai: "Địa chỉ",
+    cot_tuoi: "—",
+    cot_tien: "Còn nợ",
   },
   CHO_GAN_HD: {
     ten: "Tiền về, chưa gán hoá đơn",
@@ -710,6 +751,10 @@ export const TRAM_VAN_HANH: Record<
     he: "cam_tay",
     thu_tu: 1,
     viec: "GAN_HOA_DON",
+    cot_ma: "Mã khách",
+    cot_ai: "Khách",
+    cot_tuoi: "Treo",
+    cot_tien: "Tiền",
   },
   NO_CAM_TAY: {
     ten: "Thuê bao nợ quá hạn",
@@ -717,6 +762,10 @@ export const TRAM_VAN_HANH: Record<
     he: "cam_tay",
     thu_tu: 2,
     viec: null,
+    cot_ma: "Mã khách",
+    cot_ai: "Khách",
+    cot_tuoi: "Quá hạn",
+    cot_tien: "Nợ",
   },
   CHO_THU_MAY: {
     ten: "Máy chưa thu hồi",
@@ -724,6 +773,10 @@ export const TRAM_VAN_HANH: Record<
     he: "cam_tay",
     thu_tu: 3,
     viec: "THU_HOI_MAY",
+    cot_ma: "IMEI",
+    cot_ai: "Khách",
+    cot_tuoi: "Ngừng đã",
+    cot_tien: "Cọc",
   },
 };
 

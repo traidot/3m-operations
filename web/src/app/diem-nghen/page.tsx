@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChiTietTram } from "./chi-tiet-tram";
 import { getTramVanHanh, type TramVanHanh } from "@/lib/queries";
 import {
   NGHEN_NGAY,
@@ -50,9 +51,20 @@ const NHAN_NGHEN = {
  * Màn này xếp theo DÒNG CHẢY chứ không theo mức nghẽn: phải thấy hình dạng
  * dây chuyền trước thì mới hiểu được chỗ tắc nằm ở khúc nào.
  */
-export default async function Page() {
-  const rows = await getTramVanHanh();
+type Tham = Record<string, string | string[] | undefined>;
+const mot = (v: string | string[] | undefined) =>
+  (Array.isArray(v) ? v[0] : v) ?? "";
+
+const DUONG_DAN = "/diem-nghen";
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Tham>;
+}) {
+  const [rows, sp] = await Promise.all([getTramVanHanh(), searchParams]);
   const biet = (r: TramVanHanh) => TRAM_VAN_HANH[r.ma];
+  const moTram = mot(sp.mo);
 
   // Trạm có trong view mà chưa khai nhãn thì vẫn phải lộ ra.
   const laDu = rows.filter((r) => biet(r) === undefined);
@@ -92,9 +104,9 @@ export default async function Page() {
         <span className="tag warn">bỏ quên</span> là guồng thừa sức nhưng từ{" "}
         {Math.round(NGHEN_TY_LE * 100)}% số việc trở lên đã nằm quá {NGHEN_NGAY}{" "}
         ngày — không làm theo thứ tự. Đếm số cái nằm lâu chứ không lấy cái già
-        nhất: một ngoại lệ duy nhất không đủ gọi là tắc. Cột{" "}
-        <b>ra mỗi tuần</b> để trống nghĩa là nguồn không ghi mốc hoàn thành nên
-        chưa đo được, <b>không phải</b> guồng đứng im.
+        nhất: một ngoại lệ duy nhất không đủ gọi là tắc. Cột <b>ra mỗi tuần</b>{" "}
+        để trống nghĩa là nguồn không ghi mốc hoàn thành nên chưa đo được,{" "}
+        <b>không phải</b> guồng đứng im.
       </p>
 
       {laDu.length > 0 && (
@@ -132,7 +144,13 @@ export default async function Page() {
                     return (
                       <tr key={r.ma}>
                         <td>
-                          <b>{b.ten}</b>
+                          <Link
+                            href={`${DUONG_DAN}?mo=${r.ma}`}
+                            scroll={false}
+                            className="o-mo"
+                          >
+                            <b>{b.ten}</b>
+                          </Link>
                           {k !== null && (
                             <>
                               {" "}
@@ -157,7 +175,11 @@ export default async function Page() {
                         </td>
                         <td
                           className={`num mono${
-                            k === "thieu_nguoi" ? " bad" : t === null ? " muted" : ""
+                            k === "thieu_nguoi"
+                              ? " bad"
+                              : t === null
+                                ? " muted"
+                                : ""
                           }`}
                         >
                           {t === null ? "—" : <b>{t} tuần</b>}
@@ -184,13 +206,9 @@ export default async function Page() {
                           )}
                         </td>
                         <td className="khong-xuong-dong">
-                          {b.viec !== null && (
-                            <Link
-                              href={`/viec-hom-nay/${he === "co_dinh" ? "co-dinh" : "cam-tay"}?mo=${b.viec}`}
-                            >
-                              xem việc →
-                            </Link>
-                          )}
+                          <Link href={`${DUONG_DAN}?mo=${r.ma}`} scroll={false}>
+                            xem →
+                          </Link>
                         </td>
                       </tr>
                     );
@@ -201,6 +219,20 @@ export default async function Page() {
           </section>
         );
       })}
+
+      {(() => {
+        const r = rows.find((x) => x.ma === moTram);
+        if (r === undefined) return null;
+        return (
+          <ChiTietTram
+            tram={r.ma}
+            ton={r.ton}
+            quaLau={r.qua_lau}
+            tien={r.tien}
+            dongLai={DUONG_DAN}
+          />
+        );
+      })()}
     </main>
   );
 }
