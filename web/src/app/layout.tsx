@@ -27,6 +27,7 @@ const MENU: NhomMenu[] = [
     muc: [
       { ten: "Tổng quan", href: "/cam-tay" },
       { ten: "Hôm nay", href: "/hom-nay/cam-tay" },
+      { ten: "Tiền", href: "/tien/cam-tay" },
       { ten: "Vòng đời máy", href: "/cam-tay/vong-doi" },
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
       { ten: "Tiền treo chưa gán", href: "/cam-tay/chua-can-tru" },
@@ -42,8 +43,7 @@ const MENU: NhomMenu[] = [
       { ten: "Hôm nay", href: "/hom-nay/co-dinh" },
       { ten: "Hợp đồng theo tháng", href: "/thang" },
       { ten: "Tiền theo tháng", href: "/thang/tien" },
-      { ten: "Tiền · cố định", href: "/tien/co-dinh" },
-      { ten: "Tiền · cầm tay", href: "/tien/cam-tay" },
+      { ten: "Tiền", href: "/tien/co-dinh" },
       { ten: "Hợp đồng", href: "/hop-dong" },
       { ten: "Lắp đặt", href: "/lap-dat" },
       { ten: "Cước", href: "/cuoc" },
