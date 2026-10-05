@@ -2551,3 +2551,19 @@ export const getTramChiTiet = (tram: string) =>
       limit 300`,
     [tram],
   );
+
+/**
+ * Doanh thu cầm tay theo tháng của MỘT năm.
+ *
+ * Khác getTelecomMonths ở chỗ không chặn 12 tháng gần nhất — màn Tiền cho chọn
+ * năm cũ, mà chặn thì bảng tháng trống trong khi bảng dịch vụ vẫn có số, nhìn
+ * như mất dữ liệu.
+ */
+export const getTelecomMonthsNam = (nam: string) =>
+  query<TelecomMonth>(
+    `select ky, so_hoa_don::text, so_thue_bao::text, phai_thu::text, da_thu::text,
+            con_doi::text, mat_trang::text, hoa_don_dang_doi::text,
+            hoa_don_mat::text, ty_le_thu::text
+       from v_telecom_month where ky like $1 || '-%' order by ky desc`,
+    [nam],
+  );

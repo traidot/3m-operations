@@ -25,12 +25,10 @@ const MENU: NhomMenu[] = [
   {
     nhom: "Wifi cầm tay",
     muc: [
-      { ten: "Hôm nay", href: "/hom-nay/cam-tay" },
       { ten: "Tổng quan", href: "/cam-tay" },
+      { ten: "Hôm nay", href: "/hom-nay/cam-tay" },
       { ten: "Vòng đời máy", href: "/cam-tay/vong-doi" },
       { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
-      { ten: "Cước theo dịch vụ", href: "/cam-tay/dich-vu" },
-      { ten: "Đợt thu cước", href: "/cam-tay/dot-thu" },
       { ten: "Tiền treo chưa gán", href: "/cam-tay/chua-can-tru" },
       { ten: "Huỷ thuê bao", href: "/cam-tay/huy" },
       { ten: "Máy cho thuê", href: "/cam-tay/may" },
@@ -44,7 +42,8 @@ const MENU: NhomMenu[] = [
       { ten: "Hôm nay", href: "/hom-nay/co-dinh" },
       { ten: "Hợp đồng theo tháng", href: "/thang" },
       { ten: "Tiền theo tháng", href: "/thang/tien" },
-      { ten: "Tiền", href: "/tien" },
+      { ten: "Tiền · cố định", href: "/tien/co-dinh" },
+      { ten: "Tiền · cầm tay", href: "/tien/cam-tay" },
       { ten: "Hợp đồng", href: "/hop-dong" },
       { ten: "Lắp đặt", href: "/lap-dat" },
       { ten: "Cước", href: "/cuoc" },

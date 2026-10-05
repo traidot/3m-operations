@@ -49,7 +49,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <p className="muted">
         Số ở đây đếm theo <b>hoá đơn</b>, tức gồm cả cọc, bán máy và phí đăng ký chứ không
         riêng tiền cước. Muốn nhìn riêng cước thì sang{" "}
-        <a href="/cam-tay/dot-thu">Đợt thu cước</a> — bên đó đếm theo kỳ cước nên số nhỏ hơn,
+        <a href="/tien/cam-tay">Tiền · cầm tay</a> — bên đó đếm theo kỳ cước nên số nhỏ hơn,
         chênh 13.000.860 trên toàn bộ lịch sử.
       </p>
       <p className="muted">
