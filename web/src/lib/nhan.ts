@@ -641,3 +641,98 @@ export const TEN_HE: Record<string, string> = {
   co_dinh: "Wifi cố định",
   cam_tay: "Wifi cầm tay",
 };
+
+/**
+ * Các trạm trên dây chuyền vận hành — xem db/217.
+ *
+ * `thu_tu` theo đúng thứ tự việc chảy qua, không theo mức nghẽn: người đọc cần
+ * thấy hình dạng dây chuyền trước, rồi mới thấy chỗ nào tắc.
+ *
+ * `viec` nối sang hàng đợi tương ứng bên màn Việc hôm nay; rỗng nghĩa là trạm
+ * đó chưa có hàng đợi để bấm vào làm.
+ */
+export const TRAM_VAN_HANH: Record<
+  string,
+  { ten: string; y: string; he: string; thu_tu: number; viec: string | null }
+> = {
+  KHAO_SAT: {
+    ten: "Khảo sát, chưa có lịch",
+    y: "đã ký nhưng chưa chốt được ngày lắp",
+    he: "co_dinh",
+    thu_tu: 1,
+    viec: "GOI_LAI",
+  },
+  CHO_HEN: {
+    ten: "Có lịch, chờ tới ngày",
+    y: "đã hẹn ngày lắp, chưa tới lượt — không phải việc tồn",
+    he: "co_dinh",
+    thu_tu: 2,
+    viec: null,
+  },
+  QUA_HEN: {
+    ten: "Quá ngày hẹn, chưa lắp",
+    y: "đã qua ngày hẹn mà đơn chưa xong",
+    he: "co_dinh",
+    thu_tu: 3,
+    viec: null,
+  },
+  CHUA_BAT_THU: {
+    ten: "Lắp xong, chưa bật thu",
+    y: "máy chạy ở nhà khách mà sổ chưa thu đồng nào",
+    he: "co_dinh",
+    thu_tu: 4,
+    viec: "BAT_THU_CUOC",
+  },
+  THIEU_GIA: {
+    ten: "Thiếu giá cước",
+    y: "không có giá tháng nên không sinh được kỳ nào",
+    he: "co_dinh",
+    thu_tu: 5,
+    viec: "DIEN_GIA_CUOC",
+  },
+  CHO_DUYET_COC: {
+    ten: "Phiếu cọc chờ duyệt",
+    y: "tiền đã vào tài khoản, nợ của khách chưa được trừ",
+    he: "co_dinh",
+    thu_tu: 6,
+    viec: "DUYET_COC",
+  },
+  DANG_NO: {
+    ten: "Đang nợ cước",
+    y: "hợp đồng còn chạy mà có kỳ chưa thu",
+    he: "co_dinh",
+    thu_tu: 7,
+    viec: null,
+  },
+  CHO_GAN_HD: {
+    ten: "Tiền về, chưa gán hoá đơn",
+    y: "khách trả rồi nhưng chưa ai nói nó trả cho hoá đơn nào",
+    he: "cam_tay",
+    thu_tu: 1,
+    viec: "GAN_HOA_DON",
+  },
+  NO_CAM_TAY: {
+    ten: "Thuê bao nợ quá hạn",
+    y: "dịch vụ còn chạy mà cước chưa thu",
+    he: "cam_tay",
+    thu_tu: 2,
+    viec: null,
+  },
+  CHO_THU_MAY: {
+    ten: "Máy chưa thu hồi",
+    y: "thuê bao đóng rồi mà máy vẫn ở ngoài",
+    he: "cam_tay",
+    thu_tu: 3,
+    viec: "THU_HOI_MAY",
+  },
+};
+
+/**
+ * Hai kiểu nghẽn, đọc bằng hai cột khác nhau — chỉ nhìn một cột là bỏ sót một
+ * kiểu. Ngưỡng đặt ở đây để màn hình và lời giải thích không trôi khác nhau.
+ */
+export const NGHEN_TUAN = 8;
+export const NGHEN_NGAY = 90;
+/** Dưới mức này thì mấy cái nằm lâu là ngoại lệ, không phải trạm bỏ quên. */
+export const NGHEN_TY_LE = 0.1;
+export const NGHEN_TOI_THIEU = 5;

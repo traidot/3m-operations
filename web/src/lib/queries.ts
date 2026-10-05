@@ -2536,3 +2536,24 @@ export const getViecHomNay = () =>
        from v_viec_hom_nay
       order by tuoi_ngay desc, ma`,
   );
+
+export type TramVanHanh = {
+  he: string;
+  ma: string;
+  ton: number;
+  tuoi_tb: number | null;
+  gia_nhat: number | null;
+  /** Bao nhiêu việc đã nằm quá 90 ngày — dùng cái này, không dùng gia_nhat. */
+  qua_lau: number | null;
+  tien: string | null;
+  /** Rỗng nghĩa là nguồn không ghi mốc hoàn thành, KHÔNG phải guồng đứng im. */
+  ra_moi_tuan: number | null;
+};
+
+/** Bản đồ trạm: việc đang nằm ở đâu và trạm đó thoát nhanh hay chậm — db/217. */
+export const getTramVanHanh = () =>
+  query<TramVanHanh>(
+    `select he, ma, ton::int, tuoi_tb::int, gia_nhat::int, qua_lau::int,
+            tien::text, ra_moi_tuan::int
+       from v_tram_van_hanh`,
+  );
