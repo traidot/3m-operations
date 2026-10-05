@@ -14,9 +14,10 @@ export const metadata: Metadata = {
  * vừa thuộc chỗ này vừa thuộc chỗ kia. Ba nhóm dưới đây loại trừ nhau: một lần
  * mở màn chỉ có một câu hỏi chính.
  *
- * Đích đến là mỗi nhóm MỘT màn, hai tab cố định / cầm tay. Mục nào còn đứng
- * lẻ là phần chưa gộp xong — gộp tới đâu thì mục biến mất tới đó, nên danh
- * sách này cũng là bảng theo dõi việc còn lại.
+ * Menu CHỈ bày các màn của bản thiết kế mới. Những màn cũ chưa gộp xong vẫn
+ * chạy nếu gõ thẳng URL — giữ lại để đối chiếu, nhưng không bày ra nữa vì bày
+ * cả hai lớp thì người xem không biết nên tin màn nào. Danh sách màn còn phải
+ * gộp nằm ở cuối file này.
  */
 const MENU: NhomMenu[] = [
   {
@@ -25,15 +26,6 @@ const MENU: NhomMenu[] = [
       { ten: "Điểm nghẽn", href: "/diem-nghen" },
       { ten: "Việc hôm nay · cố định", href: "/viec-hom-nay/co-dinh" },
       { ten: "Việc hôm nay · cầm tay", href: "/viec-hom-nay/cam-tay" },
-      { ten: "Hôm nay", href: "/hom-nay" },
-      { ten: "Hôm nay · cố định", href: "/hom-nay/co-dinh" },
-      { ten: "Hôm nay · cầm tay", href: "/hom-nay/cam-tay" },
-      { ten: "Thu cước", href: "/thu-cuoc" },
-      { ten: "Dự kiến huỷ", href: "/xem-xet-huy" },
-      { ten: "Cọc", href: "/cam-tay/coc" },
-      { ten: "Hợp đồng theo tháng", href: "/thang" },
-      { ten: "Lắp đặt", href: "/lap-dat" },
-      { ten: "Huỷ thuê bao", href: "/cam-tay/huy" },
     ],
   },
   {
@@ -41,25 +33,10 @@ const MENU: NhomMenu[] = [
     muc: [
       { ten: "Tiền · cố định", href: "/tien/co-dinh" },
       { ten: "Tiền · cầm tay", href: "/tien/cam-tay" },
-      { ten: "Cước theo tháng · cố định", href: "/cuoc" },
-      { ten: "Tiền theo tháng · cố định", href: "/thang/tien" },
-      { ten: "Tiền treo chưa gán · cầm tay", href: "/cam-tay/chua-can-tru" },
     ],
   },
   {
-    nhom: "Tra cứu",
-    muc: [
-      { ten: "Hợp đồng · cố định", href: "/hop-dong" },
-      { ten: "Tổng quan · cầm tay", href: "/cam-tay" },
-      { ten: "Khách và dịch vụ", href: "/cam-tay/khach" },
-      { ten: "Máy cho thuê", href: "/cam-tay/may" },
-      { ten: "Vòng đời máy", href: "/cam-tay/vong-doi" },
-      { ten: "Đối chiếu kho", href: "/cam-tay/kho" },
-      { ten: "Hai bên biết gì", href: "/cam-tay/kho/hai-ben" },
-    ],
-  },
-  {
-    // Ngoài phạm vi giám sát vận hành; để riêng chứ không trộn vào ba nhóm trên.
+    // Ngoài phạm vi giám sát vận hành; để riêng chứ không trộn vào hai nhóm trên.
     nhom: "Marketing",
     muc: [
       { ten: "Chung", href: "/wifi" },
@@ -76,6 +53,22 @@ const MENU: NhomMenu[] = [
     ],
   },
 ];
+
+/**
+ * Màn cũ còn chạy nhưng đã rút khỏi menu, kèm chỗ sẽ nhận nội dung của nó.
+ *
+ * Để đây chứ không để trong đầu: gõ URL vẫn vào được nên dễ quên là chúng còn
+ * tồn tại, và mỗi cái còn sống là một chỗ nữa có thể nói khác với màn mới.
+ *
+ *   /hom-nay, /hom-nay/co-dinh, /hom-nay/cam-tay  → Việc đang tắc
+ *   /thu-cuoc, /xem-xet-huy, /cam-tay/coc         → Việc đang tắc
+ *   /thang, /lap-dat, /cam-tay/huy                → Việc đang tắc (vào/ra dây chuyền)
+ *   /cuoc, /thang/tien, /cam-tay/chua-can-tru     → Tiền
+ *   /hop-dong, /cam-tay, /cam-tay/khach           → Tra cứu (chưa dựng)
+ *   /cam-tay/may, /cam-tay/vong-doi               → Tra cứu (chưa dựng)
+ *   /cam-tay/kho, /cam-tay/kho/hai-ben            → Tra cứu (chưa dựng)
+ *   /cam-tay/kho/danh-sach, /                     → Tra cứu (chưa dựng)
+ */
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
