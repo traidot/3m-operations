@@ -3,7 +3,6 @@ import { Dong } from "../hop-dong/dong";
 import { DoiChieuCms } from "./doi-chieu";
 import { ChiTietThangCoDinh, NHOM_CD, type NhomCd } from "./chi-tiet";
 import {
-  getArrears,
   getFixedThangChay,
   getCoverage,
   getMonthlyByStatus,
@@ -26,11 +25,10 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
 
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
-  const [total, byStatus, [coverage], arrears, pending, chay, thuNgoaiKy] = await Promise.all([
+  const [total, byStatus, [coverage], pending, chay, thuNgoaiKy] = await Promise.all([
     getMonthlyTotal(),
     getMonthlyByStatus(),
     getCoverage(),
-    getArrears(),
     getPendingPeriods(),
     getFixedThangChay(),
     getThuNgoaiKy(),
@@ -66,7 +64,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
   return (
     <main>
-      <h1>Cước wifi cố định</h1>
+      <h1>Cước theo tháng · wifi cố định</h1>
 
       {/* Độ phủ đứng trên cùng: không biết nó thì mọi số dưới đều đọc sai. */}
       <div className={phu < 80 ? "stale" : "muted"}>
@@ -197,68 +195,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <DoiChieuCms />
 
-      <h2>Nợ từ ba kỳ trở lên ({arrears.length >= 20 ? "20 nặng nhất" : arrears.length})</h2>
-      {arrears.length === 0 ? (
-        <p className="empty">Không có hợp đồng nào nợ quá ngưỡng.</p>
-      ) : (
-        <div className="scroller">
-          <table>
-            <thead>
-              <tr>
-                <th>Hợp đồng</th>
-                <th>Trạng thái</th>
-                <th>Thu tới kỳ</th>
-                <th className="num">Tổng kỳ</th>
-                <th className="num">Miễn phí</th>
-                <th className="num">Kỳ nợ</th>
-                <th className="num">Đã thu</th>
-                <th className="num">Còn nợ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {arrears.map((a) => (
-                <tr key={a.subscription_id}>
-                  <td className="mono">
-                    {/* Lớp giám sát chỉ đọc, muốn sửa phải sang hệ thống nguồn. */}
-                    {a.lien_ket ? (
-                      <a href={a.lien_ket} target="_blank" rel="noreferrer">
-                        {a.contract_code}
-                      </a>
-                    ) : (
-                      a.contract_code
-                    )}
-                  </td>
-                  <td>
-                    <span className="mono">{HOP_DONG[a.trang_thai_hop_dong] ?? a.trang_thai_hop_dong}</span>
-                    <br />
-                    <span className="mono muted">
-                      {a.trang_thai_lap_dat ? (LAP_DAT[a.trang_thai_lap_dat] ?? a.trang_thai_lap_dat) : "—"}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="mono">{a.ky_da_thu_gan_nhat ?? "chưa thu kỳ nào"}</span>
-                    {(a.ky_cho_duyet > 0 || a.ky_ghi_chu > 0) && (
-                      <>
-                        <br />
-                        <span className="mono muted">
-                          {a.ky_cho_duyet > 0 && `${a.ky_cho_duyet} kỳ chờ duyệt`}
-                          {a.ky_cho_duyet > 0 && a.ky_ghi_chu > 0 && " · "}
-                          {a.ky_ghi_chu > 0 && `${a.ky_ghi_chu} kỳ ghi chú`}
-                        </span>
-                      </>
-                    )}
-                  </td>
-                  <td className="num mono muted">{a.so_ky}</td>
-                  <td className="num mono muted">{a.so_ky_mien_phi || "—"}</td>
-                  <td className={`num mono ${a.so_ky_no >= 6 ? "bad" : ""}`}>{a.so_ky_no}</td>
-                  <td className="num mono">{n(a.tong_da_thu)}</td>
-                  <td className="num mono bad">{n(a.con_no)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <h2>Nợ từ ba kỳ trở lên</h2>
+      <p className="muted">
+        Danh sách này chuyển sang{" "}
+        <Link href="/diem-nghen?mo=DANG_NO">trạm đang nợ cước →</Link> bên màn
+        Điểm nghẽn, nơi nó nằm cạnh tốc độ thu nên biết được đống nợ đang dày
+        lên hay mỏng đi. Ở đây chỉ còn phần cước theo tháng.
+      </p>
+
       {moThang && (
         <ChiTietThangCoDinh
           ky={moThang}
