@@ -28,8 +28,6 @@ import { Chip, ChipLoaiKhach } from "../../chip";
 import { LOAI_KHACH, MAU_DICH_VU, MAU_TRANG_THAI } from "@/lib/nhan";
 import { DaiKy } from "../../hop-dong/dai-ky";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
@@ -188,7 +186,7 @@ function dichVu(
   ];
 }
 
-export default async function Page({
+export async function NoiDungKhach({
   searchParams,
 }: {
   searchParams: Promise<Tham>;
@@ -217,7 +215,10 @@ export default async function Page({
   );
   const soTrang = Math.max(1, Math.ceil(tong / CONTRACTS_PER_PAGE));
   const trang = loc.trang!;
-  const dangMo = mot(sp.xem);
+  // `xem` là party_id kiểu uuid. Không chặn thì ?xem=1 làm Postgres lỗi ép kiểu
+  // và cả trang trả 500 — dễ gặp từ khi hai tab tra cứu dùng chung tên tham số.
+  const LA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const dangMo = LA_UUID.test(mot(sp.xem)) ? mot(sp.xem) : "";
   const hoaDon = mot(sp.hd);
 
   const link = (doi: Record<string, string | undefined>) => {
@@ -235,12 +236,11 @@ export default async function Page({
       else p.set(k, v);
     }
     const duoi = p.toString();
-    return duoi ? `/cam-tay/khach?${duoi}` : "/cam-tay/khach";
+    return duoi ? `/tra-cuu/cam-tay?tab=khach&${duoi}` : "/tra-cuu/cam-tay?tab=khach";
   };
 
   return (
-    <main>
-      <h1>Khách wifi cầm tay</h1>
+    <>
       <p className="muted">
         Mỗi khách một dòng, các dịch vụ của khách nằm ngay dưới kèm trạng thái.
         Một khách có thể dùng nhiều dịch vụ cùng lúc nên nợ cộng theo người,
@@ -286,7 +286,7 @@ export default async function Page({
             <button className="primary" type="submit">
               Lọc
             </button>
-            <Link href="/cam-tay/khach">
+            <Link href="/tra-cuu/cam-tay?tab=khach">
               <button type="button">Bỏ lọc</button>
             </Link>
           </div>
@@ -421,6 +421,6 @@ export default async function Page({
           />
         )
       )}
-    </main>
+    </>
   );
 }

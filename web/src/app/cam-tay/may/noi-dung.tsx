@@ -6,8 +6,6 @@ import { getTelecomMay, type TelecomMay } from "@/lib/queries";
 import { KHONG_NHOM, LOC, NHOM_LOC, locRows } from "./loc";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
 type Tham = Record<string, string | string[] | undefined>;
@@ -19,7 +17,7 @@ const cong = (rows: TelecomMay[], k: keyof TelecomMay) =>
 const dem = (rows: TelecomMay[], ma: string) =>
   rows.filter((r) => r.tinh_trang_cuoc === ma).length;
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungMay({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const tatCa = await getTelecomMay();
 
@@ -39,12 +37,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(t)) if (v) p.set(k, v);
     const duoi = p.toString();
-    return duoi ? `/cam-tay/may?${duoi}` : "/cam-tay/may";
+    return duoi ? `/tra-cuu/cam-tay?tab=may&${duoi}` : "/tra-cuu/cam-tay?tab=may";
   };
 
   return (
-    <main>
-      <h1>Máy wifi cầm tay</h1>
+    <>
       <p className="muted">
         Một dòng một <b>máy</b> — gom theo IMEI, kèm lịch sử thu cước của chính máy đó. Bên
         nguồn ghi từng <b>lượt cho thuê</b>: 3.048 bản ghi nhưng chỉ {n(String(tatCa.length))}{" "}
@@ -175,7 +172,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <button className="primary" type="submit">
               Tìm
             </button>
-            <Link href="/cam-tay/may">
+            <Link href="/tra-cuu/cam-tay?tab=may">
               <button type="button">Bỏ lọc</button>
             </Link>
           </div>
@@ -368,6 +365,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           dongLai={link({ loc: loc || undefined, q: mot(sp.q) || undefined, may: may || undefined, nk: nk || undefined, lk: lk || undefined })}
         />
       )}
-    </main>
+    </>
   );
 }

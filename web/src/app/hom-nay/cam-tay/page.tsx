@@ -172,7 +172,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <div className="the-gia-tri mono">{n(treo.may_chua_tra)}</div>
           <div className="the-phu">
             máy đã hết hạn thuê mà khách chưa trả về kho ·{" "}
-            <Link href="/cam-tay/may">xem danh sách →</Link>
+            <Link href="/tra-cuu/cam-tay?tab=may">xem danh sách →</Link>
           </div>
         </div>
       </div>

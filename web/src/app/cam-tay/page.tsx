@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 const so = (v: string | null) => (v === null ? null : Number(v));
 const loc = (t: Record<string, string>) => `/cam-tay/thue-bao?${new URLSearchParams(t)}`;
-const locKhach = (t: Record<string, string>) => `/cam-tay/khach?${new URLSearchParams(t)}`;
+const locKhach = (t: Record<string, string>) => `/tra-cuu/cam-tay?tab=khach&${new URLSearchParams(t)}`;
 
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";

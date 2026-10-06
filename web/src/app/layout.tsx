@@ -36,6 +36,13 @@ const MENU: NhomMenu[] = [
     ],
   },
   {
+    nhom: "Tra cứu",
+    muc: [
+      { ten: "Tra cứu · cố định", href: "/hop-dong" },
+      { ten: "Tra cứu · cầm tay", href: "/tra-cuu/cam-tay" },
+    ],
+  },
+  {
     nhom: "Dữ liệu",
     muc: [
       { ten: "Duyệt trùng khách", href: "/duyet-trung" },
@@ -54,8 +61,8 @@ const MENU: NhomMenu[] = [
  *   /thu-cuoc, /xem-xet-huy, /cam-tay/coc         → Việc đang tắc
  *   /thang, /lap-dat, /cam-tay/huy                → Việc đang tắc (vào/ra dây chuyền)
  *   /cuoc, /thang/tien, /cam-tay/chua-can-tru     → Tiền
- *   /hop-dong, /cam-tay, /cam-tay/khach           → Tra cứu (chưa dựng)
- *   /cam-tay/may, /cam-tay/vong-doi               → Tra cứu (chưa dựng)
+ *   /cam-tay                                      → Tra cứu
+ *   /cam-tay/vong-doi                             → Việc đang tắc (vòng đời máy)
  *   /cam-tay/kho, /cam-tay/kho/hai-ben            → Tra cứu (chưa dựng)
  *   /cam-tay/kho/danh-sach, /                     → Tra cứu (chưa dựng)
  *

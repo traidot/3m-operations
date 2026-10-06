@@ -10,5 +10,5 @@ const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) 
  */
 export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
   const xem = mot((await searchParams).xem);
-  redirect(xem ? `/cam-tay/khach?hd=${encodeURIComponent(xem)}` : "/cam-tay/khach");
+  redirect(xem ? `/tra-cuu/cam-tay?tab=khach&hd=${encodeURIComponent(xem)}` : "/tra-cuu/cam-tay?tab=khach");
 }

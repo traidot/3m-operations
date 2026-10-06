@@ -36,7 +36,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <p className="muted">
         Cọc tính theo <b>lượt thuê mới nhất của từng máy</b>: 568 lượt cũ vẫn để trạng thái
         đang thuê dù máy đã cho người khác thuê lại, cộng cả vào thì thừa 2.064.641 yên.
-        Cùng luật với <Link href="/cam-tay/may">máy cho thuê</Link> và{" "}
+        Cùng luật với <Link href="/tra-cuu/cam-tay?tab=may">máy cho thuê</Link> và{" "}
         <Link href="/cam-tay/kho">đối chiếu kho</Link> nên ba trang ra cùng một số.
       </p>
       <p className="muted">
@@ -104,7 +104,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td>
                     {r.party_id ? (
-                      <Link href={`/cam-tay/khach?xem=${r.party_id}`}>{r.khach}</Link>
+                      <Link href={`/tra-cuu/cam-tay?tab=khach&xem=${r.party_id}`}>{r.khach}</Link>
                     ) : (
                       r.khach
                     )}

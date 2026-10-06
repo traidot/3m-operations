@@ -65,7 +65,7 @@ export async function ChiTietHuy({
               {rows.map((r) => (
                 <tr key={r.subscription_id}>
                   <td>
-                    <Link href={`/cam-tay/khach?q=${encodeURIComponent(r.ma_khach ?? r.khach)}`}>
+                    <Link href={`/tra-cuu/cam-tay?tab=khach&q=${encodeURIComponent(r.ma_khach ?? r.khach)}`}>
                       {r.khach}
                     </Link>
                     <div>
