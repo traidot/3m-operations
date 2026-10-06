@@ -63,8 +63,7 @@ const MENU: NhomMenu[] = [
  *   /cuoc, /thang/tien, /cam-tay/chua-can-tru     → Tiền
  *   /cam-tay                                      → Tra cứu
  *   /cam-tay/vong-doi                             → Việc đang tắc (vòng đời máy)
- *   /cam-tay/kho, /cam-tay/kho/hai-ben            → Tra cứu (chưa dựng)
- *   /cam-tay/kho/danh-sach, /                     → Tra cứu (chưa dựng)
+ *   /                                             → Tra cứu (Bản tin)
  *
  * Marketing (/wifi, /wifi/[nguoi], /esim) cũng còn chạy nhưng đã rút khỏi
  * menu: nằm ngoài phạm vi giám sát vận hành, và nguồn của nó là sheet bên MKT

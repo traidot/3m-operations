@@ -37,7 +37,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         Cọc tính theo <b>lượt thuê mới nhất của từng máy</b>: 568 lượt cũ vẫn để trạng thái
         đang thuê dù máy đã cho người khác thuê lại, cộng cả vào thì thừa 2.064.641 yên.
         Cùng luật với <Link href="/tra-cuu/cam-tay?tab=may">máy cho thuê</Link> và{" "}
-        <Link href="/cam-tay/kho">đối chiếu kho</Link> nên ba trang ra cùng một số.
+        <Link href="/tra-cuu/cam-tay?tab=kho">đối chiếu kho</Link> nên ba trang ra cùng một số.
       </p>
       <p className="muted">
         Máy đang gắn vào thuê bao mà tiền cọc chưa chốt. “Còn giữ” nghĩa là 3M đang cầm

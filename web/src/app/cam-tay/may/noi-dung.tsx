@@ -346,7 +346,7 @@ export async function NoiDungMay({ searchParams }: { searchParams: Promise<Tham>
       <p className="muted khoi-ghi-chu">
         <b>Phạm vi trang này khác trang đối chiếu kho, đừng so thẳng hai con số.</b> Ở đây
         chỉ có {n(String(tatCa.length))} máy <b>có hồ sơ cho thuê</b>, tức có cọc và ngày
-        thuê. <Link href="/cam-tay/kho">Đối chiếu kho</Link> đếm 5.744 mã vì tính cả SIM và
+        thuê. <Link href="/tra-cuu/cam-tay?tab=kho">Đối chiếu kho</Link> đếm 5.744 mã vì tính cả SIM và
         những mã mới chỉ có phiếu kho. Cọc và tình trạng cước thì hai bên cùng một luật nên
         khớp nhau.
       </p>

@@ -8,8 +8,6 @@ import {
 
 const KHO_MA: Record<string, string> = { ...KHO_PM, PM_KHONG_CO: "phần mềm không có mã" };
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
@@ -132,7 +130,7 @@ function Buoc({
   );
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungKho({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [tatCa, lan] = await Promise.all([getKhoMa(), getKhoLanNhap()]);
 
@@ -164,7 +162,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     .map(([ten, rows]) => ({ ten, rows }))
     .sort((a, b) => b.rows.length - a.rows.length);
 
-  const ds = (q: string) => `/cam-tay/kho/danh-sach${q ? `?${q}` : ""}`;
+  // Đường dẫn đã có sẵn phần truy vấn nên nối tiếp bằng `&`; dùng `?` ở đây
+  // thì ra hai dấu hỏi và mọi tham số phía sau bị bỏ.
+  const ds = (q: string) => `/tra-cuu/cam-tay?tab=kho&goc=danh-sach${q ? `&${q}` : ""}`;
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
   const buoc = BUOC.find((b) => b.ma === mot(sp.buoc));
   const khoi = KHOI_NGOAI.find((k) => k.ma === mot(sp.khoi));
@@ -172,8 +172,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const vt = mot(sp.vt);
 
   return (
-    <main>
-      <h1>Kho wifi cầm tay</h1>
+    <>
 
       <p className="muted">
         Chỉ có <b>hai nguồn</b>: phần mềm wifi cầm tay, và một file Excel tổng hợp làm tay ở
@@ -204,7 +203,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             mau={b.mau}
             ten={`${b.ma} · ${b.ten}`}
             phu={PHU[i]!}
-            href={`/cam-tay/kho?buoc=${b.ma}`}
+            href={`/tra-cuu/cam-tay?tab=kho&buoc=${b.ma}`}
           />
         ))}
       </div>
@@ -382,7 +381,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <tr key={k.ma}>
                   <td className="num mono">{n(d.length)}</td>
                   <td>
-                    <Link href={`/cam-tay/kho?khoi=${k.ma}`}>{k.ten}</Link>
+                    <Link href={`/tra-cuu/cam-tay?tab=kho&khoi=${k.ma}`}>{k.ten}</Link>
                     <div className="muted">{k.y}</div>
                   </td>
                   <td className="num mono">{n(d.filter((r) => r.file_vi_tri_so !== null).length)}</td>
@@ -413,8 +412,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               : undefined
           }
           rows={tatCa.filter(viec.hop)}
-          dongLai="/cam-tay/kho"
-          baseHref={`/cam-tay/kho?viec=${viec.ma}`}
+          dongLai="/tra-cuu/cam-tay?tab=kho"
+          baseHref={`/tra-cuu/cam-tay?tab=kho&viec=${viec.ma}`}
           lk={lk}
           vt={vt}
           themLink={ds(`viec=${viec.ma}`)}
@@ -427,8 +426,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           mo_ta={`${khoi.y} — phần mềm không có mã nào trong nhóm này`}
           canh_bao="Toàn bộ nhóm này chỉ tồn tại trên bản đối chiếu làm tay. Phần mềm không có mã ở bất kỳ bảng nào, nên không có gì để đối chứng — đúng hay sai phải đi kiểm thực tế."
           rows={tatCa.filter((r) => chiOFile(r) && khoi.hop(maKetLuan(r.file_ket_luan)))}
-          dongLai="/cam-tay/kho"
-          baseHref={`/cam-tay/kho?khoi=${khoi.ma}`}
+          dongLai="/tra-cuu/cam-tay?tab=kho"
+          baseHref={`/tra-cuu/cam-tay?tab=kho&khoi=${khoi.ma}`}
           lk={lk}
           vt={vt}
           chiFile
@@ -440,15 +439,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           ten={`Bước ${buoc.ma} · ${buoc.ten}`}
           mo_ta={buoc.mo_ta}
           rows={tatCa.filter(buoc.hop)}
-          dongLai="/cam-tay/kho"
-          baseHref={`/cam-tay/kho?buoc=${buoc.ma}`}
+          dongLai="/tra-cuu/cam-tay?tab=kho"
+          baseHref={`/tra-cuu/cam-tay?tab=kho&buoc=${buoc.ma}`}
           lk={lk}
           vt={vt}
           tomTat={buoc.gom?.map((k) => CHIEU[k]!)}
           themLink={ds(buoc.ma === "1" ? "" : "cd=O_KHACH")}
         />
       )}
-    </main>
+    </>
   );
 }
 
@@ -521,7 +520,7 @@ function BangViec({ nhom, tatCa }: { nhom: "pm" | "so"; tatCa: KhoMa[] }) {
                   {v.thu_hoi && <div className="muted">đã trừ SIM — SIM không phải lấy về kho</div>}
                 </td>
                 <td className="khong-xuong-dong">
-                  {d.length > 0 && <Link href={`/cam-tay/kho?viec=${v.ma}`}>xem →</Link>}
+                  {d.length > 0 && <Link href={`/tra-cuu/cam-tay?tab=kho&viec=${v.ma}`}>xem →</Link>}
                 </td>
               </tr>
             );

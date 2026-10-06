@@ -20,8 +20,6 @@ const NHOM_KHACH: { ma: string; ten: string; mau?: string; hop: (r: KhoMa) => bo
   { ma: "chi-file", ten: "chỉ có trên file", hop: (r) => !r.pm_co },
 ];
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
@@ -132,7 +130,7 @@ function Dai({ so }: { so: number[] }) {
   );
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungHaiBen({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [tatCa, lan] = await Promise.all([getKhoMa(), getKhoLanNhap()]);
 
@@ -147,10 +145,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const vt = mot(sp.vt);
 
   return (
-    <main>
-      <h1>Hai bên biết những gì</h1>
+    <>
       <p className="muted">
-        <Link href="/cam-tay/kho">← Về tổng quan kho</Link> · Hai nguồn: <b>phần mềm</b> và
+        <Link href="/tra-cuu/cam-tay?tab=kho">← Về tổng quan kho</Link> · Hai nguồn: <b>phần mềm</b> và
         một <b>file Excel tổng hợp làm tay</b>. Chúng chồng lên nhau ở giữa, mỗi bên còn một
         mảng riêng. Hợp hai bên là{" "}
         <b>{n(tatCa.length)}</b> mã thiết bị — không bên nào một mình nắm đủ.
@@ -166,7 +163,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
 
       <div className="the-hang gon">
         {PHAN.map((p, i) => (
-          <Link key={p.ma} className="the-so" href={`/cam-tay/kho/hai-ben?xem=${p.ma}`}>
+          <Link key={p.ma} className="the-so" href={`/tra-cuu/cam-tay?tab=kho&goc=hai-ben&xem=${p.ma}`}>
             <div className="the-ten">{p.ten}</div>
             <div className="the-gia-tri mono" style={{ color: p.mau }}>
               {n(so[i]!)}
@@ -182,7 +179,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             Xuất Excel cả ba phần
           </button>
         </a>
-        <Link href="/cam-tay/kho/danh-sach">
+        <Link href="/tra-cuu/cam-tay?tab=kho&goc=danh-sach">
           <button type="button">Danh sách đầy đủ {n(tatCa.length)} mã</button>
         </Link>
       </p>
@@ -309,16 +306,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           mo_ta={mo.mo_ta}
           canh_bao={mo.canh_bao}
           rows={tatCa.filter(mo.hop)}
-          dongLai="/cam-tay/kho/hai-ben"
-          baseHref={`/cam-tay/kho/hai-ben?xem=${mo.ma}`}
+          dongLai="/tra-cuu/cam-tay?tab=kho&goc=hai-ben"
+          baseHref={`/tra-cuu/cam-tay?tab=kho&goc=hai-ben&xem=${mo.ma}`}
           lk={lk}
           vt={vt}
           tomTat={mo.gom.map((k) => CHIEU[k]!)}
           kemDanhSach={mo.kem}
           chiFile={mo.chiFile}
-          themLink="/cam-tay/kho/danh-sach"
+          themLink="/tra-cuu/cam-tay?tab=kho&goc=danh-sach"
         />
       )}
-    </main>
+    </>
   );
 }

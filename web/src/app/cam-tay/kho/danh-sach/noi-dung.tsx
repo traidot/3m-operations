@@ -6,8 +6,6 @@ import {
 } from "@/lib/nhan";
 import { VIEC } from "../viec";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
@@ -38,7 +36,7 @@ const LOC: { ma: string; ten: string; lay: (r: KhoMa) => string }[] = [
   { ma: "nm", ten: "Nhà mạng", lay: (r) => r.nha_mang ?? "(không có)" },
 ];
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungKhoDanhSach({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const tatCa = await getKhoMa();
 
@@ -74,16 +72,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries({ ...giu, ...t })) if (v) p.set(k, v);
     const duoi = p.toString();
-    return duoi ? `/cam-tay/kho/danh-sach?${duoi}` : "/cam-tay/kho/danh-sach";
+    return duoi ? `/tra-cuu/cam-tay?tab=kho&goc=danh-sach&${duoi}` : "/tra-cuu/cam-tay?tab=kho&goc=danh-sach";
   };
 
   const dem = (ma: string) => tatCa.filter((r) => r.cho_dung === ma).length;
 
   return (
-    <main>
-      <h1>Kho — từng mã</h1>
+    <>
       <p className="muted">
-        <Link href="/cam-tay/kho">← Về tổng quan</Link> · {n(tatCa.length)} mã, hợp của hai
+        <Link href="/tra-cuu/cam-tay?tab=kho">← Về tổng quan</Link> · {n(tatCa.length)} mã, hợp của hai
         phía: {n(tatCa.filter((r) => r.pm_co).length)} mã phần mềm biết và{" "}
         {n(tatCa.filter((r) => r.file_co).length)} mã trong bản đối chiếu làm tay. Cột “chỗ
         đứng” là kết luận suy từ <b>phiếu kho gần nhất của phần mềm</b>, không phải một cột
@@ -129,7 +126,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <button className="primary" type="submit">
               Lọc
             </button>
-            <Link href="/cam-tay/kho/danh-sach">
+            <Link href="/tra-cuu/cam-tay?tab=kho&goc=danh-sach">
               <button type="button">Bỏ hết lọc</button>
             </Link>
           </div>
@@ -287,6 +284,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </table>
         </div>
       )}
-    </main>
+    </>
   );
 }

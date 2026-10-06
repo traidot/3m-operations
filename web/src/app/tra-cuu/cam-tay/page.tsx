@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { NoiDungKhach } from "../../cam-tay/khach/noi-dung";
 import { NoiDungMay } from "../../cam-tay/may/noi-dung";
+import { NoiDungKho } from "../../cam-tay/kho/noi-dung";
+import { NoiDungHaiBen } from "../../cam-tay/kho/hai-ben/noi-dung";
+import { NoiDungKhoDanhSach } from "../../cam-tay/kho/danh-sach/noi-dung";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +14,14 @@ const mot = (v: string | string[] | undefined) =>
 const TAB = [
   { ma: "khach", ten: "Khách và dịch vụ" },
   { ma: "may", ten: "Máy cho thuê" },
+  { ma: "kho", ten: "Kho" },
+] as const;
+
+/** Tab kho có ba góc nhìn, không phải ba bộ lọc của cùng một bảng. */
+const KHO = [
+  { ma: "tong-quan", ten: "Đối chiếu hai nguồn" },
+  { ma: "hai-ben", ten: "Hai bên biết gì" },
+  { ma: "danh-sach", ten: "Từng mã" },
 ] as const;
 
 /**
@@ -31,6 +42,10 @@ export default async function Page({
 }) {
   const sp = await searchParams;
   const tab = TAB.some((t) => t.ma === mot(sp.tab)) ? mot(sp.tab) : "khach";
+  // Tên tham số là `goc`, không phải `kho`: bảng "từng mã" đã dùng `kho` cho
+  // tên kho vật lý (Takadanobaba, Ibaraki…), trùng thì lọc theo kho hỏng.
+  const goc = KHO.some((k) => k.ma === mot(sp.goc)) ? mot(sp.goc) : "tong-quan";
+  const dinhKem = Promise.resolve(sp);
 
   return (
     <main>
@@ -49,10 +64,34 @@ export default async function Page({
         </p>
       </div>
 
-      {tab === "khach" ? (
-        <NoiDungKhach searchParams={Promise.resolve(sp)} />
-      ) : (
-        <NoiDungMay searchParams={Promise.resolve(sp)} />
+      {tab === "kho" && (
+        <div className="nhom-loc">
+          <div className="muted nhan-nhom">Góc nhìn kho</div>
+          <p className="actions">
+            {KHO.map((k) => (
+              <Link key={k.ma} href={`/tra-cuu/cam-tay?tab=kho&goc=${k.ma}`}>
+                <button
+                  type="button"
+                  className={goc === k.ma ? "primary" : undefined}
+                >
+                  {k.ten}
+                </button>
+              </Link>
+            ))}
+          </p>
+        </div>
+      )}
+
+      {tab === "khach" && <NoiDungKhach searchParams={dinhKem} />}
+      {tab === "may" && <NoiDungMay searchParams={dinhKem} />}
+      {tab === "kho" && goc === "tong-quan" && (
+        <NoiDungKho searchParams={dinhKem} />
+      )}
+      {tab === "kho" && goc === "hai-ben" && (
+        <NoiDungHaiBen searchParams={dinhKem} />
+      )}
+      {tab === "kho" && goc === "danh-sach" && (
+        <NoiDungKhoDanhSach searchParams={dinhKem} />
       )}
     </main>
   );
