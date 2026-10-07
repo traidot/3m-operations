@@ -4,6 +4,7 @@ import { NoiDungMay } from "../../cam-tay/may/noi-dung";
 import { NoiDungKho } from "../../cam-tay/kho/noi-dung";
 import { NoiDungHaiBen } from "../../cam-tay/kho/hai-ben/noi-dung";
 import { NoiDungKhoDanhSach } from "../../cam-tay/kho/danh-sach/noi-dung";
+import { NoiDungTongQuanCamTay } from "../../cam-tay/noi-dung";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ const mot = (v: string | string[] | undefined) =>
   (Array.isArray(v) ? v[0] : v) ?? "";
 
 const TAB = [
+  { ma: "tong-quan", ten: "Tổng quan" },
   { ma: "khach", ten: "Khách và dịch vụ" },
   { ma: "may", ten: "Máy cho thuê" },
   { ma: "kho", ten: "Kho" },
@@ -41,7 +43,7 @@ export default async function Page({
   searchParams: Promise<Tham>;
 }) {
   const sp = await searchParams;
-  const tab = TAB.some((t) => t.ma === mot(sp.tab)) ? mot(sp.tab) : "khach";
+  const tab = TAB.some((t) => t.ma === mot(sp.tab)) ? mot(sp.tab) : "tong-quan";
   // Tên tham số là `goc`, không phải `kho`: bảng "từng mã" đã dùng `kho` cho
   // tên kho vật lý (Takadanobaba, Ibaraki…), trùng thì lọc theo kho hỏng.
   const goc = KHO.some((k) => k.ma === mot(sp.goc)) ? mot(sp.goc) : "tong-quan";
@@ -82,6 +84,7 @@ export default async function Page({
         </div>
       )}
 
+      {tab === "tong-quan" && <NoiDungTongQuanCamTay searchParams={dinhKem} />}
       {tab === "khach" && <NoiDungKhach searchParams={dinhKem} />}
       {tab === "may" && <NoiDungMay searchParams={dinhKem} />}
       {tab === "kho" && goc === "tong-quan" && (

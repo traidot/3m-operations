@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ChiTiet } from "./chi-tiet";
-import { Chip } from "../chip";
-import { DaiKy } from "./dai-ky";
-import { Dong } from "./dong";
+import { ChiTiet } from "../../hop-dong/chi-tiet";
+import { Chip } from "../../chip";
+import { DaiKy } from "../../hop-dong/dai-ky";
+import { Dong } from "../../hop-dong/dong";
 import {
   CONTRACTS_PER_PAGE,
   countContracts,
@@ -103,7 +103,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       else p.set(k, v);
     }
     const duoi = p.toString();
-    return duoi ? `/hop-dong?${duoi}` : "/hop-dong";
+    return duoi ? `/tra-cuu/co-dinh?${duoi}` : "/tra-cuu/co-dinh";
   };
   const dangMo = mot(sp.xem);
 
@@ -152,11 +152,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <button className="primary" type="submit">
               Lọc
             </button>
-            <Link href="/hop-dong">
+            <Link href="/tra-cuu/co-dinh">
               <button type="button">Bỏ lọc</button>
             </Link>
             {/* Thẻ a thường: trả tệp tải xuống chứ không phải trang. */}
-            <a href={`/hop-dong/xuat${link({ xem: undefined }).replace("/hop-dong", "")}`} download>
+            <a href={`/tra-cuu/co-dinh/xuat${link({ xem: undefined }).replace("/tra-cuu/co-dinh", "")}`} download>
               <button type="button">Xuất Excel</button>
             </a>
           </div>

@@ -14,8 +14,7 @@ import {
   type MonthlyByStatus,
 } from "@/lib/queries";
 import { HOP_DONG, LAP_DAT } from "@/lib/nhan";
-
-export const dynamic = "force-dynamic";
+import { them } from "../duong-dan";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
@@ -23,7 +22,7 @@ const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungCuoc({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [total, byStatus, [coverage], pending, chay, thuNgoaiKy] = await Promise.all([
     getMonthlyTotal(),
@@ -43,7 +42,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(t)) if (v) p.set(k, v);
     const duoi = p.toString();
-    return duoi ? `/cuoc?${duoi}` : "/cuoc";
+    return duoi ? them("/tien/co-dinh?xem=cuoc-thang", duoi) : "/tien/co-dinh?xem=cuoc-thang";
   };
 
   const theoKy = new Map<string, MonthlyByStatus[]>();
@@ -63,8 +62,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     .sort((a, b) => b.ky.localeCompare(a.ky));
 
   return (
-    <main>
-      <h1>Cước theo tháng · wifi cố định</h1>
+    <>
 
       {/* Độ phủ đứng trên cùng: không biết nó thì mọi số dưới đều đọc sai. */}
       <div className={phu < 80 ? "stale" : "muted"}>
@@ -265,7 +263,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </>
       )}
 
-    </main>
+    </>
   );
 }
 

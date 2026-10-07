@@ -7,6 +7,7 @@ import {
   getDeposits,
 } from "@/lib/queries";
 import { COC, DICH_VU, HOP_DONG, MAY, NHOM_COC, NHOM_COC_VIEC } from "@/lib/nhan";
+import { them } from "../../duong-dan";
 
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
@@ -26,7 +27,7 @@ export async function NoiDungCoc({ searchParams }: { searchParams: Promise<Tham>
 
   const theoNhom = new Map(tomTat.map((t) => [t.nhom, t]));
   const soTrang = Math.max(1, Math.ceil(tong.so / CONTRACTS_PER_PAGE));
-  const link = (t: Record<string, string>) => `/cam-tay/coc?${new URLSearchParams(t)}`;
+  const link = (t: Record<string, string>) => them("/viec-hom-nay/cam-tay?tab=coc", String(new URLSearchParams(t)));
 
   return (
     <>
@@ -48,7 +49,7 @@ export async function NoiDungCoc({ searchParams }: { searchParams: Promise<Tham>
           const t = theoNhom.get(k);
           const dang = nhom === k;
           return (
-            <Link key={k} href={dang ? "/cam-tay/coc" : link({ nhom: k })} className="the-so">
+            <Link key={k} href={dang ? "/viec-hom-nay/cam-tay?tab=coc" : link({ nhom: k })} className="the-so">
               <div className="the-ten">
                 {NHOM_COC[k]}
                 {dang && " ·  đang lọc"}

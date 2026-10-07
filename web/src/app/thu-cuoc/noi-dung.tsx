@@ -25,7 +25,7 @@ const LOAI_HOA_DON: Record<string, string> = {
 
 function duongDan(nguon: string, id: string): string {
   return nguon === "FIXED"
-    ? `/hop-dong?xem=${encodeURIComponent(id)}`
+    ? `/tra-cuu/co-dinh?xem=${encodeURIComponent(id)}`
     : `/cam-tay/thue-bao?xem=${encodeURIComponent(id)}`;
 }
 
@@ -259,7 +259,7 @@ export async function NoiDungThuCuoc({
               {khoDoi.map((k) => (
                 <tr key={k.subscription_id}>
                   <td className="mono">
-                    <Link href={`/hop-dong?xem=${k.subscription_id}`}>
+                    <Link href={`/tra-cuu/co-dinh?xem=${k.subscription_id}`}>
                       {k.contract_code ?? "—"}
                     </Link>
                   </td>

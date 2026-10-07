@@ -5,8 +5,7 @@ import { Dong } from "../../hop-dong/dong";
 import { ChiTietHuy } from "./chi-tiet";
 import { getTelecomChurn, type TelecomChurn } from "@/lib/queries";
 import { LOAI_KHACH } from "@/lib/nhan";
-
-export const dynamic = "force-dynamic";
+import { them } from "../../duong-dan";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
@@ -36,7 +35,7 @@ function gop(rows: TelecomChurn[]): TelecomChurn | null {
   };
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungHuy({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const tatCa = await getTelecomChurn();
 
@@ -56,7 +55,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(t)) if (v) p.set(k, v);
     const duoi = p.toString();
-    return duoi ? `/cam-tay/huy?${duoi}` : "/cam-tay/huy";
+    return duoi ? them("/diem-nghen?xem=dong-chay&he=cam-tay", duoi) : "/diem-nghen?xem=dong-chay&he=cam-tay";
   };
 
   // Tháng đang chạy dở không đem ra so: mới được nửa tháng thì tỉ lệ đọc ra thấp
@@ -71,8 +70,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const thangNay = thang[0];
 
   return (
-    <main>
-      <h1>Huỷ thuê bao wifi cầm tay</h1>
+    <>
       <p className="muted">
         Tỉ lệ huỷ của một tháng tính trên tập <b>đang chạy đầu tháng đó</b>, không tính thuê
         bao mới vào rồi ra ngay trong tháng — cái đó đọc ở cột “mới”. Ngày ngừng lấy theo thứ
@@ -239,6 +237,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       {moThang && (
         <ChiTietHuy thang={moThang} loaiKhach={loai} dongLai={link({ loai: loai || undefined })} />
       )}
-    </main>
+    </>
   );
 }

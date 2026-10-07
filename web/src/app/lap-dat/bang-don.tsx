@@ -39,7 +39,7 @@ export function BangDon({ rows }: { rows: InstallOrder[] }) {
             {rows.slice(0, TOI_DA_DON).map((r) => (
               <tr key={r.subscription_id}>
                 <td className="mono">
-                  <Link href={`/hop-dong?xem=${encodeURIComponent(r.subscription_id)}`}>
+                  <Link href={`/tra-cuu/co-dinh?xem=${encodeURIComponent(r.subscription_id)}`}>
                     {r.ma_hop_dong ?? r.subscription_id}
                   </Link>
                   <div className="muted">{r.nguoi_tao ?? "—"}</div>

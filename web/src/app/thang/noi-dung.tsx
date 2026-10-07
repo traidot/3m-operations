@@ -8,11 +8,9 @@ import {
 } from "@/lib/queries";
 import { LY_DO_HUY } from "@/lib/nhan";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 const so = (v: string | null) => (v === null ? null : Number(v));
-const loc = (tham: Record<string, string>) => `/hop-dong?${new URLSearchParams(tham)}`;
+const loc = (tham: Record<string, string>) => `/tra-cuu/co-dinh?${new URLSearchParams(tham)}`;
 
 function cong(rows: RegisterReport[], k: keyof RegisterReport) {
   return rows.reduce((t, r) => t + Number(r[k] ?? 0), 0);
@@ -28,7 +26,7 @@ function The({ ten, gia_tri, phu }: { ten: string; gia_tri: number; phu?: string
   );
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungThang({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const { donVi, tu, den } = docKhoang(sp);
 
@@ -42,17 +40,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const nguoc = [...dk].reverse();
 
   return (
-    <main>
-      <h1>Hợp đồng theo tháng</h1>
+    <>
       <p className="muted">
         Xếp theo <b>ngày ký</b>: hợp đồng ký tháng 3 huỷ tháng 7 vẫn nằm ở dòng tháng 3.
         Đây là báo cáo theo lứa đăng ký, không phải theo ngày xảy ra sự việc. Cách chia
         giống báo cáo tổng hợp bên CMS nên đối chiếu được. Tiền thu được tách sang{" "}
-        <Link href="/thang/tien">Tiền cước theo tháng</Link> vì nó xếp theo trục khác —
+        <Link href="/tien/co-dinh?xem=thuc-nhan">Tiền cước theo tháng</Link> vì nó xếp theo trục khác —
         ngày tiền về, không phải ngày ký.
       </p>
 
-      <LocKhoang donVi={donVi} tu={tu} den={den} veMacDinh="/thang" />
+      <LocKhoang donVi={donVi} tu={tu} den={den} veMacDinh="/diem-nghen?xem=dong-chay&he=co-dinh" />
 
       <div className="the-hang">
         <The ten="Đăng ký lần đầu" gia_tri={cong(dk, "dang_ky_lan_dau")} />
@@ -186,6 +183,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         mốc.
       </p>
 
-    </main>
+    </>
   );
 }

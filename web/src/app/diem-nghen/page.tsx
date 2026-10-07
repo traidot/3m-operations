@@ -3,6 +3,10 @@ import { ChiTietTram } from "./chi-tiet-tram";
 import { NoiDungHomNayChung } from "../hom-nay/noi-dung";
 import { NoiDungHomNayCoDinh } from "../hom-nay/co-dinh/noi-dung";
 import { NoiDungHomNayCamTay } from "../hom-nay/cam-tay/noi-dung";
+import { NoiDungThang } from "../thang/noi-dung";
+import { NoiDungLapDat } from "../lap-dat/noi-dung";
+import { NoiDungHuy } from "../cam-tay/huy/noi-dung";
+import { NoiDungVongDoi } from "../cam-tay/vong-doi/noi-dung";
 import { getTramVanHanh, type TramVanHanh } from "@/lib/queries";
 import {
   NGHEN_NGAY,
@@ -71,6 +75,14 @@ const DUONG_DAN = "/diem-nghen";
 const XEM = [
   { ma: "tram", ten: "Bản đồ trạm" },
   { ma: "hom-nay", ten: "Hôm nay" },
+  { ma: "dong-chay", ten: "Dòng chảy theo tháng" },
+] as const;
+
+/** Dòng chảy không có bản "cả hai mảng": hai hệ đo bằng đơn vị khác nhau —
+ *  cố định đếm hợp đồng và đơn lắp, cầm tay đếm thuê bao và máy. */
+const HE_THANG = [
+  { ma: "co-dinh", ten: "Wifi cố định" },
+  { ma: "cam-tay", ten: "Wifi cầm tay" },
 ] as const;
 
 const HE_NGAY = [
@@ -91,6 +103,9 @@ export default async function Page({
   const heNgay = HE_NGAY.some((h) => h.ma === mot(sp.he))
     ? mot(sp.he)
     : "chung";
+  const heThang = HE_THANG.some((h) => h.ma === mot(sp.he))
+    ? mot(sp.he)
+    : "co-dinh";
 
   // Trạm có trong view mà chưa khai nhãn thì vẫn phải lộ ra.
   const laDu = rows.filter((r) => biet(r) === undefined);
@@ -145,6 +160,43 @@ export default async function Page({
           )}
           {heNgay === "cam-tay" && (
             <NoiDungHomNayCamTay searchParams={Promise.resolve(sp)} />
+          )}
+        </>
+      )}
+
+      {xem === "dong-chay" && (
+        <>
+          <div className="nhom-loc">
+            <div className="muted nhan-nhom">Mảng</div>
+            <p className="actions">
+              {HE_THANG.map((h) => (
+                <Link key={h.ma} href={`${DUONG_DAN}?xem=dong-chay&he=${h.ma}`}>
+                  <button
+                    type="button"
+                    className={heThang === h.ma ? "primary" : undefined}
+                  >
+                    {h.ten}
+                  </button>
+                </Link>
+              ))}
+            </p>
+          </div>
+          <p className="muted">
+            Vào và ra của dây chuyền theo tháng — bản đồ trạm cho biết đang tồn
+            bao nhiêu, phần này cho biết tốc độ nạp vào và thoát ra. Xếp theo
+            <b> lứa ký</b>, nên hợp đồng ký tháng 3 huỷ tháng 7 vẫn nằm ở dòng
+            tháng 3.
+          </p>
+          {heThang === "co-dinh" ? (
+            <>
+              <NoiDungThang searchParams={Promise.resolve(sp)} />
+              <NoiDungLapDat searchParams={Promise.resolve(sp)} />
+            </>
+          ) : (
+            <>
+              <NoiDungHuy searchParams={Promise.resolve(sp)} />
+              <NoiDungVongDoi searchParams={Promise.resolve(sp)} />
+            </>
           )}
         </>
       )}

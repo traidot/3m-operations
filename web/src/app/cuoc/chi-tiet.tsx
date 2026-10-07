@@ -97,7 +97,7 @@ export async function ChiTietThangCoDinh({
               {rows.slice(0, TOI_DA).map((r) => (
                 <tr key={r.subscription_id}>
                   <td className="mono">
-                    <Link href={`/hop-dong?xem=${encodeURIComponent(r.subscription_id)}`}>
+                    <Link href={`/tra-cuu/co-dinh?xem=${encodeURIComponent(r.subscription_id)}`}>
                       {r.ma_hop_dong ?? r.subscription_id}
                     </Link>
                     {r.kho_doi && <span className="tag critical"> khó đòi</span>}

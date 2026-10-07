@@ -2,8 +2,7 @@ import Link from "next/link";
 import { ThanBam } from "../../than-bam";
 import { getThuChuaCanTru, type ThuChuaCanTru } from "@/lib/queries";
 import { KENH_THU, LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
-
-export const dynamic = "force-dynamic";
+import { them } from "../../duong-dan";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
@@ -34,7 +33,7 @@ const LOC: { ma: string; ten: string; lay: (r: ThuChuaCanTru) => string }[] = [
   { ma: "thang", ten: "Tháng thu", lay: (r) => r.thang },
 ];
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungChuaCanTru({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const tatCa = await getThuChuaCanTru();
 
@@ -62,12 +61,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       if (v) p.set(k, v);
     }
     const duoi = p.toString();
-    return duoi ? `/cam-tay/chua-can-tru?${duoi}` : "/cam-tay/chua-can-tru";
+    return duoi ? them("/tien/cam-tay?xem=chua-gan", duoi) : "/tien/cam-tay?xem=chua-gan";
   };
 
   return (
-    <main>
-      <h1>Tiền thu chưa gán vào hoá đơn</h1>
+    <>
       <p className="muted">
         Khách đã trả tiền, tiền đã vào két, nhưng lượt thu đó chưa được cấn trừ vào hoá đơn
         nào còn hiệu lực — nên không kỳ cước nào ghi nhận là đã thu. Cấn trừ xong thì số này
@@ -135,7 +133,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             <button className="primary" type="submit">
               Tìm
             </button>
-            <Link href="/cam-tay/chua-can-tru">
+            <Link href="/tien/cam-tay?xem=chua-gan">
               <button type="button">Bỏ hết lọc</button>
             </Link>
           </div>
@@ -206,6 +204,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </table>
         </div>
       )}
-    </main>
+    </>
   );
 }

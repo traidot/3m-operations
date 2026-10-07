@@ -6,8 +6,6 @@ import {
   getTelecomTotals,
 } from "@/lib/queries";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 const so = (v: string | null) => (v === null ? null : Number(v));
 const loc = (t: Record<string, string>) => `/cam-tay/thue-bao?${new URLSearchParams(t)}`;
@@ -27,7 +25,7 @@ function The({ ten, gia_tri, den, xau }: { ten: string; gia_tri: string; den?: s
   );
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungTongQuanCamTay({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const macDinh = new Date();
   const truoc = new Date(macDinh);
@@ -44,8 +42,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const nhan = thang.map((r) => r.ky);
 
   return (
-    <main>
-      <h1>Wifi cầm tay</h1>
+    <>
       <p className="muted">
         Số ở đây đếm theo <b>hoá đơn</b>, tức gồm cả cọc, bán máy và phí đăng ký chứ không
         riêng tiền cước. Muốn nhìn riêng cước thì sang{" "}
@@ -168,6 +165,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </tbody>
         </table>
       </div>
-    </main>
+    </>
   );
 }

@@ -17,7 +17,7 @@ const NGUON: Record<string, string> = {
 /** Mỗi mảng có màn hình riêng, dẫn về đúng ngăn kéo của nó. */
 function duongDan(nguon: string, id: string): string {
   return nguon === "FIXED"
-    ? `/hop-dong?xem=${encodeURIComponent(id)}`
+    ? `/tra-cuu/co-dinh?xem=${encodeURIComponent(id)}`
     : `/cam-tay/thue-bao?xem=${encodeURIComponent(id)}`;
 }
 
@@ -44,7 +44,7 @@ export async function NoiDungXemXetHuy({
         cái treo lâu nhất lên đầu. Dịch vụ đã huỷ rồi thì không có ở đây, và hợp
         đồng cố định đã trừ tiền cọc chờ duyệt — khách nộp rồi thì không đem ra
         cân nhắc cắt. Muốn xem từng khoản phải thu, kể cả cái chưa tới hạn, thì
-        sang <Link href="/thu-cuoc">Thu cước</Link>.
+        sang tab <b>Công nợ</b>.
       </p>
 
       <div className="the-hang">

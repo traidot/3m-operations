@@ -7,13 +7,11 @@ import {
   getMonthStats,
 } from "@/lib/queries";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 const so = (v: string | null) => (v === null ? null : Number(v));
-const loc = (tham: Record<string, string>) => `/hop-dong?${new URLSearchParams(tham)}`;
+const loc = (tham: Record<string, string>) => `/tra-cuu/co-dinh?${new URLSearchParams(tham)}`;
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungTienThang({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const { donVi, tu, den } = docKhoang(sp);
 
@@ -24,16 +22,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   ]);
 
   return (
-    <main>
-      <h1>Tiền cước theo tháng</h1>
+    <>
       <p className="muted">
         Hai bảng đầu xếp theo <b>ngày tiền về</b>, bảng cuối theo <b>kỳ cước</b> — tháng
         đáng lẽ phải thu. Cùng một đồng tiền nhưng hai trục khác nhau, đừng cộng chéo
         giữa chúng. Phần đăng ký, lắp đặt và huỷ nằm ở{" "}
-        <Link href="/thang">Hợp đồng theo tháng</Link>.
+        <Link href="/diem-nghen?xem=dong-chay&he=co-dinh">Hợp đồng theo tháng</Link>.
       </p>
 
-      <LocKhoang donVi={donVi} tu={tu} den={den} veMacDinh="/thang/tien" />
+      <LocKhoang donVi={donVi} tu={tu} den={den} veMacDinh="/tien/co-dinh?xem=thuc-nhan" />
 
       <h2>Tiền cước thực nhận theo {donVi === "ngay" ? "ngày thu" : "tháng thu"}</h2>
       <p className="muted">
@@ -177,6 +174,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           </tbody>
         </table>
       </div>
-    </main>
+    </>
   );
 }

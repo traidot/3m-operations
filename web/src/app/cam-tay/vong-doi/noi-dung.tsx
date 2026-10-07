@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { ChiTietNhom } from "../kho/chi-tiet";
 import { ChiTietThueBao } from "./thue-bao";
-import { getKhoMa, getThueBaoNo, type KhoMa, type ThueBaoNo } from "@/lib/queries";
+import {
+  getKhoMa,
+  getThueBaoNo,
+  type KhoMa,
+  type ThueBaoNo,
+} from "@/lib/queries";
 import { LOAI_KHACH, MAU_LOAI_KHACH, MAU_NHOM_TB, NHOM_TB } from "@/lib/nhan";
-
-export const dynamic = "force-dynamic";
+import { them } from "../../duong-dan";
 
 // Làm tròn khi in: hoá đơn bên nguồn có phần lẻ, cộng lại thành 2.918.161,67
 // đọc ra như số đo chứ không như tiền.
@@ -12,7 +16,8 @@ const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
 type Tham = Record<string, string | string[] | undefined>;
-const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+const mot = (v: string | string[] | undefined) =>
+  (Array.isArray(v) ? v[0] : v) ?? "";
 
 /**
  * Năm khâu của vòng đời một cái máy. Mỗi khâu rò một kiểu khác nhau nên phải
@@ -78,13 +83,15 @@ const KHAU: Khau[] = [
     ten: "Nhập hàng về kho",
     dong: [
       {
-        ma: "trong-kho", don: "may",
+        ma: "trong-kho",
+        don: "may",
         ten: "Đang nằm trong kho",
         y: "phiếu gần nhất là phiếu nhập",
         hop: (r) => r.cho_dung === "TRONG_KHO",
       },
       {
-        ma: "kho-chua-thue", don: "may",
+        ma: "kho-chua-thue",
+        don: "may",
         ten: "Trong kho mà chưa từng cho thuê",
         y: "nhập về rồi để đó, chưa ra khỏi kho lần nào",
         hop: (r) => r.cho_dung === "TRONG_KHO" && !r.co_thue_bao,
@@ -96,18 +103,23 @@ const KHAU: Khau[] = [
     ten: "Cho thuê",
     dong: [
       {
-        ma: "o-khach", don: "may",
+        ma: "o-khach",
+        don: "may",
         ten: "Đang ở khách",
         y: "phiếu gần nhất là phiếu xuất, hoặc hồ sơ cho thuê còn mở",
         hop: (r) => r.cho_dung === "O_KHACH",
-        tien: (r) => so(r.coc), nhan_tien: "cọc đang giữ",
+        tien: (r) => so(r.coc),
+        nhan_tien: "cọc đang giữ",
       },
       {
-        ma: "khong-dich-vu", don: "may", ro: true,
+        ma: "khong-dich-vu",
+        don: "may",
+        ro: true,
         ten: "Ra khỏi kho mà chưa mở dịch vụ",
         y: "có phiếu xuất nhưng không gắn thuê bao nào — không bao giờ ra cước",
         hop: (r) => r.cho_dung === "O_KHACH" && !r.co_thue_bao,
-        tien: (r) => so(r.coc), nhan_tien: "cọc đang giữ",
+        tien: (r) => so(r.coc),
+        nhan_tien: "cọc đang giữ",
       },
     ],
   },
@@ -116,16 +128,21 @@ const KHAU: Khau[] = [
     ten: "Tính cước",
     dong: [
       {
-        ma: "dang-ra-cuoc", don: "may",
+        ma: "dang-ra-cuoc",
+        don: "may",
         ten: "Đang ra cước tháng này",
         y: "máy ở khách, thuê bao còn hiệu lực, tháng này có kỳ",
-        hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "DANG_RA_CUOC",
+        hop: (r) =>
+          r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "DANG_RA_CUOC",
       },
       {
-        ma: "hut-cuoc", don: "may", ro: true,
+        ma: "hut-cuoc",
+        don: "may",
+        ro: true,
         ten: "Thuê bao còn sống mà ngừng ra cước",
         y: "máy vẫn ở khách, dịch vụ vẫn hiệu lực, nhưng tháng này không có kỳ nào",
-        hop: (r) => r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "HUT_CUOC",
+        hop: (r) =>
+          r.cho_dung === "O_KHACH" && r.tinh_trang_cuoc === "HUT_CUOC",
       },
     ],
   },
@@ -134,32 +151,42 @@ const KHAU: Khau[] = [
     ten: "Thu tiền",
     dong: [
       {
-        ma: "da-thu", don: "tb",
+        ma: "da-thu",
+        don: "tb",
         ten: "Đã thu được",
         y: "cộng hoá đơn đã thanh toán của mọi thuê bao",
         hop: (r) => so(r.da_thu) > 0,
-        tien: (r) => so(r.da_thu), nhan_tien: "đã thu",
+        tien: (r) => so(r.da_thu),
+        nhan_tien: "đã thu",
       },
       {
-        ma: "dang-doi", don: "tb",
+        ma: "dang-doi",
+        don: "tb",
         ten: "Đang đòi",
         y: "hoá đơn đã phát hành, phần lớn là cước tháng mới ra chưa tới hạn",
         hop: (r) => so(r.no) > 0,
-        tien: (r) => so(r.no), nhan_tien: "đang đòi",
+        tien: (r) => so(r.no),
+        nhan_tien: "đang đòi",
       },
       {
-        ma: "qua-han", don: "tb", ro: true,
+        ma: "qua-han",
+        don: "tb",
+        ro: true,
         ten: "Có hoá đơn quá hạn",
         y: "đã qua ngày phải trả mà chưa thấy tiền",
         hop: (r) => so(r.qua_han_lau_nhat) > 0,
-        tien: (r) => so(r.no), nhan_tien: "đang đòi",
+        tien: (r) => so(r.no),
+        nhan_tien: "đang đòi",
       },
       {
-        ma: "bo-thu", don: "tb", ro: true,
+        ma: "bo-thu",
+        don: "tb",
+        ro: true,
         ten: "Đã chốt là không thu được",
         y: "hoá đơn chuyển sang trạng thái bỏ thu — tiền coi như mất",
         hop: (r) => so(r.bo_thu) > 0,
-        tien: (r) => so(r.bo_thu), nhan_tien: "bỏ thu",
+        tien: (r) => so(r.bo_thu),
+        nhan_tien: "bỏ thu",
       },
     ],
   },
@@ -168,21 +195,29 @@ const KHAU: Khau[] = [
     ten: "Huỷ và đòi máy về",
     dong: [
       {
-        ma: "da-huy", don: "tb",
+        ma: "da-huy",
+        don: "tb",
         ten: "Thuê bao đã huỷ",
         y: "dịch vụ đã dừng",
         hop: (r) => r.trang_thai === "TERMINATED",
-        tien: (r) => so(r.bo_thu), nhan_tien: "bỏ thu",
+        tien: (r) => so(r.bo_thu),
+        nhan_tien: "bỏ thu",
       },
       {
-        ma: "huy-con-no", don: "tb", ro: true,
+        ma: "huy-con-no",
+        don: "tb",
+        ro: true,
         ten: "Huỷ rồi mà hoá đơn vẫn đang đòi",
         y: "dịch vụ dừng nhưng tiền chưa chốt xong",
         hop: (r) => r.trang_thai === "TERMINATED" && so(r.no) > 0,
-        tien: (r) => so(r.no), nhan_tien: "đang đòi",
+        tien: (r) => so(r.no),
+        nhan_tien: "đang đòi",
       },
       {
-        ma: "huy-chua-thu-may", don: "may", ro: true, thu_hoi: true,
+        ma: "huy-chua-thu-may",
+        don: "may",
+        ro: true,
+        thu_hoi: true,
         ten: "Huỷ rồi mà máy chưa về",
         y: "không có phiếu nhập nào, cọc còn treo",
         // Trừ nhóm phiếu xuất đánh dấu không thu hồi: máy đó vốn không bao giờ
@@ -191,47 +226,63 @@ const KHAU: Khau[] = [
           r.cho_dung === "O_KHACH" &&
           r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" &&
           !r.khong_thu_hoi,
-        tien: (r) => so(r.coc), nhan_tien: "cọc treo",
+        tien: (r) => so(r.coc),
+        nhan_tien: "cọc treo",
       },
       {
-        ma: "xuat-khong-thu-hoi", don: "may",
+        ma: "xuat-khong-thu-hoi",
+        don: "may",
         ten: "Huỷ rồi, nhưng phiếu ghi không cần thu hồi",
         y: "xuất đi là xong — không phải máy thất lạc, không đòi",
         hop: (r) =>
           r.cho_dung === "O_KHACH" &&
           r.tinh_trang_cuoc === "HUY_CHUA_THU_MAY" &&
           r.khong_thu_hoi,
-        tien: (r) => so(r.coc), nhan_tien: "cọc treo",
+        tien: (r) => so(r.coc),
+        nhan_tien: "cọc treo",
       },
     ],
   },
 ];
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungVongDoi({
+  searchParams,
+}: {
+  searchParams: Promise<Tham>;
+}) {
   const sp = await searchParams;
   const [may, tb] = await Promise.all([getKhoMa(), getThueBaoNo()]);
 
   const lay = (d: DongMay | DongTb) =>
     d.don === "may" ? may.filter(d.hop) : tb.filter(d.hop);
 
-  const moi = KHAU.flatMap((k) => k.dong).find((d) => d.ma === mot(sp.xem));
+  const moi = KHAU.flatMap((k) => k.dong).find(
+    (d) =>
+      d.ma === // `xem` đã là tên tab của màn Điểm nghẽn; trùng thì URLSearchParams lấy giá
+      // trị đầu và ngăn kéo không bao giờ mở. Dùng `vd` cho riêng vòng đời.
+      mot(sp.vd),
+  );
 
   return (
-    <main>
-      <h1>Vòng đời máy wifi cầm tay</h1>
+    <>
       <p className="muted">
-        Năm khâu của một cái máy: nhập kho → cho thuê → ra cước → thu tiền → huỷ và đòi về.
-        Mỗi khâu rò một kiểu khác nhau nên để liền mạch ở đây thay vì rải ra năm màn hình.
-        Dòng <span className="chip do">đỏ</span> là chỗ tiền đang chảy ra ngoài. Bấm một dòng
-        để xem danh sách, không nhảy trang.
+        Năm khâu của một cái máy: nhập kho → cho thuê → ra cước → thu tiền → huỷ
+        và đòi về. Mỗi khâu rò một kiểu khác nhau nên để liền mạch ở đây thay vì
+        rải ra năm màn hình. Dòng <span className="chip do">đỏ</span> là chỗ
+        tiền đang chảy ra ngoài. Bấm một dòng để xem danh sách, không nhảy
+        trang.
       </p>
 
       <p className="muted">
-        Hai cột <b>máy wifi</b> và <b>SIM</b> quyết định việc phải làm ở khâu 5: máy wifi ở
-        khách mà dịch vụ dừng thì <b>phải lấy về kho</b> — nó là tài sản, có cọc, có vòng
-        đời nhập rồi lại xuất. <b>SIM thì không cần lấy về kho: xuất kho là xong, không có
-        bước nhập lại.</b> Dòng nào đếm thuê bao thì hai cột này để gạch, vì thuê bao không
-        có loại thiết bị.
+        Hai cột <b>máy wifi</b> và <b>SIM</b> quyết định việc phải làm ở khâu 5:
+        máy wifi ở khách mà dịch vụ dừng thì <b>phải lấy về kho</b> — nó là tài
+        sản, có cọc, có vòng đời nhập rồi lại xuất.{" "}
+        <b>
+          SIM thì không cần lấy về kho: xuất kho là xong, không có bước nhập
+          lại.
+        </b>{" "}
+        Dòng nào đếm thuê bao thì hai cột này để gạch, vì thuê bao không có loại
+        thiết bị.
       </p>
 
       {KHAU.map((k) => (
@@ -247,7 +298,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <th>Chỉ số</th>
                   {NHOM.map((k) => (
                     <th key={k} className="num">
-                      <span className={`chip ${MAU_NHOM_TB[k] ?? "tat"}`}>{NHOM_TB[k]}</span>
+                      <span className={`chip ${MAU_NHOM_TB[k] ?? "tat"}`}>
+                        {NHOM_TB[k]}
+                      </span>
                     </th>
                   ))}
                   {LOAI.map((l) => (
@@ -258,7 +311,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     </th>
                   ))}
                   <th className="num">Không rõ</th>
-                  <th className="num" title="Đã trừ đại lý — đại lý tự vận hành, không thuộc phạm vi mình theo dõi">
+                  <th
+                    className="num"
+                    title="Đã trừ đại lý — đại lý tự vận hành, không thuộc phạm vi mình theo dõi"
+                  >
                     Cần xử lý
                   </th>
                   <th className="num">Tiền</th>
@@ -270,15 +326,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   const rows = lay(d);
                   const tien = d.tien
                     ? rows.reduce(
-                        (t, r) => t + (d.tien as (x: typeof r) => number)(r as never),
+                        (t, r) =>
+                          t + (d.tien as (x: typeof r) => number)(r as never),
                         0,
                       )
                     : null;
                   return (
                     <tr key={d.ma}>
-                      <td className={`num mono${d.ro && rows.length > 0 ? " bad" : ""}`}>
+                      <td
+                        className={`num mono${d.ro && rows.length > 0 ? " bad" : ""}`}
+                      >
                         {n(rows.length)}
-                        <div className="muted">{d.don === "may" ? "máy" : "thuê bao"}</div>
+                        <div className="muted">
+                          {d.don === "may" ? "máy" : "thuê bao"}
+                        </div>
                       </td>
                       <td>
                         {d.ro && <span className="chip do">rò</span>} {d.ten}
@@ -295,7 +356,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       {NHOM.map((k) => (
                         <td key={k} className="num mono muted">
                           {d.don === "may"
-                            ? n((rows as KhoMa[]).filter((r) => r.nhom_tb === k).length)
+                            ? n(
+                                (rows as KhoMa[]).filter((r) => r.nhom_tb === k)
+                                  .length,
+                              )
                             : "—"}
                         </td>
                       ))}
@@ -304,9 +368,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                           {k.so === "1"
                             ? "—"
                             : n(
-                                (rows as { loai_khach: string | null }[]).filter(
-                                  (r) => r.loai_khach === l,
-                                ).length,
+                                (
+                                  rows as { loai_khach: string | null }[]
+                                ).filter((r) => r.loai_khach === l).length,
                               )}
                         </td>
                       ))}
@@ -323,14 +387,25 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                         {d.ro ? (
                           <>
                             {n(
-                              (rows as { loai_khach: string | null; nhom_tb?: string }[]).filter(
+                              (
+                                rows as {
+                                  loai_khach: string | null;
+                                  nhom_tb?: string;
+                                }[]
+                              ).filter(
                                 (r) =>
                                   r.loai_khach !== "AGENCY" &&
-                                  !("thu_hoi" in d && d.thu_hoi && r.nhom_tb === "SIM"),
+                                  !(
+                                    "thu_hoi" in d &&
+                                    d.thu_hoi &&
+                                    r.nhom_tb === "SIM"
+                                  ),
                               ).length,
                             )}
                             {"thu_hoi" in d && d.thu_hoi && (
-                              <div className="muted">đã trừ SIM — SIM không phải lấy về kho</div>
+                              <div className="muted">
+                                đã trừ SIM — SIM không phải lấy về kho
+                              </div>
                             )}
                           </>
                         ) : (
@@ -349,7 +424,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       </td>
                       <td className="khong-xuong-dong">
                         {rows.length > 0 && (
-                          <Link href={`/cam-tay/vong-doi?xem=${d.ma}`}>xem →</Link>
+                          <Link
+                            href={them(
+                              "/diem-nghen?xem=dong-chay&he=cam-tay",
+                              `vd=${d.ma}`,
+                            )}
+                          >
+                            xem →
+                          </Link>
                         )}
                       </td>
                     </tr>
@@ -361,12 +443,20 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 {(() => {
                   const hop = k.dong.some((d) => d.don === "may")
                     ? may.filter((r) =>
-                        k.dong.some((d) => d.don === "may" && (d.hop as (x: KhoMa) => boolean)(r)),
+                        k.dong.some(
+                          (d) =>
+                            d.don === "may" &&
+                            (d.hop as (x: KhoMa) => boolean)(r),
+                        ),
                       )
                     : null;
                   const hopTb = k.dong.some((d) => d.don === "tb")
                     ? tb.filter((r) =>
-                        k.dong.some((d) => d.don === "tb" && (d.hop as (x: ThueBaoNo) => boolean)(r)),
+                        k.dong.some(
+                          (d) =>
+                            d.don === "tb" &&
+                            (d.hop as (x: ThueBaoNo) => boolean)(r),
+                        ),
                       )
                     : null;
                   const dem = (l: string) =>
@@ -377,7 +467,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       <td className="num mono">
                         <b>{n((hop?.length ?? 0) + (hopTb?.length ?? 0))}</b>
                         <div className="muted">
-                          {[hop && `${n(hop.length)} máy`, hopTb && `${n(hopTb.length)} thuê bao`]
+                          {[
+                            hop && `${n(hop.length)} máy`,
+                            hopTb && `${n(hopTb.length)} thuê bao`,
+                          ]
                             .filter(Boolean)
                             .join(" · ")}
                         </div>
@@ -385,13 +478,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                       <td>
                         <b>Tổng khâu {k.so}</b>
                         <div className="muted">
-                          đếm mỗi mã một lần — các dòng trên chồng nhau nên đây là hợp, không
-                          phải phép cộng
+                          đếm mỗi mã một lần — các dòng trên chồng nhau nên đây
+                          là hợp, không phải phép cộng
                         </div>
                       </td>
                       {NHOM.map((nh) => (
                         <td key={nh} className="num mono">
-                          {hop ? <b>{n(hop.filter((r) => r.nhom_tb === nh).length)}</b> : "—"}
+                          {hop ? (
+                            <b>
+                              {n(hop.filter((r) => r.nhom_tb === nh).length)}
+                            </b>
+                          ) : (
+                            "—"
+                          )}
                         </td>
                       ))}
                       {LOAI.map((l) => (
@@ -405,8 +504,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                         ) : (
                           <b>
                             {n(
-                              (hop?.filter((r) => r.loai_khach === null).length ?? 0) +
-                                (hopTb?.filter((r) => r.loai_khach === null).length ?? 0),
+                              (hop?.filter((r) => r.loai_khach === null)
+                                .length ?? 0) +
+                                (hopTb?.filter((r) => r.loai_khach === null)
+                                  .length ?? 0),
                             )}
                           </b>
                         )}
@@ -424,9 +525,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       ))}
 
       <p className="muted khoi-ghi-chu">
-        Khâu thu tiền chỉ cộng hoá đơn có gắn thuê bao. Hoá đơn không gắn thuê bao — chủ yếu
-        là hoá đơn bán hàng — không nằm trong đây, nên số đã thu ở trang này nhỏ hơn tổng
-        hoá đơn toàn hệ.
+        Khâu thu tiền chỉ cộng hoá đơn có gắn thuê bao. Hoá đơn không gắn thuê
+        bao — chủ yếu là hoá đơn bán hàng — không nằm trong đây, nên số đã thu ở
+        trang này nhỏ hơn tổng hoá đơn toàn hệ.
       </p>
 
       {moi &&
@@ -435,8 +536,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             ten={moi.ten}
             mo_ta={moi.y}
             rows={may.filter(moi.hop)}
-            dongLai="/cam-tay/vong-doi"
-            baseHref={`/cam-tay/vong-doi?xem=${moi.ma}`}
+            dongLai="/diem-nghen?xem=dong-chay&he=cam-tay"
+            baseHref={them(
+              "/diem-nghen?xem=dong-chay&he=cam-tay",
+              `vd=${moi.ma}`,
+            )}
             lk={mot(sp.lk)}
             vt={mot(sp.vt)}
           />
@@ -445,9 +549,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
             ten={moi.ten}
             mo_ta={moi.y}
             rows={tb.filter(moi.hop)}
-            dongLai="/cam-tay/vong-doi"
+            dongLai="/diem-nghen?xem=dong-chay&he=cam-tay"
           />
         ))}
-    </main>
+    </>
   );
 }

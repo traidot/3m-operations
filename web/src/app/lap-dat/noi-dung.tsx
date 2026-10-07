@@ -8,8 +8,7 @@ import {
   type InstallMonth,
   type InstallPending,
 } from "@/lib/queries";
-
-export const dynamic = "force-dynamic";
+import { them } from "../duong-dan";
 
 const n = (v: number) => v.toLocaleString("vi-VN");
 
@@ -27,7 +26,7 @@ const PHU_TRACH_LOC: Record<string, string> = {
 /** Từ nhóm này trở đi là chờ quá hai tháng — quá mốc p90 của toàn hệ thống. */
 const NHOM_QUA_HAN = "04";
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungLapDat({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [thangAll, choAll] = await Promise.all([getInstallMonths(), getInstallPending()]);
 
@@ -48,7 +47,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(t)) if (v) p.set(k, v);
     const duoi = p.toString();
-    return duoi ? `/lap-dat?${duoi}` : "/lap-dat";
+    return duoi ? them("/diem-nghen?xem=dong-chay&he=co-dinh", duoi) : "/diem-nghen?xem=dong-chay&he=co-dinh";
   };
 
   const cacKy = [...new Set(thang.map((r) => r.ky_ky))];
@@ -70,8 +69,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const tenNhom = (ma: string) => cho.find((r) => r.ma_nhom === ma)?.ten_nhom ?? ma;
 
   return (
-    <main>
-      <h1>Lắp đặt wifi cố định</h1>
+    <>
       <p className="muted">
         Chia đơn đúng bảy tình huống của báo cáo tổng hợp bên CMS, gom theo <b>tháng ký</b> chứ
         không theo tháng lắp — đơn ký tháng 3 huỷ tháng 7 vẫn nằm ở dòng tháng 3. Bấm vào một dòng
@@ -281,6 +279,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           linkNhom={(k) => link({ pt: pt || undefined, thang: moThang, nhom: k })}
         />
       )}
-    </main>
+    </>
   );
 }

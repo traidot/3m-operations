@@ -161,7 +161,7 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
           <div className="the-phu">
             {n(treo.treo_so)} lần thu đã vào tài khoản nhưng chưa trừ vào hoá đơn nào,
             nên nợ của khách vẫn chưa giảm ·{" "}
-            <Link href="/cam-tay/chua-can-tru">xem danh sách →</Link>
+            <Link href="/tien/cam-tay?xem=chua-gan">xem danh sách →</Link>
           </div>
         </div>
         <div className="the-so">
