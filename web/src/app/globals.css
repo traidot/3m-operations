@@ -388,7 +388,12 @@ tr.hang-tong:hover { background: none; }
 .o-ky.mau { min-width: 0; width: 11px; height: 14px; padding: 0; }
 .o-ky.da-thu { background: var(--ok); color: var(--paper); }
 .o-ky.mien-phi { background: var(--line-strong); color: var(--ink); }
-.o-ky.cho-duyet, .o-ky.ghi-chu { background: var(--warn); color: var(--paper); }
+/* Khách đã nộp, chờ bên mình bấm duyệt — vàng đặc, việc đang chạy. */
+.o-ky.cho-duyet { background: var(--warn); color: var(--paper); }
+/* Kỳ có dòng trong sổ nhưng KHÔNG ra tiền. Khác hẳn chờ duyệt: chờ duyệt là
+   tiền đang tới, ghi chú là kỳ không sinh tiền. Trước đây hai cái cùng vàng
+   đặc nên nhìn dải kỳ không phân biệt được, dễ đọc nhầm thành kỳ đang nợ. */
+.o-ky.ghi-chu { background: var(--warn-soft); color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn); }
 .o-ky.no { background: var(--bad); color: var(--paper); }
 /* Tháng chưa qua mốc đóng: có kỳ, có tiền phải thu, nhưng chưa phải việc. Nhạt
    hơn "chưa thu" hẳn một bậc để mắt bỏ qua được. */
