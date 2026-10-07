@@ -2,12 +2,12 @@ import Link from "next/link";
 import { getCanHuy } from "@/lib/queries";
 import { DICH_VU } from "@/lib/nhan";
 
-export const dynamic = "force-dynamic";
-
-const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
+const n = (v: string | null) =>
+  v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
 type Tham = Record<string, string | string[] | undefined>;
-const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+const mot = (v: string | string[] | undefined) =>
+  (Array.isArray(v) ? v[0] : v) ?? "";
 
 const NGUON: Record<string, string> = {
   FIXED: "wifi cố định",
@@ -21,31 +21,38 @@ function duongDan(nguon: string, id: string): string {
     : `/cam-tay/thue-bao?xem=${encodeURIComponent(id)}`;
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungXemXetHuy({
+  searchParams,
+  khoaNguon,
+}: {
+  searchParams: Promise<Tham>;
+  khoaNguon?: string;
+}) {
   const sp = await searchParams;
-  const nguon = mot(sp.nguon) in NGUON ? mot(sp.nguon) : "";
+  const nguon = khoaNguon ?? (mot(sp.nguon) in NGUON ? mot(sp.nguon) : "");
   const rows = await getCanHuy(nguon || undefined);
 
   const tong = rows.reduce((s, r) => s + Number(r.con_no), 0);
   const theoNguon = (k: string) => rows.filter((r) => r.nguon === k).length;
 
   return (
-    <main>
-      <h1>Dự kiến huỷ</h1>
+    <>
       <p className="muted">
-        Dịch vụ <b>còn đang chạy</b> mà đã quá hạn thu cước. Mốc biết được quá hạn hay
-        chưa: wifi cầm tay là mùng 1 hàng tháng, wifi cố định là <b>hết tháng hiện tại</b>
-        — kỳ tháng này chưa đóng đã coi là quá hạn. Xếp cái treo
-        lâu nhất lên đầu. Dịch vụ đã huỷ rồi thì không có ở đây, và hợp đồng cố định đã
-        trừ tiền cọc chờ duyệt — khách nộp rồi thì không đem ra cân nhắc cắt. Muốn xem
-        từng khoản phải thu, kể cả cái chưa tới hạn, thì sang{" "}
-        <Link href="/thu-cuoc">Thu cước</Link>.
+        Dịch vụ <b>còn đang chạy</b> mà đã quá hạn thu cước. Mốc biết được quá
+        hạn hay chưa: wifi cầm tay là mùng 1 hàng tháng, wifi cố định là{" "}
+        <b>hết tháng hiện tại</b>— kỳ tháng này chưa đóng đã coi là quá hạn. Xếp
+        cái treo lâu nhất lên đầu. Dịch vụ đã huỷ rồi thì không có ở đây, và hợp
+        đồng cố định đã trừ tiền cọc chờ duyệt — khách nộp rồi thì không đem ra
+        cân nhắc cắt. Muốn xem từng khoản phải thu, kể cả cái chưa tới hạn, thì
+        sang <Link href="/thu-cuoc">Thu cước</Link>.
       </p>
 
       <div className="the-hang">
         <div className="the-so">
           <div className="the-ten">Cần xem xét</div>
-          <div className="the-gia-tri">{rows.length.toLocaleString("vi-VN")}</div>
+          <div className="the-gia-tri">
+            {rows.length.toLocaleString("vi-VN")}
+          </div>
           <div className="the-phu">
             {theoNguon("FIXED")} cố định · {theoNguon("TELECOM")} cầm tay
           </div>
@@ -57,20 +64,28 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         </div>
       </div>
 
-      <p className="actions">
-        <Link href="/xem-xet-huy">
-          <button type="button" className={nguon === "" ? "primary" : undefined}>
-            Cả hai
-          </button>
-        </Link>
-        {Object.entries(NGUON).map(([ma, ten]) => (
-          <Link key={ma} href={`/xem-xet-huy?nguon=${ma}`}>
-            <button type="button" className={nguon === ma ? "primary" : undefined}>
-              {ten}
+      {khoaNguon === undefined && (
+        <p className="actions">
+          <Link href="/xem-xet-huy">
+            <button
+              type="button"
+              className={nguon === "" ? "primary" : undefined}
+            >
+              Cả hai
             </button>
           </Link>
-        ))}
-      </p>
+          {Object.entries(NGUON).map(([ma, ten]) => (
+            <Link key={ma} href={`/xem-xet-huy?nguon=${ma}`}>
+              <button
+                type="button"
+                className={nguon === ma ? "primary" : undefined}
+              >
+                {ten}
+              </button>
+            </Link>
+          ))}
+        </p>
+      )}
 
       {rows.length === 0 ? (
         <p className="empty">Không có dịch vụ nào quá hạn.</p>
@@ -95,7 +110,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
               {rows.map((r) => (
                 <tr key={`${r.nguon}-${r.id}`}>
                   <td>
-                    <span className={`chip ${r.nguon === "FIXED" ? "cam" : "ctv"}`}>
+                    <span
+                      className={`chip ${r.nguon === "FIXED" ? "cam" : "ctv"}`}
+                    >
                       {NGUON[r.nguon] ?? r.nguon}
                     </span>
                   </td>
@@ -104,7 +121,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   </td>
                   <td>
                     {r.khach ?? "—"}
-                    {r.kho_doi && <span className="tag critical"> khó đòi</span>}
+                    {r.kho_doi && (
+                      <span className="tag critical"> khó đòi</span>
+                    )}
                   </td>
                   <td className="muted">
                     {r.goi ?? DICH_VU[r.dich_vu ?? ""] ?? r.dich_vu ?? "—"}
@@ -114,7 +133,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                   <td className="num mono">{n(r.so_ky_no)}</td>
                   <td className="mono">{r.ky_no_cu_nhat ?? "—"}</td>
                   <td className="num mono">
-                    {r.ngay_qua_han === null ? "—" : `${n(r.ngay_qua_han)} ngày`}
+                    {r.ngay_qua_han === null
+                      ? "—"
+                      : `${n(r.ngay_qua_han)} ngày`}
                   </td>
                   <td>
                     {r.link_cms && (
@@ -131,9 +152,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       )}
 
       <p className="muted khoi-ghi-chu">
-        Đây là danh sách để cân nhắc, không phải lệnh cắt. Mọi thao tác huỷ đều làm bên
-        CMS nguồn — lớp giám sát này chỉ đọc.
+        Đây là danh sách để cân nhắc, không phải lệnh cắt. Mọi thao tác huỷ đều
+        làm bên CMS nguồn — lớp giám sát này chỉ đọc.
       </p>
-    </main>
+    </>
   );
 }

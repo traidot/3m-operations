@@ -125,7 +125,7 @@ export async function NoiDungHomNayCoDinh({ searchParams }: { searchParams: Prom
           <div className="the-gia-tri mono">{n(congNo.tien)}</div>
           <div className="the-phu">
             {n(congNo.hop_dong)} hợp đồng · {n(congNo.ky)} kỳ cước chưa thu ·{" "}
-            <Link href="/thu-cuoc">xem danh sách →</Link>
+            <Link href="/viec-hom-nay/co-dinh?tab=cong-no">xem danh sách →</Link>
           </div>
         </div>
 <div className="the-so">

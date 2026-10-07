@@ -8,14 +8,12 @@ import {
 } from "@/lib/queries";
 import { COC, DICH_VU, HOP_DONG, MAY, NHOM_COC, NHOM_COC_VIEC } from "@/lib/nhan";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungCoc({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const nhom = NHOM_COC_VIEC.includes(mot(sp.nhom)) ? mot(sp.nhom) : "";
   const trang = Math.max(1, Number(mot(sp.trang)) || 1);
@@ -31,8 +29,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
   const link = (t: Record<string, string>) => `/cam-tay/coc?${new URLSearchParams(t)}`;
 
   return (
-    <main>
-      <h1>Cọc cần xử lý</h1>
+    <>
       <p className="muted">
         Cọc tính theo <b>lượt thuê mới nhất của từng máy</b>: 568 lượt cũ vẫn để trạng thái
         đang thuê dù máy đã cho người khác thuê lại, cộng cả vào thì thừa 2.064.641 yên.
@@ -163,6 +160,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         trong sổ cho thuê, nên không biết đã thu cọc hay chưa — cột cọc để trống chứ không
         phải bằng không.
       </p>
-    </main>
+    </>
   );
 }

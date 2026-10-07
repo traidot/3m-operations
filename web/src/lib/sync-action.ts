@@ -47,7 +47,7 @@ export async function runSync(nguon: string): Promise<{ ok: boolean; message: st
       },
     );
     for (const p of ["/dong-bo", "/cuoc", "/hop-dong", "/thang", "/lap-dat", "/cam-tay",
-                     "/tra-cuu/cam-tay", "/cam-tay/coc", "/"]) {
+                     "/tra-cuu/cam-tay", "/viec-hom-nay/cam-tay", "/"]) {
       revalidatePath(p);
     }
     return { ok: true, message: stdout.trim() };

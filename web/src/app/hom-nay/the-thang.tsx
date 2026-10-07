@@ -51,7 +51,7 @@ export function TheThang({ t, moTai }: { t: ThangNay; moTai: string }) {
           <div className="the-phu">
             {n(t.ky_chua_thu)} kỳ cước của tháng {thang} chưa ai chốt — đầu tháng con
             số này luôn lớn vì kỳ vừa phát sinh, nó tụt dần khi người thu đi làm ·{" "}
-            <Link href="/thu-cuoc">xem danh sách →</Link>
+            <Link href="/viec-hom-nay/co-dinh?tab=cong-no">xem danh sách →</Link>
           </div>
         </div>
         <div className="the-so">

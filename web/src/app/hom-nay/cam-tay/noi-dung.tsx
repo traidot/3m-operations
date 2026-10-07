@@ -123,7 +123,7 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
             <div className="the-phu">
               {n(thangNay.hoa_don_dang_doi)} hoá đơn của tháng {thang} chưa thu xong —
               đầu tháng con số này luôn lớn vì hoá đơn vừa phát hành ·{" "}
-              <Link href="/thu-cuoc">xem danh sách →</Link>
+              <Link href="/viec-hom-nay/cam-tay?tab=cong-no">xem danh sách →</Link>
             </div>
           </div>
           <div className="the-so">
@@ -152,7 +152,7 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
           <div className="the-gia-tri mono">{n(treo.no_tien)}</div>
           <div className="the-phu">
             {n(treo.no_thue_bao)} thuê bao còn nợ ·{" "}
-            <Link href="/thu-cuoc">xem danh sách →</Link>
+            <Link href="/viec-hom-nay/cam-tay?tab=cong-no">xem danh sách →</Link>
           </div>
         </div>
         <div className="the-so">

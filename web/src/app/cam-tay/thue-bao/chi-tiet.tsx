@@ -153,7 +153,7 @@ export async function ChiTietThueBao({ id, dongLai }: { id: string; dongLai: str
           )}
           <p className="muted khoi-ghi-chu">
             “Không có phiếu” — bên nguồn không có dòng nào trong sổ cho thuê, chưa biết
-            cọc. <a href="/cam-tay/coc?nhom=CHUA_GAN">Xem tất cả</a>.
+            cọc. <a href="/viec-hom-nay/cam-tay?tab=coc&nhom=CHUA_GAN">Xem tất cả</a>.
           </p>
 
           <h2>Hoá đơn</h2>
