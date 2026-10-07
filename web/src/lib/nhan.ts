@@ -295,6 +295,9 @@ export const KHO_PM: Record<string, string> = {
   O_KHACH: "ở khách",
   TRONG_KHO: "trong kho",
   TRA_NCC: "đã trả nhà cung cấp",
+  // Phiếu xuất đánh dấu is_no_recall: giao đi không đòi lại. Chỉ 7 trong 1.196
+  // cái còn thuê bao chạy, nên không cùng rổ với máy đang cho thuê.
+  GIAO_LUON: "giao luôn, không thu hồi",
   DA_BAN: "đã bán đứt",
   HONG_HUY: "hỏng, đã huỷ",
   // Phiếu xuất để khớp sổ với thực tế: nói sổ từng sai, KHÔNG nói máy đi đâu.
