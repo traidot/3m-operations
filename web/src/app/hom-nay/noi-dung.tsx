@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { getBaoCaoNgay, getFindings, getFreshness, type BaoCaoNgay } from "@/lib/queries";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
@@ -49,7 +47,7 @@ function Muc({ r, tien }: { r: BaoCaoNgay; tien: boolean }) {
   );
 }
 
-export default async function Page() {
+export async function NoiDungHomNayChung() {
   const [rows, findings, freshness] = await Promise.all([
     getBaoCaoNgay(),
     getFindings(),
@@ -67,8 +65,7 @@ export default async function Page() {
   });
 
   return (
-    <main>
-      <h1>Hôm nay</h1>
+    <>
       <p className="muted">
         {hom_nay}. Mỗi dòng là chuyện xảy ra trong ngày, đặt cạnh <b>hôm qua</b> và{" "}
         <b>trung bình 7 ngày</b> trước đó để biết nhiều hay ít. Cột cuối là phần trăm
@@ -124,6 +121,6 @@ export default async function Page() {
           </section>
         );
       })}
-    </main>
+    </>
   );
 }

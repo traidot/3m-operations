@@ -31,12 +31,10 @@ import {
   getTongHop28,
 } from "@/lib/queries";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
-const DUONG_DAN = "/hom-nay/co-dinh";
+const DUONG_DAN = "/diem-nghen?xem=hom-nay&he=co-dinh";
 
 const ngayVn = (iso: string | null) =>
   iso === null ? "—" : `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
@@ -44,7 +42,7 @@ const ngayVn = (iso: string | null) =>
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungHomNayCoDinh({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [ngay7, ngay30, tongHop, thangNay, choMuon, choMuonGiu, quaHan, congNo, cho, gmoThang, gmoO, cocMo, cocNhom, cocO, linkDuyet, freshness] =
     await Promise.all([
@@ -103,8 +101,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
     ngay30.reduce((t, d) => t + Number(d[k]), 0);
 
   return (
-    <main>
-      <h1>Hôm nay · wifi cố định</h1>
+    <>
       <p className="muted">
         {hom_nay}. Biểu đồ là <b>30 ngày gần nhất</b> để thấy hình dạng cả tháng;
         các bảng bày <b>28 ngày gần nhất</b>, mỗi ngày một cột. Thứ Bảy và Chủ
@@ -289,6 +286,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
         })()}
       {mot(sp.gmo) !== "" && <ChiTietGmoQuaHan dongLai={DUONG_DAN} />}
       {mot(sp.chd) !== "" && <ChiTietChuaHoatDong dongLai={DUONG_DAN} />}
-    </main>
+    </>
   );
 }

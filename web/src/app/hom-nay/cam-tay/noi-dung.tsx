@@ -13,17 +13,15 @@ import {
 } from "@/lib/queries";
 import { KENH_THU } from "@/lib/nhan";
 
-export const dynamic = "force-dynamic";
-
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
-const DUONG_DAN = "/hom-nay/cam-tay";
+const DUONG_DAN = "/diem-nghen?xem=hom-nay&he=cam-tay";
 
 type Tham = Record<string, string | string[] | undefined>;
 const mot = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-export default async function Page({ searchParams }: { searchParams: Promise<Tham> }) {
+export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Promise<Tham> }) {
   const sp = await searchParams;
   const [thangNay, treo, ngay28, choMuon, choMuonGiu, freshness] = await Promise.all([
     getTelecomThangNay(),
@@ -64,8 +62,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       .map((r) => ({ ...r, chi_so: KENH_THU[r.chi_so] ?? r.chi_so }));
 
   return (
-    <main>
-      <h1>Hôm nay · wifi cầm tay</h1>
+    <>
       <p className="muted">
         {hom_nay}. Các bảng bày <b>28 ngày gần nhất</b>, mỗi ngày một dòng. Thứ Bảy
         và Chủ nhật tô nền khác: nhịp làm việc cuối tuần vốn thấp, không đánh dấu
@@ -227,6 +224,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
           <ChiTietCanTru ky={ky} dongLai={DUONG_DAN} />
         );
       })()}
-    </main>
+    </>
   );
 }

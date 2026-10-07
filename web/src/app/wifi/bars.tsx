@@ -11,6 +11,7 @@ import {
   YAxis,
   type TooltipContentProps,
 } from "recharts";
+import { them } from "../duong-dan";
 
 /**
  * Biểu đồ cột nhóm. Mọi chuỗi nằm chung một trục nên chỉ dùng khi chúng cùng
@@ -160,7 +161,7 @@ export function Bars({
                         const ngay = o.payload?.ten;
                         const v = ngay === undefined ? 0 : Number(o.payload?.[s.ten as never] ?? 0);
                         if (ngay !== undefined && v > 0) {
-                          router.push(`${moTai}?${s.mo}=${ngay}`, { scroll: false });
+                          router.push(them(moTai, `${s.mo}=${ngay}`), { scroll: false });
                         }
                       }
                     : undefined

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ChoMuon } from "@/lib/queries";
+import { them } from "../duong-dan";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 const thangVn = (ky: string) => `${ky.slice(5, 7)}/${ky.slice(0, 4)}`;
@@ -61,7 +62,7 @@ export function BangChoMuon({
                   {Number(r.may_tra_ve) === 0 ? (
                     <span className="muted">—</span>
                   ) : (
-                    <Link className="o-mo" href={`${moTai}?muon=${r.ky}.may`} scroll={false}>
+                    <Link className="o-mo" href={them(moTai, `muon=${r.ky}.may`)} scroll={false}>
                       {n(r.may_tra_ve)}
                     </Link>
                   )}
@@ -70,7 +71,7 @@ export function BangChoMuon({
                   {Number(r.dot_can_tru) === 0 ? (
                     <span className="muted">—</span>
                   ) : (
-                    <Link className="o-mo" href={`${moTai}?muon=${r.ky}.coc`} scroll={false}>
+                    <Link className="o-mo" href={them(moTai, `muon=${r.ky}.coc`)} scroll={false}>
                       {n(r.dot_can_tru)}
                     </Link>
                   )}

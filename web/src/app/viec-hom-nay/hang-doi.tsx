@@ -2,6 +2,7 @@ import Link from "next/link";
 import { NganKeo } from "../ngan-keo";
 import type { ViecHomNay } from "@/lib/queries";
 import { VIEC_HOM_NAY } from "@/lib/nhan";
+import { them } from "../duong-dan";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
@@ -121,7 +122,7 @@ export function MucHangDoi({
           <Bang viec={viec} ds={ds.slice(0, HIEN_SAN)} />
           {ds.length > HIEN_SAN && (
             <p className="actions">
-              <Link href={`${moTai}?mo=${viec}`} scroll={false}>
+              <Link href={them(moTai, `mo=${viec}`)} scroll={false}>
                 <button type="button">Xem tất cả {n(ds.length)} việc →</button>
               </Link>
             </p>

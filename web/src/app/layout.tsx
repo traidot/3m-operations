@@ -57,7 +57,6 @@ const MENU: NhomMenu[] = [
  * Để đây chứ không để trong đầu: gõ URL vẫn vào được nên dễ quên là chúng còn
  * tồn tại, và mỗi cái còn sống là một chỗ nữa có thể nói khác với màn mới.
  *
- *   /hom-nay, /hom-nay/co-dinh, /hom-nay/cam-tay  → Việc đang tắc
  *   /thu-cuoc, /xem-xet-huy, /cam-tay/coc         → Việc đang tắc
  *   /thang, /lap-dat, /cam-tay/huy                → Việc đang tắc (vào/ra dây chuyền)
  *   /cuoc, /thang/tien, /cam-tay/chua-can-tru     → Tiền

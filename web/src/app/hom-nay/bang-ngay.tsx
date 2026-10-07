@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Ngay28 } from "@/lib/queries";
+import { them } from "../duong-dan";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 
@@ -210,7 +211,7 @@ export function BangNgay({
                 {chiSos.map((cs) => (
                   <td key={cs} className="num mono">
                     {moO !== undefined && coSo(cs, d) ? (
-                      <Link className="o-mo" href={`${moO}?o=${ma(cs, d)}`} scroll={false}>
+                      <Link className="o-mo" href={them(moO, `o=${ma(cs, d)}`)} scroll={false}>
                         {noiDung(cs, d)}
                       </Link>
                     ) : (

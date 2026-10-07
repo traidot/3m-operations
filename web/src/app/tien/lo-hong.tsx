@@ -7,6 +7,7 @@ import {
   type ThuNgoaiHopDong,
 } from "@/lib/queries";
 import { KY_HUT, KY_HUT_MAT_TIEN, LY_DO_HUY } from "@/lib/nhan";
+import { them } from "../duong-dan";
 
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
@@ -55,7 +56,7 @@ export async function LoHong({ moTai }: { moTai: string }) {
         <tbody>
           <tr>
             <td>
-              <Link href={`${moTai}?lo=ky-hut`} scroll={false} className="o-mo">
+              <Link href={them(moTai, "lo=ky-hut")} scroll={false} className="o-mo">
                 <b>Tháng chạy mà không ra kỳ cước</b>
               </Link>
               <div className="muted">
@@ -80,7 +81,7 @@ export async function LoHong({ moTai }: { moTai: string }) {
               <b>{n(tienKyHut)}</b>
             </td>
             <td className="khong-xuong-dong">
-              <Link href={`${moTai}?lo=ky-hut`} scroll={false}>
+              <Link href={them(moTai, "lo=ky-hut")} scroll={false}>
                 xem →
               </Link>
             </td>
@@ -88,7 +89,7 @@ export async function LoHong({ moTai }: { moTai: string }) {
           <tr>
             <td>
               <Link
-                href={`${moTai}?lo=thu-ngoai`}
+                href={them(moTai, "lo=thu-ngoai")}
                 scroll={false}
                 className="o-mo"
               >
@@ -109,7 +110,7 @@ export async function LoHong({ moTai }: { moTai: string }) {
               <b>{n(tienNgoai)}</b>
             </td>
             <td className="khong-xuong-dong">
-              <Link href={`${moTai}?lo=thu-ngoai`} scroll={false}>
+              <Link href={them(moTai, "lo=thu-ngoai")} scroll={false}>
                 xem →
               </Link>
             </td>

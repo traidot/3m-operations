@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import type { CocNhom, CocO } from "@/lib/queries";
+import { them } from "../duong-dan";
 
 const n = (v: string | number) => Math.round(Number(v)).toLocaleString("vi-VN");
 
@@ -58,7 +59,7 @@ export function BangCocNhom({
           <tbody>
             <tr className="tong">
               <td colSpan={2}>
-                <Link className="o-mo" href={`${moTai}?coc=all`} scroll={false}>
+                <Link className="o-mo" href={them(moTai, "coc=all")} scroll={false}>
                   <b>Tất cả</b>
                 </Link>
               </td>
@@ -80,7 +81,7 @@ export function BangCocNhom({
                 <Fragment key={bac.bac}>
                   <tr className="tong">
                     <td rowSpan={con.length + 1} className={lau ? "bad" : undefined}>
-                      <Link className="o-mo" href={`${moTai}?coc=${bac.bac}`} scroll={false}>
+                      <Link className="o-mo" href={them(moTai, `coc=${bac.bac}`)} scroll={false}>
                         {bac.nhom}
                       </Link>
                     </td>
@@ -101,7 +102,7 @@ export function BangCocNhom({
                       <td>
                         <Link
                           className="o-mo"
-                          href={`${moTai}?coc=${bac.bac}.${r.nhom_tien}`}
+                          href={them(moTai, `coc=${bac.bac}.${r.nhom_tien}`)}
                           scroll={false}
                         >
                           {r.ten}
