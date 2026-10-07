@@ -217,9 +217,9 @@ export default async function Page({
           </p>
           <p className="muted">
             Cột quyết định là <b>tuần để dọn</b> = tồn ÷ ra mỗi tuần, không phải
-            cột tồn. 88 phiếu cọc chờ duyệt và 1.254 lần chờ gán hoá đơn nhìn
-            như cùng loại việc, nhưng guồng duyệt cọc chạy 126 phiếu/tuần nên
-            dọn trong nửa tuần. Xếp hạng theo số tồn là xếp sai.
+            cột tồn. Hai trạm cùng tồn vài trăm việc có thể một bên dọn hết
+            trong nửa tuần còn bên kia mất cả năm, tuỳ guồng chạy nhanh hay
+            chậm. Xếp hạng theo số tồn là xếp sai.
           </p>
           <p className="muted">
             Có <b>hai kiểu tắc</b>, đọc bằng hai cột khác nhau.{" "}
