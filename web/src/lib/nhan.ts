@@ -295,6 +295,10 @@ export const KHO_PM: Record<string, string> = {
   O_KHACH: "ở khách",
   TRONG_KHO: "trong kho",
   TRA_NCC: "đã trả nhà cung cấp",
+  DA_BAN: "đã bán đứt",
+  HONG_HUY: "hỏng, đã huỷ",
+  // Phiếu xuất để khớp sổ với thực tế: nói sổ từng sai, KHÔNG nói máy đi đâu.
+  DIEU_CHINH_SO: "xuất để chỉnh sổ",
   CHI_NHA_MANG: "chỉ thấy ở nhà mạng",
   PM_KHONG_BIET: "phần mềm không có mã này",
 };

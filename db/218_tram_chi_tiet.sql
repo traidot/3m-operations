@@ -7,6 +7,9 @@
 -- `tuoi_ngay` mang nghĩa khác nhau tuỳ trạm — phần lớn là "đã chờ bao lâu",
 -- riêng CHO_HEN là "còn mấy ngày nữa tới hẹn". Nhãn cột để bên web đặt.
 
+-- v_tram_van_hanh dựng TỪ view này nên phải bỏ trước; chạy lại file mà không
+-- có dòng đó thì drop bị chặn và phần create phía dưới báo "đã tồn tại".
+drop view if exists v_tram_van_hanh;
 drop view if exists v_tram_chi_tiet;
 
 create view v_tram_chi_tiet as
