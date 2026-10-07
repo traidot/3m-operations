@@ -119,10 +119,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
       <h1>Hợp đồng wifi cố định</h1>
       <p className="muted">
         Toàn bộ hợp đồng trong hệ thống wifi cố định. Bấm mã hợp đồng để xem cước từng
-        tháng. Mọi thứ ở đây <b>dừng ở tháng hiện tại</b>: kỳ cuối cùng là tháng này, và
-        tháng này chưa có phiếu thu đã duyệt thì tính là nợ ngay — không chờ tới hạn mùng
-        10 tháng sau. Vì vậy con số “còn nợ” ở đây <b>đòi sớm hơn</b> luật hạn một nhịp,
-        và cột “chưa đến hạn” không còn dòng nào. “Treo duyệt” là kỳ quá hạn mà{" "}
+        tháng. Wifi cố định <b>thu sau</b>: hết tháng dùng mới phải đóng, nên kỳ của
+        tháng này nằm ở cột <b>chưa đến hạn</b> chứ không phải cột nợ. Nó chỉ thành nợ
+        từ mùng 1 tháng sau, và thành quá hạn từ mùng 10 — mười ngày giữa là ân hạn.
+        “Treo duyệt” là kỳ quá hạn mà{" "}
         <b>đã có phiếu thu chờ duyệt</b> — tiền có thể đã về, chỉ chưa ai bấm duyệt, nên
         tách khỏi nợ: đó là việc của bên mình chứ không phải việc đi đòi khách. “Cọc chờ duyệt”
         là tiền khách đã nộp qua combini mà bên mình chưa duyệt; “sau cọc” là phần thật
@@ -203,6 +203,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                 <th className="num">Miễn</th>
                 <th className="num">Nợ</th>
                 <th className="num">Còn nợ</th>
+                <th
+                  className="num"
+                  title="Kỳ của tháng này — cố định thu sau nên chưa phải đòi"
+                >
+                  Chưa đến hạn
+                </th>
                 <th className="num">Treo duyệt</th>
                 <th className="num">Cọc chờ duyệt</th>
                 <th className="num">Sau cọc</th>
@@ -269,6 +275,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<Tha
                     {KHONG_SINH_KY.has(r.tinh_trang_cuoc) ? "—" : n(r.so_ky_no)}
                   </td>
                   <td className="num mono">{n(r.con_no)}</td>
+                  {/* Cột này từng luôn trống vì mốc chốt là tháng hiện tại, nên
+                      đã bị bỏ khỏi bảng. Từ khi tính đúng "thu sau" thì nó có
+                      167 kỳ — chỗ tiền chưa phải đi đòi, tách khỏi cột nợ. */}
+                  <td className="num mono muted">
+                    {Number(r.tien_chua_den_han) > 0
+                      ? n(r.tien_chua_den_han)
+                      : "—"}
+                  </td>
                   <td className="num mono">
                     {Number(r.tien_treo_duyet) > 0 ? n(r.tien_treo_duyet) : "—"}
                   </td>
