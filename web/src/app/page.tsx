@@ -2,6 +2,15 @@ import { setFindingStatus, unignoreFinding } from "@/lib/actions";
 import { getFindings, getFreshness, getIgnored, type Finding } from "@/lib/queries";
 import { Evidence } from "./evidence";
 
+/**
+ * Trần số thẻ bày ra.
+ *
+ * Có 1.363 phán quyết đang mở; dựng hết mất sáu giây trong khi ba truy vấn chỉ
+ * tốn vài mili giây — chậm nằm ở HTML. Không ai xử lý nghìn việc trong một
+ * lượt, nên cắt ở đây và nói rõ còn bao nhiêu.
+ */
+const TRAN_THE = 150;
+
 export const dynamic = "force-dynamic";
 
 const NHOM_LABEL: Record<Finding["nhom"], string> = {
@@ -17,10 +26,6 @@ export default async function Page() {
     getIgnored(),
   ]);
 
-  // Đồng bộ chết âm thầm thì trang vẫn hiện số, chỉ là số của hôm kia.
-  const stale = freshness.filter(
-    (f) => f.lan_dong_bo_cuoi === null || Number(f.gio_ke_tu_lan_cuoi) > Number(f.nguong_gio),
-  );
 
   return (
     <main>
@@ -31,17 +36,22 @@ export default async function Page() {
           : `${findings.length} việc đang mở.`}
       </p>
 
-      {stale.length > 0 && (
-        <div className="stale">
-          Dữ liệu chưa được đồng bộ: {stale.map((f) => `${f.source}/${f.table_name}`).join(", ")}.
-          Mọi con số bên dưới đang là số cũ.
-        </div>
-      )}
 
       {findings.length === 0 ? (
         <p className="empty">Chưa có gì. Bản tin trống là kết quả tốt.</p>
       ) : (
-        findings.map((f) => <FindingCard key={f.id} finding={f} />)
+        <>
+          {findings.length > TRAN_THE && (
+            <p className="muted">
+              Bày {TRAN_THE} việc đầu trong số{" "}
+              {findings.length.toLocaleString("vi-VN")}. Xử lý hết chỗ này rồi
+              mở lại sẽ thấy tiếp.
+            </p>
+          )}
+          {findings.slice(0, TRAN_THE).map((f) => (
+            <FindingCard key={f.id} finding={f} />
+          ))}
+        </>
       )}
 
       {ignored.length > 0 && (

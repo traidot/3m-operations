@@ -6,6 +6,9 @@ import { getTelecomMay, type TelecomMay } from "@/lib/queries";
 import { KHONG_NHOM, LOC, NHOM_LOC, locRows } from "./loc";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
 
+/** Trần số dòng bày ra; phần còn lại lọc hoặc xuất Excel. */
+const TRAN_HIEN = 200;
+
 const n = (v: string | null) => (v === null ? "—" : Number(v).toLocaleString("vi-VN"));
 
 type Tham = Record<string, string | string[] | undefined>;
@@ -31,6 +34,11 @@ export async function NoiDungMay({ searchParams }: { searchParams: Promise<Tham>
   // Nhóm khách bên CMS — đây là chỗ đọc ra máy cho mượn chờ lắp wifi cố định.
   const nk = mot(sp.nk);
   const rows = locRows(tatCa, { loc, q: mot(sp.q), may, lk, nk });
+  // Dựng cả 2.463 dòng mất gần tám giây, mà truy vấn chỉ tốn một phần tư
+  // giây — chậm nằm ở HTML chứ không ở kho. Cắt bớt phần hiển thị; bộ lọc và
+  // ô tìm kiếm phía trên mới là đường để tới đúng máy cần xem, và nút xuất
+  // Excel vẫn lấy đủ cả tập.
+  const hien = rows.slice(0, TRAN_HIEN);
 
   const moMay = mot(sp.xem);
   const link = (t: Record<string, string | undefined>) => {
@@ -241,6 +249,13 @@ export async function NoiDungMay({ searchParams }: { searchParams: Promise<Tham>
         {lk && ` · ${lk === "khong-ro" ? "không rõ loại" : (LOAI_KHACH[lk] ?? lk)}`}
         {nk && ` · ${nk}`}
         {mot(sp.q).trim() && ` · tìm “${mot(sp.q)}”`}
+        {rows.length > TRAN_HIEN && (
+          <>
+            {" "}
+            — bảng chỉ bày {n(String(TRAN_HIEN))} dòng đầu, lọc hẹp lại hoặc
+            xuất Excel để xem đủ
+          </>
+        )}
       </p>
 
       <p className="actions">
@@ -280,7 +295,7 @@ export async function NoiDungMay({ searchParams }: { searchParams: Promise<Tham>
               </tr>
             </thead>
             <ThanBam>
-              {rows.map((r) => (
+              {hien.map((r) => (
                 <tr
                   key={r.imei}
                   data-href={link({ loc: loc || undefined, q: mot(sp.q) || undefined, may: may || undefined, nk: nk || undefined, lk: lk || undefined, xem: r.imei })}
