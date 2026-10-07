@@ -103,27 +103,49 @@ chứ không chạy song song. Chạy lại nhiều lần trong ngày không nh�
 
 ## Giao diện
 
-Ba màn hình cần thao tác — thứ Metabase không làm được vì nó chỉ đọc.
-Biểu đồ vẫn để Metabase, không dựng lại ở đây.
-
 ```bash
 cd web && npm install && npm run dev
 ```
+
+Bảy màn vận hành, gom theo **câu hỏi người xem mang vào** chứ không theo mảng
+kinh doanh. Mỗi nhóm hai màn, một cho mỗi mảng wifi; mọi màn cũ đã tan vào đây
+dưới dạng tab.
+
+| Trang | Việc | Tab bên trong |
+|---|---|---|
+| `/diem-nghen` | Việc đang tắc ở trạm nào trên dây chuyền | Bản đồ trạm · Hôm nay · Dòng chảy theo tháng |
+| `/viec-hom-nay/co-dinh` | Hàng đợi việc đóng được từng dòng | Hàng đợi · Công nợ · Dự kiến huỷ |
+| `/viec-hom-nay/cam-tay` | Như trên, mảng cầm tay | thêm tab Cọc |
+| `/tien/co-dinh` | Tiền vào, khớp CMS, lỗ hổng sổ cước | Dòng tiền · Cước theo tháng · Thực nhận |
+| `/tien/cam-tay` | Phải thu / đã thu theo tháng, kênh, dịch vụ | Theo tháng · Tiền chưa gán hoá đơn |
+| `/tra-cuu/co-dinh` | Tìm một hợp đồng | — |
+| `/tra-cuu/cam-tay` | Tìm một khách, một máy, một mã kho | Tổng quan · Khách · Máy · Kho |
+
+Ngoài phạm vi giám sát vận hành, không bày trong menu nhưng vẫn chạy:
 
 | Trang | Việc |
 |---|---|
 | `/` | Bản tin: phán quyết đang mở, đánh dấu đã tiếp nhận / đã xử lý / bỏ qua |
 | `/duyet-trung` | Hàng đợi trùng khách, gộp hoặc bác từng cặp |
-| `/wifi` | Phễu và số liệu mảng wifi cố định, wifi cầm tay (có cước) |
-| `/esim` | Phễu và số liệu mảng eSIM (bán đứt, không cước) |
-| `/cuoc` | Cước wifi cố định theo tháng, độ phủ tính cước, hợp đồng nợ |
 | `/dong-bo` | Nút kéo dữ liệu ngay, kèm lịch sử các lượt đồng bộ |
-| `/may-muon` | Nhập phiếu mượn máy pocket, đánh dấu đã nhận lại |
+| `/wifi`, `/wifi/[nguoi]`, `/esim` | Phễu quảng cáo, nguồn là sheet bên MKT |
+
+Hai ràng buộc cần giữ khi sửa các màn này, cả hai đều đã từng vỡ:
+
+- **Hàng đợi phải là tập con của trạm.** Hàng đợi rộng hơn trạm nghĩa là bảo
+  người đi làm việc mà chính bản đồ trạm nói không còn.
+- **Bảng trạm gom TỪ `v_tram_chi_tiet`**, không đếm riêng một đường. Hai câu
+  đếm song song thì sớm muộn cũng lệch, và lúc đó không biết tin bên nào.
+
+Nối tham số vào đường dẫn thì dùng `them()` ở `app/duong-dan.ts`, đừng viết
+`?` thẳng: màn nào cũng có thể bị gộp thành tab, lúc đó đường dẫn đã mang sẵn
+phần truy vấn và hai dấu hỏi làm mọi bộ lọc im lặng biến mất.
 
 Bảo vệ bằng basic auth một tài khoản dùng chung (`MONITOR_USER`,
 `MONITOR_PASSWORD`). Đủ cho mạng nội bộ, **không đủ để đưa ra internet** —
 không có phiên, không ghi được ai làm gì, không khoá sau nhiều lần sai.
-Đưa ra ngoài thì phải thay bằng đăng nhập thật.
+Đưa ra ngoài thì phải thay bằng đăng nhập thật. Bản production bắt buộc phải
+có hai biến đó: thiếu thì middleware trả 500 chứ không chạy mở.
 
 Schema là SQL thuần với view và plpgsql nên phần này dùng `pg` trực tiếp,
 không dùng Prisma — Prisma introspect được bảng nhưng không quản view và function.
