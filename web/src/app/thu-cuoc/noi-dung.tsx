@@ -79,11 +79,12 @@ export async function NoiDungThuCuoc({
     <>
       <p className="muted">
         Từng khoản còn phải thu, xếp theo hạn — cái quá hạn lâu nhất lên đầu,
-        rồi tới cái sắp tới hạn. Hạn của wifi cầm tay là mùng 1 của tháng dùng.
-        Wifi cố định thì <b>tính tới hết tháng hiện tại</b>: kỳ tháng này chưa
-        có phiếu thu đã duyệt là vào danh sách ngay, không chờ mùng 10 tháng
-        sau. Hoàn tiền cho khách không nằm ở đây vì đó là khoản 3M phải trả,
-        không phải khoản đi thu.
+        rồi tới cái sắp tới hạn. <b>Hai mảng thu ngược nhau</b>, nên đừng đọc
+        chung một luật: wifi cầm tay <b>thu trước</b>, hạn là mùng 1 của tháng
+        dùng; wifi cố định <b>thu sau</b>, hết tháng dùng mới phải đóng. Kỳ
+        tháng 10 bên cố định vào danh sách nợ từ 01/11 và thành quá hạn từ
+        11/11 — mười ngày ở giữa là ân hạn. Hoàn tiền cho khách không nằm ở đây
+        vì đó là khoản 3M phải trả, không phải khoản đi thu.
       </p>
 
       <div className="the-hang">
