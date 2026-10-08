@@ -64,7 +64,11 @@ export const KY_CUOC: Record<string, string> = {
   DA_THU: "đã thu",
   MIEN_PHI: "miễn phí",
   CHO_DUYET: "chờ duyệt",
-  GHI_CHU: "chỉ ghi chú",
+  // Nguồn gọi là NOTE_ONLY, nhưng "chỉ ghi chú" không nói người đọc biết điều
+  // gì. Cả 498 kỳ loại này đều có số tiền BẰNG 0 kèm ngày thu và kênh: ai đó
+  // đã mở dòng sổ mà không nhập được đồng nào. Với người đi đòi thì nó y hệt
+  // chưa thu, chỉ khác là sổ đã có dòng.
+  GHI_CHU: "chưa thu · sổ ghi 0đ",
   NO: "chưa thu",
   CHUA_DEN_HAN: "chưa tới hạn",
   CHO_COC: "đã nộp, chờ duyệt",
@@ -76,7 +80,7 @@ export const CANH_BAO: Record<string, string> = {
   THIEU_GIA_CUOC: "thiếu giá cước",
   THIEU_NGAY_THU: "thiếu ngày bắt đầu thu",
   CHO_DUYET: "chờ duyệt",
-  GHI_CHU: "chỉ ghi chú",
+  GHI_CHU: "kỳ ghi 0 đồng",
   NGOAI_KY: "kỳ ngoài khoảng",
   THU_THIEU: "thu thiếu tiền",
   KHO_DOI: "khách khó đòi",
@@ -393,7 +397,7 @@ export const THU_NGOAI_CACH_XU_LY: Record<string, string> = {
 /** Sổ cước ghi gì cho tháng nằm giữa ngày kết thúc thu và ngày huỷ. */
 export const KY_HUT: Record<string, string> = {
   KHONG_CO_DONG: "không có dòng nào",
-  GHI_CHU: "chỉ ghi chú",
+  GHI_CHU: "dòng ghi 0 đồng",
   CHO_DUYET: "chờ duyệt",
   MIEN_PHI: "được miễn",
   DA_THU: "đã thu",

@@ -35,7 +35,7 @@ export async function NoiDungTienThang({ searchParams }: { searchParams: Promise
       <h2>Tiền cước thực nhận theo {donVi === "ngay" ? "ngày thu" : "tháng thu"}</h2>
       <p className="muted">
         Gom theo <b>ngày thu tiền</b>, không theo kỳ cước — hôm đó nhận về bao nhiêu, của
-        kỳ nào cũng tính. Kỳ miễn phí và kỳ chỉ ghi chú vẫn đếm là một lần chốt sổ nhưng
+        kỳ nào cũng tính. Kỳ miễn phí và kỳ ghi 0 đồng vẫn đếm là một lần chốt sổ nhưng
         không sinh tiền.
       </p>
       {thu.length === 0 ? (

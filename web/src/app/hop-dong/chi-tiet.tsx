@@ -24,7 +24,7 @@ import {
 const n = (v: string | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
-/** Kỳ chưa thu và kỳ mới chỉ ghi chú đều là việc còn dang dở, tô đỏ. */
+/** Kỳ chưa thu và kỳ sổ ghi 0 đồng đều là tiền chưa về, tô đỏ. */
 const DO = new Set(["NO", "CHO_DUYET", "GHI_CHU"]);
 
 /** Cùng một trạng thái "NO" nhưng ba nghĩa khác nhau, tách ra ở đây. */
@@ -291,9 +291,10 @@ export async function ChiTiet({
             Kỳ ghi “tuỳ chỉnh” là bên CMS bật ô “tuỳ chỉnh số tiền thu”: thu ít hơn
             giá cước nhưng coi như xong, không tính vào nợ.{" "}
             “Miễn phí” là tháng được tha cước: cột “phải thu” để mờ vì tiền đó
-            không còn phải đòi, và kỳ đó không tính vào nợ. “Chỉ ghi chú” và
-            “chờ duyệt” thì ngược lại — chưa tính là đã thu nên vẫn nằm trong
-            nợ. “Ngoài kỳ” là dòng trong sổ ứng với tháng nằm ngoài khoảng hệ
+            không còn phải đòi, và kỳ đó không tính vào nợ. “Sổ ghi 0đ” là bên
+            CMS đã mở dòng thu cho kỳ đó — có ngày, thường có cả kênh — nhưng
+            số tiền bằng 0; cùng với “chờ duyệt” thì ngược lại với miễn phí:
+            chưa tính là đã thu nên vẫn nằm trong nợ. “Ngoài kỳ” là dòng trong sổ ứng với tháng nằm ngoài khoảng hệ
             thống tính được — trả trước, nhập nhầm năm, hoặc hợp đồng chưa lắp
             nên không có khoảng nào để tính.
           </p>

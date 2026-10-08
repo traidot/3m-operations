@@ -47,7 +47,8 @@ const CAU: Record<string, (r: Contract) => string | null> = {
   CHO_DUYET: (r) =>
     `${r.ky_cho_duyet} kỳ đang chờ duyệt` +
     (Number(r.tien_treo_duyet) > 0 ? `, treo ${n(r.tien_treo_duyet)}` : ""),
-  GHI_CHU: (r) => `${r.ky_ghi_chu} kỳ chỉ ghi chú, không ra tiền`,
+  GHI_CHU: (r) =>
+    `${r.ky_ghi_chu} kỳ có dòng trong sổ nhưng ghi 0 đồng — tiền vẫn chưa về`,
   NGOAI_KY: (r) =>
     `${r.ky_ngoai} kỳ nằm ngoài khoảng ${r.fee_start_on ?? "?"} → ${r.fee_end_on ?? "?"}`,
   THU_THIEU: () => "Có kỳ thu ít hơn cước tháng — chênh nằm ở từng kỳ, mở hợp đồng để xem",

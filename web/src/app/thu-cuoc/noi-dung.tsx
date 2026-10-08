@@ -288,7 +288,7 @@ export async function NoiDungThuCuoc({
       )}
 
       <p className="muted khoi-ghi-chu">
-        “Chờ duyệt” và “chỉ ghi chú” bên wifi cố định là kỳ chưa ai chốt là thu
+        “Chờ duyệt” và “sổ ghi 0đ” bên wifi cố định là kỳ chưa ai chốt là thu
         hay miễn — vẫn nằm trong danh sách vì tiền chưa vào. Bảng cắt ở 500
         dòng; lọc theo mảng hoặc “chỉ quá hạn” để thu hẹp.
       </p>
