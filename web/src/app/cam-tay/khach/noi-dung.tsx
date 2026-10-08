@@ -9,6 +9,7 @@ import {
   getSubsForParties,
   getTelecomCustomers,
   getTelecomYearStatus,
+  getTelecomYearStatusKhach,
   type CustomerFilter,
   type CustomerSub,
   type TelecomDevice,
@@ -27,6 +28,7 @@ import {
 import { Chip, ChipLoaiKhach } from "../../chip";
 import { LOAI_KHACH, MAU_DICH_VU, MAU_TRANG_THAI } from "@/lib/nhan";
 import { DaiKy } from "../../hop-dong/dai-ky";
+import { DaiKyKhach } from "./dai-ky-khach";
 
 const n = (v: string | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
@@ -136,9 +138,8 @@ function dichVu(
         {s.goi && <span className="muted"> · {s.goi}</span>}
         {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
         <May may={theoMay.get(s.subscription_id)} />
-        {/* Dải này chỉ vẽ hoá đơn CƯỚC. Khách nợ đơn hàng hay phí khác vẫn
-            mang cờ "nợ quá hạn" mà dải toàn ô trống — hiện có 30 hoá đơn đơn
-            hàng tháng 10 chưa thu, không cái nào gắn thuê bao nào. */}
+        {/* Dải của THUÊ BAO: chỉ hoá đơn cước. Phần đơn hàng và phí khác
+            nằm ở dải của khách phía trên, vì chúng không gắn thuê bao nào. */}
         <DaiKy
           nam={theoNam.get(s.subscription_id)}
           lop={LOP_KY_TELECOM}
@@ -213,6 +214,7 @@ export async function NoiDungKhach({
     .flat()
     .map((s) => s.subscription_id);
   const mayTheoThueBao = await getDevicesForSubs(maThueBao);
+  const namTheoKhach = await getTelecomYearStatusKhach(rows.map((r) => r.party_id));
   const namTheoThueBao = await getTelecomYearStatus(
     [...dichVuTheoKhach.values()].flat().map((s) => s.subscription_id),
   );
@@ -340,6 +342,10 @@ export async function NoiDungKhach({
                     <div className="mono muted">
                       {[r.ma_khach, r.dien_thoai].filter(Boolean).join(" · ") || "—"}
                     </div>
+                    {/* Dải của KHÁCH: gồm cả hoá đơn đơn hàng và phí khác,
+                        những thứ không gắn thuê bao nên dải bên dưới không
+                        vẽ được. Nhờ đó cờ "nợ quá hạn" luôn có chỗ đối chiếu. */}
+                    <DaiKyKhach nam={namTheoKhach.get(r.party_id)} />
                   </td>
                   <td>
                     <ChipLoaiKhach ma={r.loai_khach} />

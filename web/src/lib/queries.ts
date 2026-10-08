@@ -2567,3 +2567,27 @@ export const getTelecomMonthsNam = (nam: string) =>
        from v_telecom_month where ky like $1 || '-%' order by ky desc`,
     [nam],
   );
+
+export type YearStatusKhach = YearStatus & {
+  party_id: string;
+  /** Loại hoá đơn của từng tháng, để chú giải nói rõ đang nợ thứ gì. */
+  cac_loai: (string | null)[];
+};
+
+/**
+ * Dải 12 tháng theo KHÁCH — xem db/225.
+ *
+ * Khác getTelecomYearStatus ở chỗ gom theo người nên vẽ được cả hoá đơn đơn
+ * hàng và phí khác, những thứ không gắn thuê bao nào. Bỏ hoàn tiền vì đó là
+ * khoản 3M trả lại khách, không phải khoản đi thu.
+ */
+export const getTelecomYearStatusKhach = async (ids: string[]) => {
+  if (ids.length === 0) return new Map<string, YearStatusKhach>();
+  const rows = await query<YearStatusKhach>(
+    `select party_id, nam, tu_thang, den_thang, co_mo_dau, co_ket_thuc,
+            cac_ky, cac_loai
+       from v_telecom_year_status_khach where party_id = any($1)`,
+    [ids],
+  );
+  return new Map(rows.map((r) => [r.party_id, r]));
+};
