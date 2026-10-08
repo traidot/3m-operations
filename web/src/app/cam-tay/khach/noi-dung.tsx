@@ -136,6 +136,9 @@ function dichVu(
         {s.goi && <span className="muted"> · {s.goi}</span>}
         {s.ma_may && <span className="mono muted"> · {s.ma_may}</span>}
         <May may={theoMay.get(s.subscription_id)} />
+        {/* Dải này chỉ vẽ hoá đơn CƯỚC. Khách nợ đơn hàng hay phí khác vẫn
+            mang cờ "nợ quá hạn" mà dải toàn ô trống — hiện có 30 hoá đơn đơn
+            hàng tháng 10 chưa thu, không cái nào gắn thuê bao nào. */}
         <DaiKy
           nam={theoNam.get(s.subscription_id)}
           lop={LOP_KY_TELECOM}
@@ -246,9 +249,10 @@ export async function NoiDungKhach({
         Một khách có thể dùng nhiều dịch vụ cùng lúc nên nợ cộng theo người,
         không theo thuê bao — kể cả hoá đơn không gắn thuê bao nào. Tìm được cả
         theo mã khách và mã máy. Có party là tài khoản CTV hoặc đại lý giữ hàng
-        trăm thuê bao — lọc “từ 2 thuê bao” để thấy. Phiếu thu xuất mùng 5 và 15
-        cho tháng sau; qua mùng 1 của tháng dùng mà chưa thu được thì vào cột
-        “nợ quá hạn” và tới mức xem xét huỷ dịch vụ. Khách loại <b>đại lý</b> tự thu nên
+        trăm thuê bao — lọc “từ 2 thuê bao” để thấy. Wifi cầm tay <b>thu trước</b>:
+        phiếu thu xuất mùng 5 và 15 cho tháng sau, qua mùng 1 của tháng dùng mà
+        chưa thu được là vào cột “nợ quá hạn” ngay và tới mức xem xét huỷ dịch
+        vụ — khác hẳn wifi cố định vốn thu sau. Khách loại <b>đại lý</b> tự thu nên
         mọi ô về cước để trống và không vào danh sách thu cước.
       </p>
 
