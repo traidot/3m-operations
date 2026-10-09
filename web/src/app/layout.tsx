@@ -11,13 +11,10 @@ export const metadata: Metadata = {
 /**
  * Menu gom theo CÂU HỎI người xem mang vào, không theo mảng kinh doanh.
  *
- * Gom theo mảng thì nhóm "cần xử lý" cắt ngang mọi mảng khác, và cùng một màn
- * vừa thuộc chỗ này vừa thuộc chỗ kia. Ba nhóm dưới đây loại trừ nhau: một lần
- * mở màn chỉ có một câu hỏi chính.
- *
- * Mỗi nhóm đúng hai màn, một cho mỗi mảng. Mọi màn cũ đã tan vào đây dưới dạng
- * tab; các đường cũ không còn, trừ bốn màn nằm ngoài phạm vi giám sát vận hành
- * ở cuối file.
+ * Bảy màn đầu là bộ chính. Những mục còn lại mang tên quen thuộc của các màn
+ * cũ, nhưng trỏ thẳng vào tab đã nuốt chúng — màn cũ không còn URL riêng, nội
+ * dung thì còn nguyên. Giữ tên cũ trong menu để người quen đường cũ vẫn tìm
+ * được, mà không phải dựng lại hai lớp màn nói cùng một chuyện.
  */
 const MENU: NhomMenu[] = [
   {
@@ -43,23 +40,45 @@ const MENU: NhomMenu[] = [
     ],
   },
   {
+    // Tên cũ, đích mới. Mỗi mục dẫn thẳng vào tab giữ nội dung của màn đó.
+    nhom: "Màn cũ",
+    muc: [
+      { ten: "Hôm nay", href: "/diem-nghen?xem=hom-nay" },
+      { ten: "Hôm nay · cố định", href: "/diem-nghen?xem=hom-nay&he=co-dinh" },
+      { ten: "Hôm nay · cầm tay", href: "/diem-nghen?xem=hom-nay&he=cam-tay" },
+      { ten: "Hợp đồng theo tháng", href: "/diem-nghen?xem=dong-chay&he=co-dinh" },
+      { ten: "Huỷ thuê bao", href: "/diem-nghen?xem=dong-chay&he=cam-tay" },
+      { ten: "Thu cước", href: "/viec-hom-nay/co-dinh?tab=cong-no" },
+      { ten: "Dự kiến huỷ", href: "/viec-hom-nay/co-dinh?tab=du-kien-huy" },
+      { ten: "Cọc", href: "/viec-hom-nay/cam-tay?tab=coc" },
+      { ten: "Cước theo tháng", href: "/tien/co-dinh?xem=cuoc-thang" },
+      { ten: "Tiền theo tháng", href: "/tien/co-dinh?xem=thuc-nhan" },
+      { ten: "Tiền treo chưa gán", href: "/tien/cam-tay?xem=chua-gan" },
+      { ten: "Khách và dịch vụ", href: "/tra-cuu/cam-tay?tab=khach" },
+      { ten: "Máy cho thuê", href: "/tra-cuu/cam-tay?tab=may" },
+      { ten: "Đối chiếu kho", href: "/tra-cuu/cam-tay?tab=kho" },
+      { ten: "Hai bên biết gì", href: "/tra-cuu/cam-tay?tab=kho&goc=hai-ben" },
+      { ten: "Tổng quan cầm tay", href: "/tra-cuu/cam-tay?tab=tong-quan" },
+    ],
+  },
+  {
+    nhom: "Marketing",
+    muc: [
+      { ten: "Chung", href: "/wifi" },
+      { ten: "Đình Việt", href: "/wifi/viet" },
+      { ten: "Việt Hoàng", href: "/wifi/hoang" },
+      { ten: "eSIM", href: "/esim" },
+    ],
+  },
+  {
     nhom: "Dữ liệu",
     muc: [
+      { ten: "Bản tin", href: "/" },
       { ten: "Duyệt trùng khách", href: "/duyet-trung" },
       { ten: "Đồng bộ", href: "/dong-bo" },
     ],
   },
 ];
-
-/**
- * Màn còn chạy nhưng không bày trong menu, vì nằm ngoài phạm vi giám sát vận
- * hành hai mảng wifi:
- *
- *   /           Bản tin — danh sách phát hiện tự động, chưa gắn vào màn nào
- *   /wifi, /wifi/[nguoi], /esim   Marketing, nguồn là sheet bên MKT
- *
- * Bảy màn còn lại của bản thiết kế cũ đã tan hết vào các tab ở trên.
- */
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
