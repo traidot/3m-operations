@@ -4,6 +4,9 @@ import { getThuChuaCanTru, type ThuChuaCanTru } from "@/lib/queries";
 import { KENH_THU, LOAI_KHACH, MAU_LOAI_KHACH } from "@/lib/nhan";
 import { them } from "../../duong-dan";
 
+/** Trần số dòng bày ra; phần còn lại dùng bộ lọc. */
+const TRAN_HIEN = 200;
+
 const n = (v: string | number | null) =>
   v === null ? "—" : Math.round(Number(v)).toLocaleString("vi-VN");
 
@@ -41,6 +44,9 @@ export async function NoiDungChuaCanTru({ searchParams }: { searchParams: Promis
   const tim = mot(sp.q).trim().toLowerCase();
 
   let rows = tatCa;
+  // Dựng cả danh sách ra HTML là chỗ chậm, không phải truy vấn. Cắt phần bày
+  // ra; bộ lọc và ô tìm kiếm phía trên mới là đường tới đúng dòng cần xem.
+  const hien = rows.slice(0, TRAN_HIEN);
   for (const l of LOC) {
     const v = chon[l.ma];
     if (v) rows = rows.filter((r) => l.lay(r) === v);
@@ -142,6 +148,12 @@ export async function NoiDungChuaCanTru({ searchParams }: { searchParams: Promis
 
       <p className="muted">
         {n(rows.length)} lượt · {n(cong(rows))} yên
+        {rows.length > TRAN_HIEN && (
+          <>
+            {" "}— bảng chỉ bày {n(TRAN_HIEN)} dòng đầu, lọc hẹp lại để xem
+            phần còn lại
+          </>
+        )}
       </p>
 
       {rows.length === 0 ? (
@@ -162,7 +174,7 @@ export async function NoiDungChuaCanTru({ searchParams }: { searchParams: Promis
               </tr>
             </thead>
             <ThanBam>
-              {rows.map((r) => (
+              {hien.map((r) => (
                 <tr key={r.payment_id}>
                   <td className="mono">{r.paid_at.slice(0, 10)}</td>
                   <td className="muted">

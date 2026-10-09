@@ -6,6 +6,9 @@ import {
 } from "@/lib/nhan";
 import { VIEC } from "../viec";
 
+/** Trần số dòng bày ra; phần còn lại dùng bộ lọc. */
+const TRAN_HIEN = 200;
+
 const n = (v: string | number | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
 
@@ -47,6 +50,9 @@ export async function NoiDungKhoDanhSach({ searchParams }: { searchParams: Promi
   const viec = VIEC.find((v) => v.ma === mot(sp.viec));
 
   let rows = tatCa;
+  // Dựng cả danh sách ra HTML là chỗ chậm, không phải truy vấn. Cắt phần bày
+  // ra; bộ lọc và ô tìm kiếm phía trên mới là đường tới đúng dòng cần xem.
+  const hien = rows.slice(0, TRAN_HIEN);
   if (viec) rows = rows.filter(viec.hop);
   if (cd) rows = rows.filter((r) => r.cho_dung === cd);
   if (lk) rows = rows.filter((r) => (r.loai_khach ?? "khong-ro") === lk);
@@ -174,6 +180,12 @@ export async function NoiDungKhoDanhSach({ searchParams }: { searchParams: Promi
 
       <p className="muted">
         {n(rows.length)} mã
+        {rows.length > TRAN_HIEN && (
+          <>
+            {" "}— bảng chỉ bày {n(TRAN_HIEN)} dòng đầu, lọc hẹp lại để xem
+            phần còn lại
+          </>
+        )}
         {viec && ` · ${viec.ten}`}
         {lk && ` · ${lk === "khong-ro" ? "không rõ loại" : (LOAI_KHACH[lk] ?? lk)}`}
         {cd && ` · ${CHO_DUNG[cd]}`}
@@ -205,7 +217,7 @@ export async function NoiDungKhoDanhSach({ searchParams }: { searchParams: Promi
               </tr>
             </thead>
             <ThanBam>
-              {rows.map((r) => (
+              {hien.map((r) => (
                 <tr key={r.ma_chuan}>
                   <td className="mono">
                     {r.ma}
