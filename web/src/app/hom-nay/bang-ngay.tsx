@@ -152,13 +152,33 @@ export function BangNgay({
 
   // Hai số "đã duyệt / tổng ghi nhận" kèm dấu. Phần chênh là tiền đã đếm trên
   // báo cáo mà kế toán chưa xác nhận.
-  const oTien = (duyet: number, tong: number, dam = false) => {
-    if (tong === 0) return <span className="muted">—</span>;
-    if (!dauDuyet) return dam ? <b>{n(tong)}</b> : <>{n(tong)}</>;
+  /**
+   * Số đợt đi kèm số tiền, xuống dòng cho khỏi chen ngang hai con số chính.
+   *
+   * Cùng một khoản tiền có thể là một đợt to hay mười đợt lẻ, và hai chuyện đó
+   * khác hẳn nhau khi đi dò sổ — nhưng cột tiền không nói được.
+   */
+  const soDot = (so: number) =>
+    so === 0 ? null : (
+      <div className="so-dot muted">
+        {n(so)} đợt
+      </div>
+    );
+
+  const oTien = (duyet: number, tong: number, dam = false, so = 0) => {
+    if (tong === 0 && so === 0) return <span className="muted">—</span>;
+    if (!dauDuyet)
+      return (
+        <>
+          {dam ? <b>{n(tong)}</b> : n(tong)}
+          {soDot(so)}
+        </>
+      );
     return (
       <>
         <span className="muted">{n(duyet)}</span> / {dam ? <b>{n(tong)}</b> : n(tong)}
         <Dau du={duyet === tong} chenh={tong - duyet} />
+        {soDot(so)}
       </>
     );
   };
@@ -168,9 +188,18 @@ export function BangNgay({
     const r = o.get(`${cs}|${d}`);
     if (kieu !== "tien" || laCoc(cs)) {
       const v = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
-      return v === 0 ? <span className="muted">—</span> : <>{n(v)}</>;
+      if (v === 0) return <span className="muted">—</span>;
+      // Cột cọc cũng là tiền, nên vẫn cần biết gom từ mấy đợt.
+      return kieu === "tien" ? (
+        <>
+          {n(v)}
+          {soDot(giaTri(r, "so"))}
+        </>
+      ) : (
+        <>{n(v)}</>
+      );
     }
-    return oTien(giaTri(r, "duyet"), giaTri(r, "tien"));
+    return oTien(giaTri(r, "duyet"), giaTri(r, "tien"), false, giaTri(r, "so"));
   };
 
   const coSo = (cs: string, d: string) =>
@@ -222,7 +251,12 @@ export function BangNgay({
                 {congTong && chiSos.length > 1 && (
                   <td className="num mono">
                     {kieu === "tien" ? (
-                      oTien(congQua(kenhThat, d, "duyet"), congQua(kenhThat, d, "tien"), true)
+                      oTien(
+                        congQua(kenhThat, d, "duyet"),
+                        congQua(kenhThat, d, "tien"),
+                        true,
+                        congQua(kenhThat, d, "so"),
+                      )
                     ) : congQua(chiSos, d, "so") === 0 ? (
                       <span className="muted">—</span>
                     ) : (

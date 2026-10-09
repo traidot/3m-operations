@@ -585,3 +585,7 @@ nav a.dang-mo {
 .nhom-loc { margin-top: 10px; }
 .nhom-loc .nhan-nhom { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .nhom-loc .actions { margin-top: 4px; }
+
+/* Số đợt dưới số tiền trong bảng 28 ngày: nhỏ hẳn một bậc vì nó là chú thích
+   cho con số bên trên, không phải một số liệu ngang hàng. */
+.so-dot { font-size: 0.78rem; line-height: 1.3; margin-top: 1px; }
