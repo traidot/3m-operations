@@ -50,13 +50,13 @@ fi
 # Diễn giải bằng LLM là phần đọc cho dễ, không phải phần tính. Thiếu khoá thì
 # bỏ qua chứ đừng báo hỏng: bản tin vẫn đầy đủ, chỉ là không có lời bình.
 ghi "3/3 diễn giải bản tin (tuỳ chọn)"
-if grep -q '^ANTHROPIC_API_KEY=.\+' .env.local 2>/dev/null; then
+if grep -qE '^(GEMINI_API_KEY|GOOGLE_API_KEY)=.+' .env.local 2>/dev/null; then
   if ! (cd agent && npm run --silent digest) >>"$FILE" 2>&1; then
     ghi "LỖI: diễn giải hỏng — xem $FILE"
     HONG=1
   fi
 else
-  ghi "      bỏ qua: chưa đặt ANTHROPIC_API_KEY"
+  ghi "      bỏ qua: chưa đặt GEMINI_API_KEY"
 fi
 
 # Một dòng tổng kết để liếc log là biết lượt đó có thật sự lấy được gì không.

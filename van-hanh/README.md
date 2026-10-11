@@ -21,7 +21,7 @@ Bước 1 hỏng mà **vẫn chạy bước 2** là có chủ ý: quy tắc đ�
 `run_rules` là "đồng bộ quá hạn", bỏ bước chấm chính là bịt mất cái chuông duy
 nhất báo rằng dữ liệu đang cũ.
 
-Bước 3 cần `ANTHROPIC_API_KEY`. Thiếu thì bản tin vẫn đầy đủ, chỉ không có lời
+Bước 3 cần `GEMINI_API_KEY`. Thiếu thì bản tin vẫn đầy đủ, chỉ không có lời
 bình — nên script bỏ qua chứ không báo hỏng.
 
 ## Chạy theo lịch (macOS)

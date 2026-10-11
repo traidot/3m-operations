@@ -1,5 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import { GoogleGenAI, Type } from "@google/genai";
 import { z } from "zod";
 import type { Digest } from "./collect.js";
 import type { WeeklyDigest } from "./weekly.js";
@@ -60,37 +59,85 @@ Thêm luật cho báo cáo tuần:
 10. Chênh lệch dưới năm phần trăm giữa hai tuần thường là nhiễu, đừng gọi
    thành xu hướng.`;
 
+/**
+ * Khuôn kết quả mô tả theo kiểu của Gemini.
+ *
+ * Phải khai tay vì SDK Gemini không nhận thẳng schema Zod như SDK cũ. Zod vẫn
+ * giữ lại để kiểm lần cuối: khuôn dưới đây chỉ ràng buộc lúc sinh, còn việc
+ * mô hình trả đúng kiểu hay không thì phải tự xác nhận.
+ */
+const KHUON = {
+  type: Type.OBJECT,
+  required: ["mo_dau", "phan_quyet"],
+  properties: {
+    mo_dau: { type: Type.STRING },
+    phan_quyet: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        required: ["severity", "title", "evidence"],
+        properties: {
+          severity: { type: Type.STRING, enum: ["CRITICAL", "WARN", "INFO"] },
+          title: { type: Type.STRING },
+          evidence: { type: Type.STRING },
+          so_sanh: { type: Type.STRING, nullable: true },
+          action: { type: Type.STRING, nullable: true },
+          finding_id: { type: Type.STRING, nullable: true },
+          metabase_url: { type: Type.STRING, nullable: true },
+        },
+      },
+    },
+  },
+} as const;
+
+/** Thiếu khoá thì nói thẳng tên biến, đừng để SDK ném lỗi khó hiểu. */
+function layKhoa(): string {
+  const k = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+  if (!k) {
+    throw new Error(
+      "Chưa đặt GEMINI_API_KEY trong .env.local — lớp diễn giải cần khoá này",
+    );
+  }
+  return k;
+}
+
 export async function judge(
   digest: Digest | WeeklyDigest,
   kind: "hang_ngay" | "hang_tuan" = "hang_ngay",
 ): Promise<Judgement> {
-  const client = new Anthropic();
+  const ai = new GoogleGenAI({ apiKey: layKhoa() });
 
-  const response = await client.messages.parse({
-    model: "claude-opus-5",
-    max_tokens: 16000,
-    thinking: { type: "adaptive" },
-    system: kind === "hang_tuan" ? HANG_TUAN : CHUNG,
-    messages: [
-      {
-        role: "user",
-        content:
-          `Dữ liệu ${kind === "hang_tuan" ? `tuần bắt đầu ${digest.ngay}` : `ngày ${digest.ngay}`}:\n\n` +
-          "```json\n" +
-          JSON.stringify(digest, null, 2) +
-          "\n```",
-      },
-    ],
-    output_config: { format: zodOutputFormat(JudgementSchema) },
+  const res = await ai.models.generateContent({
+    model: process.env.GEMINI_MODEL ?? "gemini-2.5-pro",
+    contents:
+      `Dữ liệu ${kind === "hang_tuan" ? `tuần bắt đầu ${digest.ngay}` : `ngày ${digest.ngay}`}:\n\n` +
+      "```json\n" +
+      JSON.stringify(digest, null, 2) +
+      "\n```",
+    config: {
+      systemInstruction: kind === "hang_tuan" ? HANG_TUAN : CHUNG,
+      responseMimeType: "application/json",
+      responseSchema: KHUON,
+      maxOutputTokens: 16000,
+    },
   });
 
-  if (response.stop_reason === "refusal") {
-    throw new Error(
-      `Mô hình từ chối trả lời: ${response.stop_details?.explanation ?? "không rõ lý do"}`,
-    );
+  const text = res.text;
+  if (!text) {
+    throw new Error("Mô hình không trả về nội dung nào");
   }
-  if (!response.parsed_output) {
-    throw new Error("Không đọc được kết quả có cấu trúc từ mô hình");
+
+  // Dựng JSON rồi mới kiểm bằng Zod: responseSchema ràng buộc lúc sinh nhưng
+  // không đảm bảo, nên vẫn phải xác nhận trước khi đẩy vào bản tin.
+  let tho: unknown;
+  try {
+    tho = JSON.parse(text);
+  } catch {
+    throw new Error(`Kết quả không phải JSON hợp lệ: ${text.slice(0, 200)}`);
   }
-  return response.parsed_output;
+  const kq = JudgementSchema.safeParse(tho);
+  if (!kq.success) {
+    throw new Error(`Kết quả sai khuôn: ${kq.error.issues[0]?.message ?? "không rõ"}`);
+  }
+  return kq.data;
 }
