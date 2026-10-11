@@ -1,6 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import OpenAI from "openai";
 import { z } from "zod";
-import type { Digest } from "./collect.js";
+import type { Digest, Finding } from "./collect.js";
 import type { WeeklyDigest } from "./weekly.js";
 
 const VerdictSchema = z.object({
@@ -60,74 +60,160 @@ Thêm luật cho báo cáo tuần:
    thành xu hướng.`;
 
 /**
- * Khuôn kết quả mô tả theo kiểu của Gemini.
+ * Khuôn kết quả, viết bằng JSON Schema.
  *
- * Phải khai tay vì SDK Gemini không nhận thẳng schema Zod như SDK cũ. Zod vẫn
- * giữ lại để kiểm lần cuối: khuôn dưới đây chỉ ràng buộc lúc sinh, còn việc
- * mô hình trả đúng kiểu hay không thì phải tự xác nhận.
+ * Khai tay vì phải gửi nguyên văn cho máy chủ. Chế độ strict đòi mọi khoá đều
+ * nằm trong required và không cho thêm khoá lạ, nên khoá có thể trống được
+ * khai là kiểu ["string", "null"] chứ không phải bỏ khỏi required. Zod vẫn giữ
+ * để kiểm lần cuối: khuôn này chỉ ràng buộc lúc sinh, không đảm bảo kết quả.
  */
 const KHUON = {
-  type: Type.OBJECT,
+  type: "object",
+  additionalProperties: false,
   required: ["mo_dau", "phan_quyet"],
   properties: {
-    mo_dau: { type: Type.STRING },
+    mo_dau: { type: "string" },
     phan_quyet: {
-      type: Type.ARRAY,
+      type: "array",
       items: {
-        type: Type.OBJECT,
-        required: ["severity", "title", "evidence"],
+        type: "object",
+        additionalProperties: false,
+        required: [
+          "severity",
+          "title",
+          "evidence",
+          "so_sanh",
+          "action",
+          "finding_id",
+          "metabase_url",
+        ],
         properties: {
-          severity: { type: Type.STRING, enum: ["CRITICAL", "WARN", "INFO"] },
-          title: { type: Type.STRING },
-          evidence: { type: Type.STRING },
-          so_sanh: { type: Type.STRING, nullable: true },
-          action: { type: Type.STRING, nullable: true },
-          finding_id: { type: Type.STRING, nullable: true },
-          metabase_url: { type: Type.STRING, nullable: true },
+          severity: { type: "string", enum: ["CRITICAL", "WARN", "INFO"] },
+          title: { type: "string" },
+          evidence: { type: "string" },
+          so_sanh: { type: ["string", "null"] },
+          action: { type: ["string", "null"] },
+          finding_id: { type: ["string", "null"] },
+          metabase_url: { type: ["string", "null"] },
         },
       },
     },
   },
 } as const;
 
+/** Mặc định khi .env.local chỉ khai khoá mà không khai máy chủ và mô hình. */
+const BASE_URL_MAC_DINH = "https://generativelanguage.googleapis.com/v1beta/openai";
+const MODEL_MAC_DINH = "gemini-2.5-flash-lite";
+
+/** Bản tin dài nhất đo được khoảng 4k token; phần dư để mô hình suy nghĩ. */
+const MAX_TOKEN = 32000;
+
+/**
+ * Số việc mỗi luật được gửi kèm.
+ *
+ * Phần lớn luật đã gộp sẵn thành một dòng, nhưng R_PARTY_STALE đẩy ra một dòng
+ * cho mỗi khách — hơn 1.300 dòng, tức hơn 140k token đầu vào, và mô hình sẽ
+ * viết một phán quyết cho từng dòng cho đến khi vỡ hạn mức. Chỉ gửi vài dòng
+ * làm mẫu rồi nói tổng số bằng lời; bản tin vẫn dựng từ đủ findings.
+ */
+const MOI_LUAT_TOI_DA = 5;
+
+type RutGon = { rule_key: string; tong_so: number; gui_kem: number };
+
+/** Gửi mẫu thay vì gửi hết, kèm tổng số để mô hình không phán theo số dòng. */
+function rutGonFindings(findings: Finding[]): {
+  findings: Finding[];
+  da_rut_gon: RutGon[];
+} {
+  const theoLuat = new Map<string, Finding[]>();
+  for (const f of findings) {
+    const ds = theoLuat.get(f.rule_key);
+    if (ds) ds.push(f);
+    else theoLuat.set(f.rule_key, [f]);
+  }
+
+  const giu: Finding[] = [];
+  const da_rut_gon: RutGon[] = [];
+  for (const [rule_key, ds] of theoLuat) {
+    // Tồn lâu nhất lên trước: nếu chỉ được xem vài dòng thì xem dòng tệ nhất.
+    const xep = [...ds].sort((a, b) => Number(b.so_ngay_ton) - Number(a.so_ngay_ton));
+    giu.push(...xep.slice(0, MOI_LUAT_TOI_DA));
+    if (ds.length > MOI_LUAT_TOI_DA) {
+      da_rut_gon.push({ rule_key, tong_so: ds.length, gui_kem: MOI_LUAT_TOI_DA });
+    }
+  }
+  return { findings: giu, da_rut_gon };
+}
+
 /** Thiếu khoá thì nói thẳng tên biến, đừng để SDK ném lỗi khó hiểu. */
 function layKhoa(): string {
-  const k = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+  const k = process.env.LLM_API_KEY;
   if (!k) {
     throw new Error(
-      "Chưa đặt GEMINI_API_KEY trong .env.local — lớp diễn giải cần khoá này",
+      "Chưa đặt LLM_API_KEY trong .env.local — lớp diễn giải cần khoá này",
     );
   }
   return k;
+}
+
+/** Dựng phần dữ liệu gửi cho mô hình, rút gọn findings nếu có luật quá dài. */
+function moTa(digest: Digest | WeeklyDigest, kind: "hang_ngay" | "hang_tuan"): string {
+  const moc = kind === "hang_tuan" ? `tuần bắt đầu ${digest.ngay}` : `ngày ${digest.ngay}`;
+  const co_findings = "findings" in digest;
+  const { findings, da_rut_gon } = co_findings
+    ? rutGonFindings(digest.findings)
+    : { findings: [], da_rut_gon: [] as RutGon[] };
+  const than = co_findings ? { ...digest, findings } : digest;
+
+  const ghi_chu = da_rut_gon.length
+    ? "\n\nMảng findings đã rút gọn: " +
+      da_rut_gon
+        .map((r) => `${r.rule_key} thực có ${r.tong_so} việc, chỉ gửi kèm ${r.gui_kem} việc tồn lâu nhất`)
+        .join("; ") +
+      ".\nVới những luật này phải nói theo tổng số thực có, không nói theo số dòng gửi kèm, " +
+      "và chỉ ra một phán quyết cho cả luật chứ không phán từng dòng."
+    : "";
+
+  return `Dữ liệu ${moc}:\n\n\`\`\`json\n${JSON.stringify(than, null, 2)}\n\`\`\`${ghi_chu}`;
 }
 
 export async function judge(
   digest: Digest | WeeklyDigest,
   kind: "hang_ngay" | "hang_tuan" = "hang_ngay",
 ): Promise<Judgement> {
-  const ai = new GoogleGenAI({ apiKey: layKhoa() });
-
-  const res = await ai.models.generateContent({
-    model: process.env.GEMINI_MODEL ?? "gemini-2.5-pro",
-    contents:
-      `Dữ liệu ${kind === "hang_tuan" ? `tuần bắt đầu ${digest.ngay}` : `ngày ${digest.ngay}`}:\n\n` +
-      "```json\n" +
-      JSON.stringify(digest, null, 2) +
-      "\n```",
-    config: {
-      systemInstruction: kind === "hang_tuan" ? HANG_TUAN : CHUNG,
-      responseMimeType: "application/json",
-      responseSchema: KHUON,
-      maxOutputTokens: 16000,
-    },
+  const ai = new OpenAI({
+    apiKey: layKhoa(),
+    baseURL: process.env.LLM_BASE_URL ?? BASE_URL_MAC_DINH,
   });
 
-  const text = res.text;
+  const res = await ai.chat.completions.create({
+    model: process.env.LLM_MODEL ?? MODEL_MAC_DINH,
+    max_completion_tokens: MAX_TOKEN,
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "phan_quyet", strict: true, schema: KHUON },
+    },
+    messages: [
+      { role: "system", content: kind === "hang_tuan" ? HANG_TUAN : CHUNG },
+      { role: "user", content: moTa(digest, kind) },
+    ],
+  });
+
+  const lua = res.choices[0];
+  const text = lua?.message.content;
   if (!text) {
     throw new Error("Mô hình không trả về nội dung nào");
   }
+  // Hết hạn mức token thì JSON đứt giữa dòng. Nói thẳng, đừng để lỗi hiện ra
+  // dưới dạng "JSON không hợp lệ" rồi phải đi đoán.
+  if (lua?.finish_reason === "length") {
+    throw new Error(
+      `Mô hình bị cắt vì hết hạn mức token (đã dùng ${res.usage?.completion_tokens ?? "?"}). ` +
+        "Nâng MAX_TOKEN trong judge.ts hoặc chọn mô hình khác.",
+    );
+  }
 
-  // Dựng JSON rồi mới kiểm bằng Zod: responseSchema ràng buộc lúc sinh nhưng
+  // Dựng JSON rồi mới kiểm bằng Zod: response_format ràng buộc lúc sinh nhưng
   // không đảm bảo, nên vẫn phải xác nhận trước khi đẩy vào bản tin.
   let tho: unknown;
   try {
