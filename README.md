@@ -101,6 +101,15 @@ npm run weekly -- 2026-08-31
 Có khoá chống chạy chồng: bấm chạy tay lúc job đêm đang chạy thì bị từ chối
 chứ không chạy song song. Chạy lại nhiều lần trong ngày không nhân đôi dữ liệu.
 
+## Vận hành hàng ngày
+
+```bash
+./van-hanh/hang-ngay.sh          # một lượt: đồng bộ → chấm quy tắc → bản tin
+```
+
+Chạy theo lịch bốn lượt mỗi ngày, cách xử lý khi đồng bộ hỏng, và chỗ đổi
+ngưỡng: xem [van-hanh/README.md](van-hanh/README.md).
+
 ## Giao diện
 
 ```bash

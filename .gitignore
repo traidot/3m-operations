@@ -12,3 +12,6 @@ next-env.d.ts
 
 # File khoá tạm Excel tạo ra khi đang mở file
 ~$*
+
+# Log vận hành: sinh ra mỗi lượt chạy, không thuộc về mã nguồn.
+van-hanh/log/
