@@ -302,6 +302,9 @@ export const KHO_PM: Record<string, string> = {
   // Phiếu xuất đánh dấu is_no_recall: giao đi không đòi lại. Chỉ 7 trong 1.196
   // cái còn thuê bao chạy, nên không cùng rổ với máy đang cho thuê.
   GIAO_LUON: "giao luôn, không thu hồi",
+  // Sim xuất kho là xong, không có việc thu hồi. Gồm cả esim và sim data 1 năm,
+  // nhận theo tên đời máy vì hai loại đó không có trong device_snapshot.
+  SIM_DA_XUAT: "sim đã xuất, không thu hồi",
   DA_BAN: "đã bán đứt",
   HONG_HUY: "hỏng, đã huỷ",
   // Phiếu xuất để khớp sổ với thực tế: nói sổ từng sai, KHÔNG nói máy đi đâu.
