@@ -103,7 +103,13 @@ const KHUON = {
 
 /** Mặc định khi .env.local chỉ khai khoá mà không khai máy chủ và mô hình. */
 const BASE_URL_MAC_DINH = "https://generativelanguage.googleapis.com/v1beta/openai";
-const MODEL_MAC_DINH = "gemini-2.5-flash-lite";
+/**
+ * flash-lite đã thử và không dùng được: nó lấy so_ky=11 của một hợp đồng rồi
+ * viết thành "11 hợp đồng nợ quá hạn" — số có thật trong đầu vào nhưng gắn sai
+ * nhãn, nên luật "chỉ dùng số có trong đầu vào" không chặn được. Nó cũng bỏ
+ * sót việc và chép lại tiêu đề vào ô evidence.
+ */
+const MODEL_MAC_DINH = "gemini-2.5-flash";
 
 /** Bản tin dài nhất đo được khoảng 4k token; phần dư để mô hình suy nghĩ. */
 const MAX_TOKEN = 32000;
