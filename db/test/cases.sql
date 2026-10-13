@@ -545,3 +545,25 @@ begin
     'hợp đồng bị đánh dấu khó đòi phải có KHO_DOI — đang là ' || v_cb::text;
   assert not ('NO_NANG' = any(v_cb)), 'C6 đã thu đủ, không được gắn NO_NANG';
 end $$;
+
+-- ── Cảnh báo đồng bộ hỏng ─────────────────────────────────────────────
+-- Lượt đồng bộ chết giữa chừng mà không luật nào kêu thì bản tin vẫn báo
+-- "xong" trên dữ liệu cũ. Đây là chuyện đã xảy ra thật một lần.
+do $$
+declare v_loi text := 'column i.isNoRecall does not exist';
+begin
+  insert into sync_run (source, table_name, started_at, finished_at, status, error, triggered_by)
+  values ('TELECOM', 'stock_move', now(), now(), 'FAILED', v_loi, 'test');
+
+  assert exists (select 1 from v_sync_that_bai
+                  where table_name = 'stock_move' and loi_ngan = v_loi),
+    'lượt chạy gần nhất hỏng thì phải hiện trong v_sync_that_bai';
+
+  -- Chạy lại thành công thì thôi kêu, không nhắc mãi lần hỏng cũ.
+  insert into sync_run (source, table_name, started_at, finished_at, status, triggered_by)
+  values ('TELECOM', 'stock_move', now() + interval '1 second',
+          now() + interval '1 second', 'OK', 'test');
+
+  assert not exists (select 1 from v_sync_that_bai where table_name = 'stock_move'),
+    'chạy lại thành công thì không được kêu nữa';
+end $$;
