@@ -1,5 +1,6 @@
 import { Bars } from "../wifi/bars";
 import Link from "next/link";
+import { GiuTab } from "../giu-tab";
 import {
   getTelecomChannels,
   getTelecomMonths,
@@ -131,6 +132,7 @@ export async function NoiDungTongQuanCamTay({ searchParams }: { searchParams: Pr
 
       <h2>Tiền về theo kênh</h2>
       <form method="get" className="formgrid">
+        <GiuTab sp={sp} />
         <label>
           Từ ngày
           <input type="date" name="tu" defaultValue={tu} />

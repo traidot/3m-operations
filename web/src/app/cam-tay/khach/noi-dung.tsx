@@ -29,6 +29,7 @@ import { Chip, ChipLoaiKhach } from "../../chip";
 import { LOAI_KHACH, MAU_DICH_VU, MAU_TRANG_THAI } from "@/lib/nhan";
 import { DaiKy } from "../../hop-dong/dai-ky";
 import { DaiKyKhach } from "./dai-ky-khach";
+import { GiuTab } from "../../giu-tab";
 
 const n = (v: string | null) =>
   v === null ? "—" : Number(v).toLocaleString("vi-VN");
@@ -259,6 +260,7 @@ export async function NoiDungKhach({
       </p>
 
       <form method="get">
+        <GiuTab sp={sp} />
         <div className="formgrid">
           <label>
             Tên, mã khách, điện thoại hoặc mã máy

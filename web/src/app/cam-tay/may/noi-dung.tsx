@@ -5,6 +5,7 @@ import { ChiTietMay } from "./chi-tiet";
 import { getTelecomMay, type TelecomMay } from "@/lib/queries";
 import { KHONG_NHOM, LOC, NHOM_LOC, locRows } from "./loc";
 import { COC, LOAI_KHACH, MAU_MAY_CUOC, MAY, MAY_CUOC } from "@/lib/nhan";
+import { GiuTab } from "../../giu-tab";
 
 /** Trần số dòng bày ra; phần còn lại lọc hoặc xuất Excel. */
 const TRAN_HIEN = 200;
@@ -143,6 +144,7 @@ export async function NoiDungMay({ searchParams }: { searchParams: Promise<Tham>
       </p>
 
       <form method="get">
+        <GiuTab sp={sp} />
         <div className="formgrid">
           <label>
             IMEI, mã khách, tên khách hoặc mã thuê bao

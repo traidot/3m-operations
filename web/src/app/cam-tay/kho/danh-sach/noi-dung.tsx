@@ -5,6 +5,7 @@ import {
   KHO_PM, LOAI_KHACH, LOAI_MA, MAU_LOAI_KHACH, MAU_MAY_CUOC, MAY_CUOC, PHIEU_KHO,
 } from "@/lib/nhan";
 import { VIEC } from "../viec";
+import { GiuTab } from "../../../giu-tab";
 
 /** Trần số dòng bày ra; phần còn lại dùng bộ lọc. */
 const TRAN_HIEN = 200;
@@ -94,6 +95,7 @@ export async function NoiDungKhoDanhSach({ searchParams }: { searchParams: Promi
       </p>
 
       <form method="get">
+        <GiuTab sp={sp} />
         <div className="formgrid">
           <label>
             Mã máy, khách, người giữ hoặc mục trong file
