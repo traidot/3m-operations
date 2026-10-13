@@ -230,9 +230,14 @@ export const STOCK_MOVE = `
     d."subscriptionId"::text                     as subscription_source_id,
     d."customerId"::text                         as source_customer_id,
     v.name                                       as vendor_name,
-    -- Ô "không cần thu hồi" trên từng dòng phiếu xuất. Thiếu nó thì mọi màn
-    -- hình đòi máy đều kể oan những máy vốn xuất đi là xong.
-    coalesce(i."isNoRecall", false)              as is_no_recall,
+    -- Ô "không cần thu hồi". Thiếu nó thì mọi màn hình đòi máy đều kể oan
+    -- những máy vốn xuất đi là xong.
+    --
+    -- Nguồn đã dời cờ này: trước nằm trên từng dòng phiếu xuất, nay nằm ở
+    -- device_info và gắn với mã máy, nên một máy đánh dấu là mọi phiếu của nó
+    -- đều không phải thu hồi. device_info mới phủ 2.540 trong 8.294 mã từng
+    -- lên phiếu; mã chưa có bản ghi coi như không đánh dấu.
+    coalesce(di."isNoRecall", false)             as is_no_recall,
     i."deviceRecallStatus"::text                 as device_recall_status,
     nullif(btrim(i."deviceRecallNote"), '')      as device_recall_note
   from inventory_document_item i
@@ -243,6 +248,7 @@ export const STOCK_MOVE = `
   -- 1.736 mã còn nằm trong kho, vì chúng chưa từng cho thuê nên không có
   -- order_item nào để suy ra.
   left join product pr on pr.id = i."productId"
+  left join device_info di on di."deviceCode" = i."deviceCode" and di."deletedAt" is null
   where i."deletedAt" is null
 `;
 
