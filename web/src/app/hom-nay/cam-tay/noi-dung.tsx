@@ -179,7 +179,8 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
         y="mỗi kênh thu một cột, đơn vị yên"
         ds={cua("tien")}
         kieu="tien"
-        dauDuyet={false}
+        chiaDoi="can"
+        phu="Cột nào cũng là đã cấn vào hoá đơn / tổng về. Phần chênh là tiền đã vào tài khoản mà chưa ai nói nó trả cho hoá đơn nào, nên nợ của khách chưa giảm."
       />
 
       <BangNgay
@@ -187,7 +188,7 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
         y="theo ngày phát hành, đơn vị yên"
         ds={cua("hoa_don")}
         kieu="tien"
-        dauDuyet={false}
+        chiaDoi={false}
         phu="Đây là tiền ĐÁNG LẼ phải thu của ngày phát hành, khác với bảng trên vốn đếm theo ngày tiền về. Hai bảng không cộng trừ được với nhau."
       />
 

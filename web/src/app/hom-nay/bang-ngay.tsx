@@ -50,11 +50,21 @@ export const lopNgay = (ngay: string, homNay: string) => {
  * font, mỗi máy ra một cỡ một nét, và cái tam giác cảnh báo thường bị font
  * dựng mảnh tới mức nhìn không ra.
  */
-export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
+export function Dau({
+  du,
+  chenh,
+  viec = "duyệt",
+}: {
+  du: boolean;
+  chenh: number;
+  /** Việc còn dở, để tooltip nói đúng chuyện: cố định là duyệt, cầm tay là
+   *  cấn vào hoá đơn. */
+  viec?: string;
+}) {
   return (
     <span
       className={`dau ${du ? "du" : "lech"}`}
-      title={du ? "đã duyệt hết" : `còn ${n(chenh)} chưa duyệt`}
+      title={du ? `đã ${viec} hết` : `còn ${n(chenh)} chưa ${viec}`}
     >
       <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
         {du ? (
@@ -105,7 +115,7 @@ export function Dau({ du, chenh }: { du: boolean; chenh: number }) {
  * thêm đồng nào.
  */
 export function BangNgay({
-  ten, y, ds, kieu, phu, phuNut, congTong = true, moO, dauDuyet = true,
+  ten, y, ds, kieu, phu, phuNut, congTong = true, moO, chiaDoi = "duyet",
 }: {
   ten: string;
   y: string;
@@ -117,9 +127,12 @@ export function BangNgay({
   /** Đường dẫn của trang chứa bảng. Có thì mỗi ô có số thành một liên kết mở
    *  ngăn kéo chi tiết; không có thì ô là chữ thường. */
   moO?: string;
-  /** Tắt ở nguồn không có khái niệm duyệt — bên cầm tay tiền về là xong, dấu
-   *  luôn khớp nên chỉ thành nhiễu. */
-  dauDuyet?: boolean;
+  /** Ô tiền hiện "phần đã xong / tổng" theo nghĩa nào, hay chỉ hiện tổng.
+   *
+   *  "duyet" là bước kế toán xác nhận của wifi cố định. "can" là tiền đã cấn
+   *  vào hoá đơn bên cầm tay — bên này không có bước duyệt. false dành cho
+   *  bảng không chẻ đôi được, ví dụ hoá đơn phát hành. */
+  chiaDoi?: "duyet" | "can" | false;
   /** Tắt khi các cột lồng nhau — "đơn hẹn" đã gồm cả "đã lắp xong", cộng lại
    *  ra số không tồn tại. */
   congTong?: boolean;
@@ -150,8 +163,9 @@ export function BangNgay({
   const kenhThat = kieu === "tien" ? chiSos.filter((cs) => !laCoc(cs)) : chiSos;
   const kenhCoc = kieu === "tien" ? chiSos.filter(laCoc) : [];
 
-  // Hai số "đã duyệt / tổng ghi nhận" kèm dấu. Phần chênh là tiền đã đếm trên
-  // báo cáo mà kế toán chưa xác nhận.
+  // Hai số "phần đã xong / tổng" kèm dấu. Phần chênh là tiền đã về mà còn dở
+  // một bước: cố định là kế toán chưa duyệt, cầm tay là chưa cấn vào hoá đơn.
+  const viecDo = chiaDoi === "can" ? "cấn vào hoá đơn" : "duyệt";
   /**
    * Số đợt đi kèm số tiền, xuống dòng cho khỏi chen ngang hai con số chính.
    *
@@ -167,7 +181,7 @@ export function BangNgay({
 
   const oTien = (duyet: number, tong: number, dam = false, so = 0) => {
     if (tong === 0 && so === 0) return <span className="muted">—</span>;
-    if (!dauDuyet)
+    if (!chiaDoi)
       return (
         <>
           {dam ? <b>{n(tong)}</b> : n(tong)}
@@ -177,7 +191,7 @@ export function BangNgay({
     return (
       <>
         <span className="muted">{n(duyet)}</span> / {dam ? <b>{n(tong)}</b> : n(tong)}
-        <Dau du={duyet === tong} chenh={tong - duyet} />
+        <Dau du={duyet === tong} chenh={tong - duyet} viec={viecDo} />
         {soDot(so)}
       </>
     );
