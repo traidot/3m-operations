@@ -115,7 +115,7 @@ export function Dau({
  * thêm đồng nào.
  */
 export function BangNgay({
-  ten, y, ds, kieu, phu, phuNut, congTong = true, moO, chiaDoi = "duyet",
+  ten, y, ds, kieu, phu, phuNut, congTong = true, moO, chiaDoi = "duyet", nhan,
 }: {
   ten: string;
   y: string;
@@ -127,6 +127,10 @@ export function BangNgay({
   /** Đường dẫn của trang chứa bảng. Có thì mỗi ô có số thành một liên kết mở
    *  ngăn kéo chi tiết; không có thì ô là chữ thường. */
   moO?: string;
+  /** Tên hiển thị của từng chỉ số. Để riêng khỏi chỉ số vì chỉ số còn là khoá
+   *  của ô trong URL khi mở ngăn kéo — đổi nhãn ngay từ dữ liệu thì khoá cũng
+   *  thành nhãn và truy vấn chi tiết không tìm ra gì. */
+  nhan?: Record<string, string>;
   /** Ô tiền hiện "phần đã xong / tổng" theo nghĩa nào, hay chỉ hiện tổng.
    *
    *  "duyet" là bước kế toán xác nhận của wifi cố định. "can" là tiền đã cấn
@@ -226,7 +230,7 @@ export function BangNgay({
               <th>Ngày</th>
               {chiSos.map((cs) => (
                 <th key={cs} className="num">
-                  {cs}
+                  {nhan?.[cs] ?? cs}
                   {kieu === "so" && (
                     <span className="muted">
                       {" · "}

@@ -3,6 +3,7 @@ import { BangNgay } from "../bang-ngay";
 import { SoSanh } from "../so-sanh";
 import { BangChoMuon } from "../cho-muon";
 import { ChiTietCanTru, ChiTietMayVe } from "../chi-tiet-cho-muon";
+import { ChiTietTienCamTay } from "../chi-tiet-tien-cam-tay";
 import {
   getFreshness,
   getChoMuonDangGiu,
@@ -54,12 +55,7 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
   const thang = `${thangNay.ky.slice(5, 7)}/${thangNay.ky.slice(0, 4)}`;
   const ngay = Number(thangNay.ngay_da_qua);
 
-  // Tên kênh bên nguồn viết bằng mã; dịch ra cho dễ đọc, mã lạ thì giữ nguyên
-  // chứ không giấu đi.
-  const cua = (nhom: string) =>
-    ngay28
-      .filter((r) => r.nhom === nhom)
-      .map((r) => ({ ...r, chi_so: KENH_THU[r.chi_so] ?? r.chi_so }));
+  const cua = (nhom: string) => ngay28.filter((r) => r.nhom === nhom);
 
   return (
     <>
@@ -180,6 +176,8 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
         ds={cua("tien")}
         kieu="tien"
         chiaDoi="can"
+        moO={DUONG_DAN}
+        nhan={KENH_THU}
         phu="Cột nào cũng là đã cấn vào hoá đơn / tổng về. Phần chênh là tiền đã vào tài khoản mà chưa ai nói nó trả cho hoá đơn nào, nên nợ của khách chưa giảm."
       />
 
@@ -224,6 +222,14 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
         ) : (
           <ChiTietCanTru ky={ky} dongLai={DUONG_DAN} />
         );
+      })()}
+
+      {(() => {
+        // Ô được mở nằm trong URL nên F5 hay gửi link cho người khác vẫn ra
+        // đúng ngăn kéo đó.
+        const [kenh, ngay] = mot(sp.o).split("|");
+        if (!kenh || !ngay) return null;
+        return <ChiTietTienCamTay kenh={kenh} ngay={ngay} dongLai={DUONG_DAN} />;
       })()}
     </>
   );

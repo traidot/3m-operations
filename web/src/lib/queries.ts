@@ -1947,6 +1947,31 @@ export const getDotThuNgay = (kenh: string, ngay: string) =>
     [kenh, ngay],
   );
 
+export type DotThuNgayCamTay = {
+  source_id: string;
+  khach: string;
+  ma_khach: string | null;
+  tien: string;
+  reference: string | null;
+  ngay_go: string | null;
+  nguoi_go: string | null;
+  da_can: boolean;
+  ly_do: string | null;
+  url: string | null;
+  ngay: string;
+};
+
+/** Từng khoản thu đằng sau một ô của bảng tiền theo ngày bên cầm tay — db/230. */
+export const getDotThuNgayCamTay = (kenh: string, ngay: string) =>
+  query<DotThuNgayCamTay>(
+    `select source_id, khach, ma_khach, tien::text, reference, ngay_go::text,
+            nguoi_go, da_can, ly_do, url, ngay::text
+       from v_telecom_dot_thu_ngay
+      where kenh = $1 and ngay = $2::date
+      order by tien desc, khach`,
+    [kenh, ngay],
+  );
+
 /** Công nợ cước wifi cố định, một dòng — xem db/189. */
 export const getCongNoCoDinh = async () => {
   const [row] = await query<{ hop_dong: string; tien: string; ky: string }>(
