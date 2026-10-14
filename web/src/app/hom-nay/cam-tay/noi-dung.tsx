@@ -178,7 +178,19 @@ export async function NoiDungHomNayCamTay({ searchParams }: { searchParams: Prom
         chiaDoi="can"
         moO={DUONG_DAN}
         nhan={KENH_THU}
-        phu="Cột nào cũng là đã cấn vào hoá đơn / tổng về. Phần chênh là tiền đã vào tài khoản mà chưa ai nói nó trả cho hoá đơn nào, nên nợ của khách chưa giảm."
+        phuNut={
+          <>
+            Cột nào cũng là đã cấn vào hoá đơn / tổng về. Phần chênh là tiền đã
+            vào tài khoản mà chưa ai nói nó trả cho hoá đơn nào, nên nợ của khách
+            chưa giảm.{" "}
+            {/* Thẻ a thường: trả về tệp tải xuống, không phải trang. Bảng chỉ
+                bày 28 ngày, còn tệp lấy hết — khoản treo lâu nhất mới đáng đi
+                đòi, mà nó nằm ngoài cửa sổ của bảng. */}
+            <a href="/cam-tay/chua-can-tru/xuat" download>
+              <button type="button">Xuất Excel toàn bộ khoản chưa cấn</button>
+            </a>
+          </>
+        }
       />
 
       <BangNgay
