@@ -200,19 +200,14 @@ export function BangNgay({
   /** Nội dung một ô, chưa bọc liên kết. */
   const noiDung = (cs: string, d: string) => {
     const r = o.get(`${cs}|${d}`);
-    if (kieu !== "tien" || laCoc(cs)) {
-      const v = kieu === "tien" ? giaTri(r, "tien") : giaTri(r, "so");
+    if (kieu !== "tien") {
+      const v = giaTri(r, "so");
       if (v === 0) return <span className="muted">—</span>;
-      // Cột cọc cũng là tiền, nên vẫn cần biết gom từ mấy đợt.
-      return kieu === "tien" ? (
-        <>
-          {n(v)}
-          {soDot(giaTri(r, "so"))}
-        </>
-      ) : (
-        <>{n(v)}</>
-      );
+      return <>{n(v)}</>;
     }
+    // Cột cọc đứng ngoài tổng nhưng vẫn là tiền và vẫn có bước duyệt, nên
+    // hiện hai số như mọi cột khác. Trước đây nó chỉ hiện một số, thành ra
+    // không nhìn được phần cọc đã trừ mà kế toán chưa xác nhận.
     return oTien(giaTri(r, "duyet"), giaTri(r, "tien"), false, giaTri(r, "so"));
   };
 
