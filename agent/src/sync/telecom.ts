@@ -252,14 +252,23 @@ export const STOCK_MOVE = `
   where i."deletedAt" is null
 `;
 
-/** Máy bật/tắt ở phía nhà mạng. Bảng này không có cột xoá mềm. */
+/**
+ * Máy bật/tắt ở phía nhà mạng. Bảng này không có cột xoá mềm.
+ *
+ * Khoá là imei chứ không phải id. Nguồn xoá rồi chèn lại bản ghi mỗi lần quét
+ * nhà mạng — 3.476 dòng mà id đã chạy từ 204.187 tới 288.652 — nên lấy id làm
+ * khoá thì mỗi lượt đồng bộ của ta dọn đi rồi ghi lại gần hết bảng. imei duy
+ * nhất trên từng dòng và là thứ mọi view dùng để nối, không view nào đụng tới
+ * source_id của bảng này.
+ */
 export const PROVIDER_DEVICE = `
   select
-    p.id::text     as source_id,
+    p.imei         as source_id,
     p.imei         as device_code,
     p.state::text  as state,
     p.vendor::text as vendor
   from provider_device_state p
+  where p.imei is not null
 `;
 
 export const STAFF = `
